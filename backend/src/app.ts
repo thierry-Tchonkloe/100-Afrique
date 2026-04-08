@@ -39,9 +39,20 @@ app.use(helmet());
  * CORS - Configuration
  * Autorise les requêtes cross-origin depuis les origines définies
  */
+// app.use(
+//   cors({
+//     origin: config.cors.origin,
+//     credentials: true,
+//   })
+// );
+
+
 app.use(
   cors({
-    origin: config.cors.origin,
+    origin: [
+      'http://localhost:3000',
+      'https://100-afrique.vercel.app',
+    ],
     credentials: true,
   })
 );
