@@ -39,9 +39,14 @@ export default function MagazineCard({ magazine }: MagazineCardProps) {
       year: 'numeric',
     });
   };
+
+  const magazineUrl = `/magazine/${magazine.slug}`;
  
   return (
-    <Link href={`/magazines/${magazine.slug}`} className="group block">
+    <Link
+      href={magazineUrl}
+      className="group block"
+    >
       <div className="bg-white rounded-xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-100">
         {/* Image de couverture */}
         <div className="relative aspect-[3/4] overflow-hidden">

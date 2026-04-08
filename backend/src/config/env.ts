@@ -54,6 +54,11 @@ export const config = {
     ttl: parseInt(process.env.CACHE_TTL || '3600', 10),
   },
 
+  // RSS
+  rss: {
+    schedulerEnabled: process.env.RSS_SCHEDULER_ENABLED !== 'false',
+  },
+
   // Pagination
   pagination: {
     defaultPageSize: parseInt(process.env.DEFAULT_PAGE_SIZE || '10', 10),

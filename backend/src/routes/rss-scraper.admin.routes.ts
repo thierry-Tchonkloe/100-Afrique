@@ -1,12 +1,17 @@
 // src/routes/rss-scraper.admin.routes.ts
 import { Router } from "express";
 import { asyncHandler } from "../middlewares/errorHandler";
+import { authenticate } from "../middlewares/auth";
 import {
   importArticles,
   updateRSSMagazineStatus,
+  getImportHistory,
 } from "../controllers/rss-scraper.controller";
  
 const router = Router();
+
+// Protéger toutes les routes admin par middleware d'auth
+router.use(authenticate);
  
 /**
 * Admin routes for RSS scraper
@@ -16,5 +21,6 @@ const router = Router();
 */
 router.post("/import", asyncHandler(importArticles));
 router.put("/:id/status", asyncHandler(updateRSSMagazineStatus));
+router.get("/history", asyncHandler(getImportHistory));
  
 export default router;

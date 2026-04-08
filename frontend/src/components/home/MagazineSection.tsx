@@ -1,22 +1,21 @@
 // src/components/home/MagazineSection.tsx
 "use client";
 
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Check, Loader2 } from 'lucide-react';
-import api from '@/lib/api';
+import { fetchMagazines } from '@/services/Dashboard/magazineService';
 
 interface Magazine {
   id: number;
   title: string;
   slug: string;
-  coverImage: string;
-  excerpt: string;
-  createdAt: string;
+  url: string;
+  coverImage: string | null;
+  excerpt: string | null;
+  publishedAt: string;
   metaTitle?: string;
-  category: {
-    name: string;
-  };
+  readOnlineUrl?: string;
 }
 
 const MagazineSection = () => {
@@ -26,20 +25,15 @@ const MagazineSection = () => {
   useEffect(() => {
     const fetchMagazine = async () => {
       try {
-        // ✅ Endpoint futur : Catégorie "Magazine" spécifique
-        // Pour l'instant, on récupère le dernier article featured
-        const res = await api.get('/mag/articles', {
-          params: {
-            featured: true,
-            pageSize: 1,
-            page: 1,
-            status: 'PUBLISHED'
-            // TODO: Ajouter categoryId pour "Magazine" dans l'API
-          }
+        const response = await fetchMagazines({
+          page: 1,
+          pageSize: 1,
+          sortBy: 'publishedAt',
+          sortOrder: 'desc',
         });
-        
-        if (res.data && res.data.data.length > 0) {
-          setLatestMag(res.data.data[0]);
+
+        if (response.success && response.data.magazines.length > 0) {
+          setLatestMag(response.data.magazines[0]);
         }
       } catch (error) {
         console.error("Erreur MagazineSection:", error);
@@ -66,8 +60,9 @@ const MagazineSection = () => {
   }
 
   const issueDate = latestMag 
-    ? new Date(latestMag.createdAt).toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' }).toUpperCase()
+    ? new Date(latestMag.publishedAt).toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' }).toUpperCase()
     : "DÉCEMBRE 2024";
+  const magazineUrl = latestMag ? `/magazine/${latestMag.slug}` : "/magazine";
 
   return (
     <section className="py-20 bg-white">
@@ -113,18 +108,18 @@ const MagazineSection = () => {
             </ul>
 
             <div className="flex flex-wrap gap-4">
-              <Link 
-                href={latestMag ? `/articles/${latestMag.slug}` : "/magazine"}
+              <Link
+                href={magazineUrl}
                 className="px-8 py-3.5 border-2 border-[#001A4D] text-[#001A4D] rounded-lg font-bold text-sm hover:bg-[#001A4D] hover:text-white transition-all tracking-wide"
               >
                 Consulter cet extrait
               </Link>
               
               <Link 
-                href="/abonnement"
+                href="/magazine"
                 className="px-8 py-3.5 bg-[#F39C12] text-white rounded-lg font-bold text-sm hover:bg-[#D68910] transition-all tracking-wide shadow-md"
               >
-                S&apos;abonner / Acheter
+                Voir tous les magazines
               </Link>
             </div>
           </div>

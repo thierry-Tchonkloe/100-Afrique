@@ -4,12 +4,18 @@ import { RSSScraperService } from './rss-scraper.service';
  
 class RSSSchedulerService {
   private rssScraper: RSSScraperService;
+  private started = false;
  
   constructor() {
     this.rssScraper = new RSSScraperService();
   }
  
   startScheduler() {
+    if (this.started) {
+      return;
+    }
+
+    this.started = true;
     console.log('🚀 Démarrage du scheduler RSS - Toutes les 6 heures');
     
     // Exécuter immédiatement au démarrage

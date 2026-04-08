@@ -480,9 +480,8 @@ export default function RSSImportPage() {
  
   const fetchImportHistory = async () => {
     try {
-      // API pour récupérer l'historique (à implémenter côté backend)
-      // const response = await api.get('/magazines/rss/history');
-      // setHistory(response.data);
+      const response = await api.get("/admin/scraper/history");
+      if (response && response.data) setHistory(response.data);
     } catch (error) {
       console.error('Erreur chargement historique:', error);
     }

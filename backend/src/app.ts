@@ -8,6 +8,7 @@ import { disconnectDatabase } from './config/database';
 import routes from './routes';
 import { errorHandler, notFoundHandler } from './middlewares/errorHandler';
 import { logger } from './utils/logger';
+import { rssScheduler } from './services/rss-scheduler.service';
 
 /**
  * Initialisation de l'application Express
@@ -142,6 +143,13 @@ const server = app.listen(PORT, () => {
   logger.info('  • Destinations: /api/destinations/*');
   logger.info('  • Articles: /api/mag/articles/*');
   logger.info('  • Catégories: /api/mag/categories/*');
+
+  if (config.rss.schedulerEnabled) {
+    rssScheduler.startScheduler();
+    logger.info('  • RSS Scheduler: activé');
+  } else {
+    logger.info('  • RSS Scheduler: désactivé');
+  }
 });
 
 // ========================================

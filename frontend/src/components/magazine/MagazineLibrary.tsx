@@ -1,28 +1,21 @@
 // src/components/magazine/MagazineLibrary.tsx
 "use client";
 
-import React, { useEffect, useState } from 'react';
-import Image from 'next/image';
 import Link from 'next/link';
+import { useEffect, useState } from 'react';
 import { Loader2, Search } from 'lucide-react';
-import api from '@/lib/api';
+import { fetchMagazines } from '@/services/Dashboard/magazineService';
 
 interface Magazine {
   id: number;
   title: string;
   slug: string;
-  coverImage: string;
-  excerpt: string;
-  createdAt: string;
+  url: string;
+  coverImage: string | null;
+  excerpt: string | null;
+  publishedAt: string;
   metaTitle?: string;
-}
-
-interface ApiParams {
-  pageSize: number;
-  page: number;
-  status: string;
-  year?: number;
-  tag?: string;
+  readOnlineUrl?: string;
 }
 
 const categories = [
@@ -38,33 +31,17 @@ const MagazineLibrary = () => {
   const [activeFilter, setActiveFilter] = useState('all');
   const [loading, setLoading] = useState(true);
 
-  const fetchMagazines = async (filter: string) => {
+  const loadMagazines = async () => {
     setLoading(true);
     try {
-      const params: ApiParams = {
-        pageSize: 20,
+      const response = await fetchMagazines({
         page: 1,
-        status: 'PUBLISHED'
-        // TODO Backend: Ajouter categorySlug: 'magazine'
-      };
+        pageSize: 60,
+        sortBy: 'publishedAt',
+        sortOrder: 'desc',
+      });
 
-      // Filtrage par année
-      if (filter === '2024' || filter === '2023') {
-        const year = parseInt(filter);
-        // TODO Backend: Ajouter filtres dateFrom et dateTo
-        params.year = year;
-      }
-      
-      // TODO Backend: Ajouter des tags ou sous-catégories pour 'destinations' et 'culture'
-      if (filter === 'destinations') {
-        params.tag = 'destinations';
-      } else if (filter === 'culture') {
-        params.tag = 'culture';
-      }
-
-      const response = await api.get('/mag/articles', { params });
-      
-      setMagazines(response.data.data || []);
+      setMagazines(response.success ? response.data.magazines : []);
     } catch (error) {
       console.error("Erreur bibliothèque:", error);
       setMagazines([]);
@@ -74,8 +51,26 @@ const MagazineLibrary = () => {
   };
 
   useEffect(() => {
-    fetchMagazines(activeFilter);
-  }, [activeFilter]);
+    loadMagazines();
+  }, []);
+
+  const filteredMagazines = (() => {
+    if (activeFilter === 'all') {
+      return magazines;
+    }
+
+    if (activeFilter === '2024' || activeFilter === '2023') {
+      return magazines.filter(
+        (magazine) =>
+          new Date(magazine.publishedAt).getFullYear().toString() === activeFilter,
+      );
+    }
+
+    return magazines.filter((magazine) => {
+      const haystack = `${magazine.title} ${magazine.excerpt || ''}`.toLowerCase();
+      return haystack.includes(activeFilter.toLowerCase());
+    });
+  })();
 
   // Fonction pour extraire le numéro depuis le titre ou metaTitle
   const extractNumber = (magazine: Magazine): string => {
@@ -83,7 +78,7 @@ const MagazineLibrary = () => {
       const match = magazine.metaTitle.match(/N°(\d+)/i);
       if (match) return match[1];
     }
-    return (new Date(magazine.createdAt).getMonth() + 1).toString();
+    return (new Date(magazine.publishedAt).getMonth() + 1).toString();
   };
 
   return (
@@ -124,11 +119,14 @@ const MagazineLibrary = () => {
           <div className="py-20 flex justify-center">
             <Loader2 className="animate-spin text-it-orange" size={48} />
           </div>
-        ) : magazines.length > 0 ? (
+        ) : filteredMagazines.length > 0 ? (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-8">
-            {magazines.map((mag) => (
+            {filteredMagazines.map((mag) => {
+              const magazineUrl = `/magazine/${mag.slug}`;
+
+              return (
               <Link
-                href={`/magazine/${mag.slug}`}
+                href={magazineUrl}
                 key={mag.id}
                 className="group cursor-pointer"
               >
@@ -156,14 +154,14 @@ const MagazineLibrary = () => {
                     {mag.excerpt || mag.title}
                   </p>
                   <p className="text-gray-400 text-[10px] font-medium">
-                    {new Date(mag.createdAt).toLocaleDateString('fr-FR', {
+                    {new Date(mag.publishedAt).toLocaleDateString('fr-FR', {
                       month: 'long',
                       year: 'numeric'
                     })}
                   </p>
                 </div>
               </Link>
-            ))}
+            )})}
           </div>
         ) : (
           <div className="text-center py-20 bg-white rounded-3xl border-2 border-dashed border-gray-200">

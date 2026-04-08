@@ -127,7 +127,7 @@
 import { getToken } from "@/lib/auth";
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5000/api";
  
-interface Magazine {
+export interface Magazine {
   id: number;
   title: string;
   slug: string;
@@ -148,6 +148,8 @@ interface Magazine {
   previewUrl?: string;
   downloadUrl?: string;
   shareUrl?: string;
+  embedUrl?: string;
+  relatedMagazines?: Magazine[];
 }
  
 interface MagazinePagination {
@@ -228,6 +230,13 @@ export async function fetchMagazines(filters: {
  
 export async function fetchMagazineById(id: number): Promise<MagazineDetailResponse> {
   const res = await fetch(`${BASE_URL}/magazines/rss/${id}`, {
+    headers: getAuthHeaders(),
+  });
+  return handleResponse<MagazineDetailResponse>(res);
+}
+
+export async function fetchMagazineBySlug(slug: string): Promise<MagazineDetailResponse> {
+  const res = await fetch(`${BASE_URL}/magazines/rss/slug/${slug}`, {
     headers: getAuthHeaders(),
   });
   return handleResponse<MagazineDetailResponse>(res);

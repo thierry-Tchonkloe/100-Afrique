@@ -102,7 +102,9 @@ export class RSSScraperService {
   ];
  
   async scrapeAllSources() {
-    console.log('🚀 Démarrage du scraping RSS avec 40 sources...');
+    console.log(
+      `🚀 Démarrage du scraping RSS avec ${this.RSS_SOURCES.length} sources...`,
+    );
     
     const results = [];
     let totalImported = 0;
@@ -114,15 +116,16 @@ export class RSSScraperService {
       
       try {
         const result = await this.scrapeSource(source);
-        
+
         results.push({
           name: source.name,
-          status: result.errors > 0 ? 'error' : 'success',
+          status: result.errors > 0 ? "error" : "success",
           imported: result.imported,
           skipped: result.skipped,
           errors: result.errors,
-          message: result.errors > 0 ? `${result.errors} erreurs` : 'Succès',
-          source: source.name
+          message: result.errors > 0 ? `${result.errors} erreurs` : "Succès",
+          source: source.name,
+          logs: (result as any).logs || [],
         });
         
         totalImported += result.imported;
@@ -166,29 +169,47 @@ export class RSSScraperService {
     let imported = 0;
     let skipped = 0;
     let errors = 0;
+    const logs: string[] = [];
  
     try {
       // Essayer RSS d'abord
       const feed = await this.parser.parseURL(source.url);
       console.log(`📊 ${feed.items.length} articles trouvés dans RSS`);
- 
+      logs.push(`RSS: found ${feed.items.length} items`);
+
       for (const item of feed.items) {
         try {
           const magazine = await this.extractFromRSSItem(item, source);
           if (magazine) {
-            await this.saveMagazine(magazine);
-            imported++;
+            const action = await this.saveMagazine(magazine);
+
+            if (action === 'skipped') {
+              skipped++;
+              logs.push(`Skipped (unchanged): ${magazine.title}`);
+            } else {
+              imported++;
+              logs.push(
+                `${action === 'updated' ? 'Updated' : 'Imported'}: ${magazine.title}`,
+              );
+            }
           } else {
             skipped++;
+            logs.push(
+              `Skipped (invalid): ${item.title || item.link || "no-title"}`,
+            );
           }
         } catch (error) {
           console.error(`Erreur traitement item:`, error);
           errors++;
+          logs.push(
+            `Error processing item: ${item.title || item.link || "no-title"} - ${String(error)}`,
+          );
         }
       }
  
     } catch (rssError) {
       console.log(`❌ Erreur RSS, tentative scraping HTML pour ${source.name}`);
+      logs.push(`RSS parse error: ${String(rssError)}`);
       
       // Si RSS échoue, essayer le scraping HTML
       try {
@@ -197,50 +218,53 @@ export class RSSScraperService {
  
         for (const item of htmlItems) {
           try {
-            await this.saveMagazine(item);
-            imported++;
+            const action = await this.saveMagazine(item);
+
+            if (action === 'skipped') {
+              skipped++;
+              logs.push(`Skipped HTML (unchanged): ${item.title}`);
+            } else {
+              imported++;
+              logs.push(
+                `${action === 'updated' ? 'Updated HTML' : 'Imported HTML'}: ${item.title}`,
+              );
+            }
           } catch (error) {
             console.error(`Erreur traitement item HTML:`, error);
             errors++;
+            logs.push(`Error processing HTML item: ${String(error)}`);
           }
         }
       } catch (htmlError: any) {
         console.error(`❌ Erreur scraping HTML pour ${source.name}:`, htmlError.message || htmlError);
         errors++;
+        logs.push(`HTML scrape error: ${String(htmlError)}`);
       }
     }
  
-    return { imported, skipped, errors };
+    return { imported, skipped, errors, logs };
   }
  
   private async extractFromRSSItem(item: CustomFeedItem, source: any): Promise<ScrapedMagazine | null> {
     try {
-      // Vérifier si déjà existant
-      const existing = await prisma.magazine.findFirst({
-        where: {
-          OR: [
-            { title: item.title },
-            { url: item.link }
-          ]
-        }
-      });
- 
-      if (existing) {
-        console.log(`⏭️  Magazine déjà existant: ${item.title}`);
+      if (!item.title?.trim() || !item.link?.trim()) {
         return null;
       }
  
-      return {
+      return this.enrichMagazineData(
+        {
         title: item.title || 'Sans titre',
         url: item.link || '',
         excerpt: this.extractExcerpt(item.content || item.contentSnippet || ''),
-        content: item.content || item.contentSnippet || '',
+        content: item['content:encoded'] || item.content || item.contentSnippet || '',
         coverImage: this.extractImage(item),
         publishedAt: item.pubDate ? new Date(item.pubDate) : new Date(),
         source: source.name,
         author: item.creator,
         type: source.type
-      };
+        },
+        source.baseUrl,
+      );
     } catch (error) {
       console.error('Erreur extraction RSS item:', error);
       return null;
@@ -269,10 +293,12 @@ export class RSSScraperService {
         const content = $el.find('.content, .body').html() || excerpt;
         const coverImage = $el.find('img').first().attr('src') || '';
         
-        if (title && url) {
+        const resolvedUrl = this.resolveUrl(url, source.baseUrl);
+
+        if (title && url && !this.isHomePageUrl(resolvedUrl, source.baseUrl)) {
           items.push({
             title,
-            url: this.resolveUrl(url, source.baseUrl),
+            url: resolvedUrl,
             excerpt: this.extractExcerpt(excerpt),
             content,
             coverImage: this.resolveUrl(coverImage, source.baseUrl),
@@ -290,43 +316,88 @@ export class RSSScraperService {
     }
   }
  
-  private async saveMagazine(magazine: ScrapedMagazine) {
+  private async saveMagazine(
+    magazine: ScrapedMagazine,
+  ): Promise<'created' | 'updated' | 'skipped'> {
     try {
+      const enrichedMagazine = await this.enrichMagazineData(magazine);
+
       // Récupérer ou créer la catégorie
       let category = await prisma.category.findFirst({
-        where: { slug: magazine.type === 'magazine' ? 'magazines' : 'articles' }
+        where: { slug: enrichedMagazine.type === 'magazine' ? 'magazine' : 'articles' }
       });
  
       if (!category) {
         category = await prisma.category.create({
           data: {
-            name: magazine.type === 'magazine' ? 'Magazines' : 'Articles',
-            slug: magazine.type === 'magazine' ? 'magazines' : 'articles',
-            type: magazine.type === 'magazine' ? 'MAGAZINE' as any : 'ARTICLE' as any,
+            name: enrichedMagazine.type === "magazine" ? "Magazine" : "Articles",
+            slug: enrichedMagazine.type === "magazine" ? "magazine" : "articles",
+            type:
+              enrichedMagazine.type === "magazine"
+                ? ("MAGAZINE" as any)
+                : ("ARTICLE" as any),
             order: 1,
-            color: '#amber-500'
-          }
+            color: "#F39C12",
+          },
         });
       }
- 
+
+      const data = {
+        title: enrichedMagazine.title,
+        url: enrichedMagazine.url,
+        excerpt: enrichedMagazine.excerpt,
+        content: enrichedMagazine.content,
+        coverImage: enrichedMagazine.coverImage,
+        publishedAt: enrichedMagazine.publishedAt,
+        source: enrichedMagazine.source,
+        author: enrichedMagazine.author,
+        categoryId: category.id,
+        status: 'PUBLISHED',
+        featured: false,
+      };
+
+      const existing = await prisma.magazine.findFirst({
+        where: {
+          OR: [{ title: enrichedMagazine.title }, { url: enrichedMagazine.url }],
+        },
+      });
+
+      if (existing) {
+        const hasChanges =
+          existing.title !== data.title ||
+          existing.url !== data.url ||
+          (existing.excerpt || '') !== (data.excerpt || '') ||
+          (existing.content || '') !== (data.content || '') ||
+          (existing.coverImage || '') !== (data.coverImage || '') ||
+          existing.publishedAt.getTime() !== data.publishedAt.getTime() ||
+          (existing.source || '') !== (data.source || '') ||
+          (existing.author || '') !== (data.author || '') ||
+          existing.categoryId !== data.categoryId ||
+          existing.status !== data.status ||
+          existing.featured !== data.featured;
+
+        if (!hasChanges) {
+          return 'skipped';
+        }
+
+        await prisma.magazine.update({
+          where: { id: existing.id },
+          data,
+        });
+
+        console.log(`♻️ Magazine mis à jour: ${enrichedMagazine.title}`);
+        return 'updated';
+      }
+
       await prisma.magazine.create({
         data: {
-          title: magazine.title,
-          slug: this.generateSlug(magazine.title),
-          url: magazine.url,
-          excerpt: magazine.excerpt,
-          content: magazine.content,
-          coverImage: magazine.coverImage,
-          publishedAt: magazine.publishedAt,
-          source: magazine.source,
-          author: magazine.author,
-          categoryId: category.id,
-          status: 'PUBLISHED',
-          featured: false
-        }
+          ...data,
+          slug: await this.generateUniqueSlug(enrichedMagazine.title),
+        },
       });
- 
-      console.log(`✅ Magazine importé: ${magazine.title}`);
+
+      console.log(`✅ Magazine importé: ${enrichedMagazine.title}`);
+      return 'created';
     } catch (error) {
       console.error(`Erreur sauvegarde magazine:`, error);
       throw error;
@@ -335,16 +406,24 @@ export class RSSScraperService {
  
   private extractExcerpt(content: string): string {
     if (!content) return '';
-    
-    // Nettoyer le HTML
-    const clean = content.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim();
+
+    const clean = cheerio
+      .load(`<div>${content}</div>`)('div')
+      .text()
+      .replace(/\s+/g, ' ')
+      .trim();
     return clean.length > 200 ? clean.substring(0, 200) + '...' : clean;
   }
  
   private extractImage(item: any): string {
-    // Chercher dans différents champs
-    if (item['media:content'] && item['media:content'].$ && item['media:content'].$.url) {
-      return item['media:content'].$.url;
+    const mediaContent = item['media:content'];
+
+    if (Array.isArray(mediaContent) && mediaContent[0]?.$?.url) {
+      return mediaContent[0].$.url;
+    }
+
+    if (mediaContent?.$?.url) {
+      return mediaContent.$.url;
     }
     
     if (item.enclosure && item.enclosure.url) {
@@ -352,23 +431,141 @@ export class RSSScraperService {
     }
     
     // Chercher dans le contenu
-    const imgMatch = (item.content || '').match(/<img[^>]+src="([^"]+)"/);
+    const imgMatch = (item['content:encoded'] || item.content || '').match(
+      /<img[^>]+src=["']([^"']+)["']/i,
+    );
     return imgMatch ? imgMatch[1] : '';
   }
  
   private generateSlug(title: string): string {
-    return title
+    // Normaliser les accents et enlever les caractères non souhaités
+    const normalized = title
       .toLowerCase()
-      .replace(/[^a-z0-9\s-]/g, '')
-      .replace(/\s+/g, '-')
-      .replace(/-+/g, '-')
+      .normalize("NFD")
+      .replace(/\p{Diacritic}/gu, "");
+
+    return normalized
+      .replace(/[^a-z0-9\s-]/g, "")
+      .replace(/\s+/g, "-")
+      .replace(/-+/g, "-")
       .trim();
+  }
+
+  private async generateUniqueSlug(title: string): Promise<string> {
+    const baseSlug = this.generateSlug(title) || 'magazine';
+    let slug = baseSlug;
+    let suffix = 2;
+
+    while (await prisma.magazine.findUnique({ where: { slug } })) {
+      slug = `${baseSlug}-${suffix}`;
+      suffix++;
+    }
+
+    return slug;
   }
  
   private resolveUrl(url: string, baseUrl: string): string {
     if (!url) return '';
     if (url.startsWith('http')) return url;
-    return baseUrl + (url.startsWith('/') ? '' : '/') + url;
+    try {
+      return new URL(url, baseUrl).toString();
+    } catch {
+      return baseUrl + (url.startsWith('/') ? '' : '/') + url;
+    }
+  }
+
+  private isHomePageUrl(url: string, baseUrl: string): boolean {
+    const normalize = (value: string) => value.replace(/\/+$/, '');
+    return normalize(url) === normalize(baseUrl);
+  }
+
+  private async enrichMagazineData(
+    magazine: ScrapedMagazine,
+    baseUrl?: string,
+  ): Promise<ScrapedMagazine> {
+    const normalizedUrl = baseUrl
+      ? this.resolveUrl(magazine.url, baseUrl)
+      : magazine.url;
+
+    const shouldHydrate =
+      !!normalizedUrl &&
+      !this.isHomePageUrl(normalizedUrl, baseUrl || normalizedUrl) &&
+      (!magazine.coverImage ||
+        !magazine.excerpt ||
+        magazine.excerpt.includes('&#') ||
+        !magazine.content);
+
+    if (!shouldHydrate) {
+      return {
+        ...magazine,
+        url: normalizedUrl,
+        excerpt: this.extractExcerpt(magazine.excerpt),
+      };
+    }
+
+    try {
+      const response = await axios.get(normalizedUrl, {
+        timeout: 15000,
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (compatible; RSS-Scraper/1.0)',
+        },
+      });
+
+      const $ = cheerio.load(response.data);
+      const articleContent =
+        $('article').first().html() ||
+        $('.entry-content').first().html() ||
+        $('.post-content').first().html() ||
+        $('.article-content').first().html() ||
+        magazine.content;
+
+      const excerpt =
+        magazine.excerpt ||
+        $('meta[property="og:description"]').attr('content') ||
+        $('meta[name="description"]').attr('content') ||
+        $('article p, .entry-content p, .post-content p').first().text() ||
+        '';
+
+      const coverImage =
+        magazine.coverImage ||
+        $('meta[property="og:image"]').attr('content') ||
+        $('meta[name="twitter:image"]').attr('content') ||
+        $('article img').first().attr('src') ||
+        $('img').first().attr('src') ||
+        '';
+
+      const author =
+        magazine.author ||
+        $('meta[name="author"]').attr('content') ||
+        $('[rel="author"]').first().text().trim() ||
+        undefined;
+
+      const publishedAtValue =
+        $('meta[property="article:published_time"]').attr('content') ||
+        $('time').first().attr('datetime');
+
+      return {
+        ...magazine,
+        url:
+          $('meta[property="og:url"]').attr('content') ||
+          $('link[rel="canonical"]').attr('href') ||
+          normalizedUrl,
+        excerpt: this.extractExcerpt(excerpt),
+        content: articleContent || magazine.content,
+        coverImage: coverImage ? this.resolveUrl(coverImage, normalizedUrl) : '',
+        author,
+        publishedAt:
+          publishedAtValue && !Number.isNaN(new Date(publishedAtValue).getTime())
+            ? new Date(publishedAtValue)
+            : magazine.publishedAt,
+      };
+    } catch {
+      return {
+        ...magazine,
+        url: normalizedUrl,
+        excerpt: this.extractExcerpt(magazine.excerpt),
+      };
+    }
   }
  
   private sleep(ms: number): Promise<void> {

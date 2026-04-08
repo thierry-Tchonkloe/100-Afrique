@@ -6,7 +6,7 @@
 # Configuration
 BACKEND_URL="http://localhost:5000"
 LOG_FILE="/var/log/itourisme-rss-cron.log"
- 
+
 # Fonction de logging
 log() {
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1" >> "$LOG_FILE"
@@ -17,9 +17,18 @@ import_rss() {
     log "🚀 Début de l'importation RSS"
     
     # Appel à l'API d'importation RSS
-    response=$(curl -s -w "\n%{http_code}" -X POST \
-        -H "Content-Type: application/json" \
-        "$BACKEND_URL/api/admin/scraper/import")
+    curl_args=(
+        -s
+        -w "\n%{http_code}"
+        -X POST
+        -H "Content-Type: application/json"
+    )
+
+    if [ -n "$RSS_ADMIN_TOKEN" ]; then
+        curl_args+=(-H "Authorization: Bearer $RSS_ADMIN_TOKEN")
+    fi
+
+    response=$(curl "${curl_args[@]}" "$BACKEND_URL/api/admin/scraper/import")
     
     # Séparer le corps de la réponse et le code HTTP
     http_code=$(echo "$response" | tail -n1)

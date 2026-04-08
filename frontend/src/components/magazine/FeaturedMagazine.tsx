@@ -1,24 +1,22 @@
 // src/components/magazine/FeaturedMagazine.tsx
 "use client";
 
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Check, Loader2, Download, ShoppingCart, CreditCard } from 'lucide-react';
-import api from '@/lib/api';
+import { fetchMagazines } from '@/services/Dashboard/magazineService';
 
 interface Magazine {
   id: number;
   title: string;
   slug: string;
-  excerpt: string;
-  coverImage: string;
-  createdAt: string;
+  excerpt: string | null;
+  coverImage: string | null;
+  publishedAt: string;
+  url: string;
   metaTitle?: string;
-  category: {
-    id: number;
-    name: string;
-  };
+  readOnlineUrl?: string;
 }
 
 const FeaturedMagazine = () => {
@@ -28,19 +26,15 @@ const FeaturedMagazine = () => {
   useEffect(() => {
     const fetchLatestMagazine = async () => {
       try {
-        // ✅ Endpoint : Récupérer le dernier magazine featured
-        const response = await api.get('/mag/articles', {
-          params: {
-            featured: true,
-            pageSize: 1,
-            page: 1,
-            status: 'PUBLISHED'
-            // TODO Backend: Ajouter un filtre categorySlug: 'magazine'
-          }
+        const response = await fetchMagazines({
+          page: 1,
+          pageSize: 1,
+          sortBy: 'publishedAt',
+          sortOrder: 'desc',
         });
         
-        if (response.data.data && response.data.data.length > 0) {
-          setMagazine(response.data.data[0]);
+        if (response.success && response.data.magazines.length > 0) {
+          setMagazine(response.data.magazines[0]);
         }
       } catch (error) {
         console.error("Erreur magazine:", error);
@@ -67,10 +61,11 @@ const FeaturedMagazine = () => {
 
   // Générer le numéro et la date depuis les données
   const magazineNumber = magazine.metaTitle || "N°12";
-  const magazineDate = new Date(magazine.createdAt).toLocaleDateString('fr-FR', {
+  const magazineDate = new Date(magazine.publishedAt).toLocaleDateString('fr-FR', {
     month: 'long',
     year: 'numeric'
   }).toUpperCase();
+  const magazineUrl = `/magazine/${magazine.slug}`;
 
   // Points forts par défaut (à remplacer par des données structurées dans l'API)
   const highlights = [
@@ -95,7 +90,7 @@ const FeaturedMagazine = () => {
             
             <div className="relative aspect-[3/4] w-full max-w-[450px] mx-auto overflow-hidden rounded-[2rem] shadow-2xl">
               <Image 
-                src={magazine.coverImage} 
+                src={magazine.coverImage || '/images/magazine-placeholder.jpg'} 
                 alt={magazine.title}
                 fill
                 className="object-cover transition-transform duration-700 group-hover:scale-105"
@@ -137,18 +132,18 @@ const FeaturedMagazine = () => {
             {/* Boutons d'action principaux */}
             <div className="flex flex-col sm:flex-row gap-4 pt-4">
               <Link
-                href={`/magazine/${magazine.slug}`}
+                href={magazineUrl}
                 className="flex-1 bg-it-orange hover:bg-[#d98400] text-white font-black py-5 px-8 rounded-xl transition-all flex items-center justify-center gap-3 uppercase text-xs tracking-widest shadow-xl shadow-it-orange/20 active:scale-95"
               >
                 <Download size={18} />
-                Consulter l&apos;extrait gratuit
+                Consulter l&apos;aperçu
               </Link>
               <Link
-                href={`/magazine/acheter/${magazine.id}`}
+                href="/magazine"
                 className="flex-1 border-2 border-it-orange text-it-orange hover:bg-it-orange hover:text-white font-black py-5 px-8 rounded-xl transition-all flex items-center justify-center gap-3 uppercase text-xs tracking-widest active:scale-95"
               >
                 <ShoppingCart size={18} />
-                Acheter ce numéro
+                Voir la collection
               </Link>
             </div>
 
@@ -161,11 +156,11 @@ const FeaturedMagazine = () => {
                 </p>
               </div>
               <Link
-                href="/magazine/abonnement"
+                href="/magazine"
                 className="bg-it-blue text-white px-8 py-3 rounded-xl font-black text-xs uppercase tracking-tighter hover:bg-black transition-colors flex items-center gap-2"
               >
                 <CreditCard size={14} />
-                S&apos;ABONNER
+                DÉCOUVRIR
               </Link>
             </div>
           </div>

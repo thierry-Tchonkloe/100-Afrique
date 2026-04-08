@@ -1,5 +1,7 @@
 // src/controllers/rss-scraper.controller.ts
 import { Request, Response } from 'express';
+import fs from "fs";
+import path from "path";
 import { rssScraperService } from '../services/rss-scraper.service';
 import { successResponse, errorResponse } from '../utils/response';
 import { prisma } from '../config/database';
@@ -17,13 +19,63 @@ interface SourceGroup {
 export const importArticles = async (_req: Request, res: Response) => {
   try {
     console.log('🚀 Début de l\'importation RSS...');
-    
+
+    const startTime = new Date().toISOString();
     const result = await rssScraperService.scrapeAllSources();
-    
-    successResponse(res, result, 'Importation RSS terminée avec succès');
+    const endTime = new Date().toISOString();
+    const duration =
+      new Date(endTime).getTime() - new Date(startTime).getTime();
+
+    const payload = {
+      ...result,
+      startTime,
+      endTime,
+      duration,
+    };
+
+    // Sauvegarder un historique local (dernier 20 imports)
+    try {
+      const dataDir = path.join(process.cwd(), "data");
+      const historyFile = path.join(dataDir, "rss-import-history.json");
+      if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir, { recursive: true });
+
+      let history: any[] = [];
+      if (fs.existsSync(historyFile)) {
+        const raw = fs.readFileSync(historyFile, "utf8");
+        history = JSON.parse(raw || "[]");
+      }
+
+      history.unshift(payload);
+      history = history.slice(0, 20);
+      fs.writeFileSync(historyFile, JSON.stringify(history, null, 2), "utf8");
+    } catch (fsErr) {
+      console.warn("Impossible de sauvegarder l'historique RSS:", fsErr);
+    }
+
+    successResponse(res, payload, "Importation RSS terminée avec succès");
   } catch (error: any) {
     console.error('❌ Erreur lors de l\'importation RSS:', error);
     errorResponse(res, error.message || 'Erreur lors de l\'importation RSS', 500);
+  }
+};
+
+export const getImportHistory = async (_req: Request, res: Response) => {
+  try {
+    const historyFile = path.join(
+      process.cwd(),
+      "data",
+      "rss-import-history.json",
+    );
+    if (!fs.existsSync(historyFile)) {
+      return successResponse(res, [], "Aucun historique");
+    }
+
+    const raw = fs.readFileSync(historyFile, "utf8");
+    const history = JSON.parse(raw || "[]");
+    successResponse(res, history, "Historique récupéré");
+  } catch (error: any) {
+    console.error("Erreur récupération historique RSS:", error);
+    errorResponse(res, error.message || "Erreur récupération historique", 500);
   }
 };
  
@@ -45,6 +97,11 @@ export const getRSSMagazines = async (req: Request, res: Response) => {
     const pageNum = parseInt(page as string);
     const size = parseInt(pageSize as string);
     const skip = (pageNum - 1) * size;
+    const allowedSortFields = ['publishedAt', 'createdAt', 'title', 'source'];
+    const safeSortBy = allowedSortFields.includes(sortBy as string)
+      ? (sortBy as string)
+      : 'publishedAt';
+    const safeSortOrder = sortOrder === 'asc' ? 'asc' : 'desc';
  
     // Construction des filtres
     const where: any = {
@@ -62,6 +119,12 @@ export const getRSSMagazines = async (req: Request, res: Response) => {
     if (source && typeof source === 'string') {
       where.source = { contains: source, mode: 'insensitive' };
     }
+
+    if (category && typeof category === 'string') {
+      where.category = {
+        slug: category,
+      };
+    }
  
     // Récupération des magazines
     const [magazines, total] = await Promise.all([
@@ -71,7 +134,7 @@ export const getRSSMagazines = async (req: Request, res: Response) => {
           category: true
         },
         orderBy: {
-          [sortBy as string]: sortOrder as 'asc' | 'desc'
+          [safeSortBy]: safeSortOrder
         },
         skip,
         take: size
@@ -85,7 +148,8 @@ export const getRSSMagazines = async (req: Request, res: Response) => {
       readOnlineUrl: generateReadOnlineUrl(magazine),
       previewUrl: generatePreviewUrl(magazine),
       downloadUrl: generateDownloadUrl(magazine),
-      shareUrl: generateShareUrl(magazine)
+      shareUrl: generateShareUrl(magazine),
+      embedUrl: generateEmbedUrl(magazine),
     }));
  
     const totalPages = Math.ceil(total / size);
@@ -104,8 +168,8 @@ export const getRSSMagazines = async (req: Request, res: Response) => {
         search,
         source,
         category,
-        sortBy,
-        sortOrder
+        sortBy: safeSortBy,
+        sortOrder: safeSortOrder
       }
     }, 'Magazines RSS récupérés avec succès');
   } catch (error: any) {
@@ -140,6 +204,7 @@ export const getRSSMagazineById = async (req: Request, res: Response) => {
       previewUrl: generatePreviewUrl(magazine),
       downloadUrl: generateDownloadUrl(magazine),
       shareUrl: generateShareUrl(magazine),
+      embedUrl: generateEmbedUrl(magazine),
       relatedMagazines: await getRelatedMagazines(magazine.id, magazine.source)
     };
  
@@ -175,6 +240,7 @@ export const getRSSMagazineBySlug = async (req: Request, res: Response) => {
       previewUrl: generatePreviewUrl(magazine),
       downloadUrl: generateDownloadUrl(magazine),
       shareUrl: generateShareUrl(magazine),
+      embedUrl: generateEmbedUrl(magazine),
       relatedMagazines: await getRelatedMagazines(magazine.id, magazine.source)
     };
  
@@ -249,18 +315,47 @@ function generateReadOnlineUrl(magazine: any): string {
 }
  
 function generatePreviewUrl(magazine: any): string {
-  // Générer une URL de preview
-  return `/api/magazines/${magazine.id}/preview`;
+  return generateEmbedUrl(magazine) || magazine.url || '';
 }
  
 function generateDownloadUrl(magazine: any): string {
-  // Générer une URL de téléchargement
+  if (isDownloadableDocument(magazine.url)) {
+    return magazine.url;
+  }
+
   return `/api/magazines/${magazine.id}/download`;
 }
  
 function generateShareUrl(magazine: any): string {
-  // Générer une URL de partage
-  return `${process.env.FRONTEND_URL || ''}/magazines/${magazine.id}`;
+  return `${process.env.FRONTEND_URL || ''}/magazine/${magazine.slug}`;
+}
+
+function generateEmbedUrl(magazine: any): string {
+  const url = magazine.url || '';
+
+  if (!url) {
+    return '';
+  }
+
+  if (isDownloadableDocument(url)) {
+    return url;
+  }
+
+  if (url.includes('issuu.com')) {
+    return url.includes('/embed')
+      ? url
+      : `${url.replace(/\/$/, '')}/embed`;
+  }
+
+  if (url.includes('fliphtml5.com')) {
+    return url;
+  }
+
+  return url;
+}
+
+function isDownloadableDocument(url: string): boolean {
+  return /\.(pdf|doc|docx|ppt|pptx)$/i.test(url || '');
 }
  
 async function getRelatedMagazines(currentId: number, source: string, limit: number = 6) {
