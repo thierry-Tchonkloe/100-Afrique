@@ -6,6 +6,12 @@ import MagazineSection from '@/components/home/MagazineSection';
 import EventsDestinationsSection from '@/components/home/EventsDestinationsSection';
 import ContactCTASection from '@/components/home/ContactCTASection';
 
+import TopBar from '@/components/shared/TopBar';
+import Header from '@/components/shared/Header';
+import SubBar from '@/components/shared/SubBar';
+import Footer from '@/components/shared/Footer';
+import ChatWidget from '@/components/shared/ChatWidget';
+
 export const metadata = {
   title: 'Waxeho | La Plateforme de Référence du Tourisme en Afrique',
   description: 'Connectez-vous à l\'écosystème touristique africain. Actualités pro, magazine exclusif, et opportunités d\'affaires pour les acteurs du voyage.',
@@ -14,13 +20,22 @@ export const metadata = {
 
 export default function HomePage() {
   return (
-    <div className="space-y-0">
-      <HeroSlider />
-      <NewsSection />
-      <VideoSection />
-      <MagazineSection />
-      <EventsDestinationsSection />
-      <ContactCTASection />
+    <div className="flex flex-col min-h-screen">
+      <TopBar />
+      <Header />
+      <SubBar />
+      <main className="flex-grow">
+        <div className="space-y-0">
+          <HeroSlider />
+          <NewsSection />
+          <VideoSection />
+          <MagazineSection />
+          <EventsDestinationsSection />
+          <ContactCTASection />
+        </div>
+        <ChatWidget />
+      </main>
+      <Footer />
     </div>
   );
 }
