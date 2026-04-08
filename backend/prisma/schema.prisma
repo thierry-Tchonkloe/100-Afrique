@@ -1,0 +1,417 @@
+// prisma/schema.prisma
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// ========================================
+// 1. UTILISATEURS (ADMINISTRATION)
+// ========================================
+
+model User {
+  id        Int       @id @default(autoincrement())
+  email     String    @unique
+  password  String
+  name      String
+  role      Role      @default(EDITOR)
+  status    UserStatus @default(ACTIVE)
+  articles  Article[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@map("users")
+}
+
+enum Role {
+  SUPER_ADMIN
+  EDITOR
+}
+
+enum UserStatus {
+  ACTIVE
+  SUSPENDED
+}
+
+// ========================================
+// 2. LANGUAGES (INTERNATIONALISATION)
+// ========================================
+
+model Language {
+  id          Int      @id @default(autoincrement())
+  code        String   @unique // ISO 639-1 (FR, EN, ES, etc.)
+  name        String   // Nom en français (Français, Anglais, Espagnol)
+  nativeName  String   // Nom natif (Français, English, Español)
+  flag        String   // Code drapeau (FR, EN, ES)
+  enabled     Boolean  @default(false)
+  isDefault   Boolean  @default(false)
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([enabled])
+  @@index([isDefault])
+  @@map("languages")
+}
+
+// ========================================
+// 3. ARTICLES (LE MAG)
+// ========================================
+
+model Article {
+  id              Int       @id @default(autoincrement())
+  title           String
+  slug            String    @unique
+  excerpt         String?   @db.Text
+  content         Json
+  coverImage      String
+  status          String    @default("DRAFT")
+  featured        Boolean   @default(false)
+  views           Int       @default(0)
+  metaTitle       String?
+  metaDescription String?   @db.Text
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  // ── Champs VIDEO ───────────────────────────────────────────
+  sourceUrl  String? // URL YouTube / Vimeo (embed)
+  duration   String? // format "MM:SS"
+  videoType  String? // "Interview" | "Tutoriel" | "Présentation" | "Reportage" | "Autre"
+
+  // ── Champs PAGE STATIQUE ───────────────────────────────────
+  visibility        String? // "public" | "private"
+  pageTemplate      String? // "Modèle Standard" | "Modèle Pleine Largeur" | "Modèle Blog"
+  includeInMainMenu Boolean @default(false)
+  includeInFooter   Boolean @default(false)
+  sortOrder         Int?    // ordre dans le menu
+  linkGroup         String? // "Société" | "Services" | "Blog" | "Légal"
+
+  // ── Champs SALON ───────────────────────────────────────────
+  location       String? // lieu physique de l'événement
+  startDate      DateTime? // date de début
+  endDate        DateTime? // date de fin
+  website        String?   // site officiel de l'événement
+
+  type ContenusType @default(ARTICLE)
+
+  categoryId      Int
+  category        Category  @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  authorId        Int
+  author          User      @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  destinationId   Int?
+  destination     Destination? @relation("ArticleDestinations", fields: [destinationId], references: [id], onDelete: SetNull)
+
+  tags            Tag[]     @relation("ArticleTags")
+
+  @@index([categoryId])
+  @@index([authorId])
+  @@index([destinationId])
+  @@index([status])
+  @@index([featured])
+  @@index([type])      // utile pour filtrer par type de contenu
+  @@index([startDate]) // utile pour trier les salons par date
+  @@map("articles")
+}
+
+enum ContenusType {
+  ARTICLE
+  VIDEO
+  PAGE
+  SALON
+  DESTINATION
+}
+
+enum Status {
+  DRAFT
+  PUBLISHED
+}
+
+// ========================================
+// 4. TAXONOMIES
+// ========================================
+
+model Category {
+  id          Int      @id @default(autoincrement())
+  name        String
+  slug        String   @unique
+  description String?
+  type        CatType  @default(MAGAZINE)
+  order       Int      @default(0)
+  color       String?  @default("#001A4D")
+  articles    Article[]
+  magazines   Magazine[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+
+  @@index([slug])
+  @@index([type])
+  @@map("categories")
+}
+
+enum CatType {
+  MAGAZINE
+  DESTINATION
+}
+
+// ========================================
+// 4.5. MAGAZINES (RSS)
+// ========================================
+
+model Magazine {
+  id          Int      @id @default(autoincrement())
+  title       String
+  slug        String   @unique
+  url         String
+  excerpt     String?
+  content     String?
+  coverImage  String?
+  publishedAt DateTime @default(now())
+  source      String
+  author      String?
+  categoryId  Int
+  status      String   @default("PUBLISHED")
+  featured    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  category    Category @relation(fields: [categoryId], references: [id])
+
+  @@index([slug])
+  @@index([source])
+  @@index([publishedAt])
+  @@index([categoryId])
+  @@map("magazines")
+}
+
+// ========================================
+// 5. TAGS
+// ========================================
+
+model Tag {
+  id        Int       @id @default(autoincrement())
+  name      String    @unique
+  slug      String    @unique
+  articles  Article[] @relation("ArticleTags")
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@index([slug])
+  @@map("tags")
+}
+
+// ========================================
+// 6. SETTINGS
+// ========================================
+
+model Setting {
+  id        Int      @id @default(autoincrement())
+  key       String   @unique
+  value     Json
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("settings")
+}
+
+// ========================================
+// 7. MÉDIAS
+// ========================================
+
+model Media {
+  id        Int      @id @default(autoincrement())
+  url       String
+  publicId  String   @unique
+  filename  String
+  altText   String?
+  size      Int?
+  mimeType  String?
+  createdAt DateTime @default(now())
+
+  @@index([publicId])
+  @@map("media")
+}
+
+// ========================================
+// 8. NEWSLETTER
+// ========================================
+
+model NewsletterSubscriber {
+  id          Int       @id @default(autoincrement())
+  email       String    @unique
+  source      String?
+  type        String    @default("general")
+  isActive    Boolean   @default(true)
+  verifiedAt  DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@map("newsletter_subscribers")
+}
+
+// ========================================
+// 9. CONTACTS
+// ========================================
+
+model PartnerContact {
+  id          Int      @id @default(autoincrement())
+  lastName    String
+  firstName   String
+  company     String
+  email       String
+  serviceType String
+  message     String   @db.Text
+  status      String   @default("NEW")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("partner_contacts")
+}
+
+// ========================================
+// 10. DESTINATIONS
+// ========================================
+
+model Destination {
+  id          Int       @id @default(autoincrement())
+  name        String
+  slug        String    @unique
+  description String?   @db.Text
+  coverImage  String
+  continent   String?
+  featured    Boolean   @default(false)
+  status      String    @default("PUBLISHED")
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+
+  // ── Champs DESTINATION ─────────────────────────────────────
+  slogan             String?
+  typeZone           String? // "Pays" | "Région" | "Ville" | "Site" | "Île"
+  niveauGeographique String? // "National" | "Régional" | "Local"
+  regionAssociee     String?
+  langue             String? // ex: "Arabe, Français"
+  monnaie            String? // ex: "Dirham Marocain - MAD"
+  fuseauHoraire      String? // ex: "UTC+1"
+  officeTourisme     String? // URL du site officiel
+  climatDominant     String? // "Tropical" | "Subtropical" | etc.
+  population         String? // stocké en texte car formaté ("950 000 habitants")
+  codeTel            String? // ex: "+212"
+  meillerePeriode    String? // ex: "Octobre à Avril"
+
+  articles    Article[] @relation("ArticleDestinations")
+
+  @@map("destinations")
+}
+
+// ========================================
+// 11. CHATBOT SETTINGS
+// ========================================
+
+model ChatbotSettings {
+  id                   Int      @id @default(autoincrement())
+  isActive             Boolean  @default(true)
+  defaultLanguage      String   @default("fr")
+  welcomeMessage       String   @default("Bonjour ! Je suis votre assistant virtuel. Comment puis-je vous aider aujourd'hui ?")
+  escalationKeywords   Json     @default("[]")
+  contactFormUrl       String   @default("/contact/annonceurs")
+  contactFormEnabled   Boolean  @default(true)
+  whatsappNumber       String   @default("")
+  whatsappEnabled      Boolean  @default(false)
+  failureMessage       String   @default("Je n'ai pas trouvé de réponse à votre question. Voulez-vous contacter notre équipe pour une assistance personnalisée ?")
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  @@map("chatbot_settings")
+}
+
+// ========================================
+// 12. CHATBOT FAQ
+// ========================================
+
+model ChatbotFAQ {
+  id        Int      @id @default(autoincrement())
+  question  String
+  answer    String   @db.Text
+  priority  Priority @default(MEDIUM)
+  isActive  Boolean  @default(true)
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([isActive, priority, order])
+  @@map("chatbot_faqs")
+}
+
+enum Priority {
+  HIGH
+  MEDIUM
+  LOW
+}
+
+
+
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Espaces publicitaires dans prisma/schema.prisma
+// ─────────────────────────────────────────────────────────────────────────────
+
+model Advertising {
+    id          Int   @id @default(autoincrement())
+    name        String
+    slug        String   @unique
+    width       Int
+    height      Int
+    path        String   // ex: "/accueil", "/articles/*"
+    isEnabled   Boolean  @default(true)
+    createdAt   DateTime @default(now())
+    updatedAt   DateTime @updatedAt
+    banners     Banner[]
+    @@map("advertisings")
+}
+
+model Banner {
+    id          Int       @id @default(autoincrement())
+    advertiser  String
+    campaign    String
+    type        BannerType
+    imageUrl    String?      // URL Cloudinary (si type = IMAGE)
+    publicId    String?      // public_id Cloudinary (pour suppression)
+    htmlCode    String?      // code HTML/JS (si type = HTML_JS)
+    startDate   DateTime
+    endDate     DateTime
+    status      BannerStatus @default(FUTUR)
+    createdAt   DateTime     @default(now())
+    updatedAt   DateTime     @updatedAt
+
+    advertisingId    Int
+    advertising Advertising  @relation(fields: [advertisingId], references: [id], onDelete: Cascade)
+
+    @@map("banners")
+    @@unique([campaign, advertisingId]) // 🔥 obligatoire
+}
+
+model ThirdPartyCode {
+    id        Int   @id @default(autoincrement())
+    code      String   @db.Text
+    updatedAt DateTime @updatedAt
+
+    @@map("third_party_codes")
+}
+
+enum BannerType {
+    IMAGE_JPG
+    HTML_JS
+}
+
+enum BannerStatus {
+    ACTIF
+    FUTUR
+    EXPIRE
+}

@@ -1,0 +1,22 @@
+# render.yaml
+services:
+  - type: web
+    name: itourisme-nomade-api
+    runtime: node
+    region: oregon
+    plan: free
+    buildCommand: npm install && npx prisma generate && npm run build
+    startCommand: npm run start:prod
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 5000
+    healthCheckPath: /api/health
+
+databases:
+  - name: itourisme-nomade-db
+    databaseName: itourisme_nomade
+    user: itourisme_admin
+    region: oregon
+    plan: free

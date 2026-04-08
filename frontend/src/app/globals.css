@@ -1,0 +1,23 @@
+/* src/app/(front-office)/globals.css */
+@import "tailwindcss";
+
+/* Configuration des couleurs personnalisées iTourisme */
+@theme {
+  --color-it-blue: #001A4D;
+  --color-it-orange: #FF9900;
+  --color-it-gray-light: #F0F2F5;
+  
+  /* Ajout des polices si vous en utilisez des spécifiques */
+  --font-sans: 'Inter', ui-sans-serif, system-ui;
+}
+
+/* Styles globaux pour Swiper (pagination orange) */
+:root {
+  --swiper-theme-color: #FF9900;
+  --swiper-pagination-bullet-inactive-color: #ffffff;
+  --swiper-pagination-bullet-inactive-opacity: 0.4;
+}
+
+body {
+  @apply bg-white text-it-blue antialiased;
+}
