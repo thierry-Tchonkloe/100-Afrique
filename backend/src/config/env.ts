@@ -35,7 +35,7 @@ export const config = {
 
   // CORS
   cors: {
-    origin: process.env.CORS_ORIGIN?.split(',') || ['https://100-afrique.vercel.app', 'http://localhost:3000'],
+    origin: process.env.CORS_ORIGIN?.split(',') || ['https://100-afrique.vercel.app'] || ['http://localhost:3000'],
   },
 
   // Bcrypt

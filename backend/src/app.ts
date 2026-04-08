@@ -39,27 +39,9 @@ app.use(helmet());
  * CORS - Configuration
  * Autorise les requêtes cross-origin depuis les origines définies
  */
-// app.use(
-//   cors({
-//     origin: config.cors.origin,
-//     credentials: true,
-//   })
-// );
-
 app.use(
   cors({
-    origin: (origin, callback) => {
-      const allowedOrigins = process.env.CORS_ORIGIN?.split(',') || [
-        'https://100-afrique.vercel.app',
-        'http://localhost:3000',
-      ];
-      // Autorise les requêtes sans origin (ex: curl, postman)
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error('Origine non autorisée par CORS'));
-      }
-    },
+    origin: config.cors.origin,
     credentials: true,
   })
 );
