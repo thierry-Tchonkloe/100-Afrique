@@ -61,15 +61,30 @@ app.use(
  * Rate Limiting
  * Protection contre les attaques par force brute et DDoS
  */
-const limiter = rateLimit({
-  windowMs: config.rateLimit.windowMs,
-  max: config.rateLimit.max,
-  message: 'Trop de requêtes depuis cette IP, veuillez réessayer plus tard',
-  standardHeaders: true,
-  legacyHeaders: false,
-});
+// const limiter = rateLimit({
+//   windowMs: config.rateLimit.windowMs,
+//   max: config.rateLimit.max,
+//   message: 'Trop de requêtes depuis cette IP, veuillez réessayer plus tard',
+//   standardHeaders: true,
+//   legacyHeaders: false,
+// });
 
-app.use('/api/', limiter);
+// app.use('/api/', limiter);
+
+app.use(
+  '/api/',
+  rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 1000,
+
+    skip: (req) => {
+      // 🔥 ne limite pas GET (lecture)
+      return req.method === 'GET';
+    },
+  })
+);
+
+app.set('trust proxy', 1);
 
 /**
  * Body Parser
