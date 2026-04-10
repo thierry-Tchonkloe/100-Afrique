@@ -10,7 +10,7 @@ import ModaleCouverture from '@/components/shared/ModaleCouverture';
 import AgendaSection from '@/components/salons/AgendaSection';
 import PartnershipCTA from '@/components/salons/PartnershipCTA';
 import ReportageGrid from '@/components/salons/ReportageGrid';
-import { AdvertisingBanner } from "@/components/AdvertisingBanner";
+import { AdvertisingBanner } from '@/components/AdvertisingBanner';
 
 interface Salon {
   id: number;
@@ -38,49 +38,51 @@ interface Interview {
 
 const SalonsPage = () => {
   const [isCouvertureOpen, setIsCouvertureOpen] = useState(false);
-  const [salons, setSalons] = useState<Salon[]>([]);
-  const [interview, setInterview] = useState<Interview | null>(null);
-  const [newsletterEmail, setNewsletterEmail] = useState("");
+  const [salons, setSalons]                     = useState<Salon[]>([]);
+  const [interview, setInterview]               = useState<Interview | null>(null);
+  const [newsletterEmail, setNewsletterEmail]   = useState('');
   const [newsletterStatus, setNewsletterStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading]                   = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        
-        // ✅ Appels parallèles pour optimiser
+
         const [resSalons, resInterview] = await Promise.all([
-          // Salons et événements à venir
+          // ✅ Uniquement les articles de type SALON
           api.get('/mag/articles', {
             params: {
+              type: 'SALON',
               pageSize: 10,
               page: 1,
-              status: 'PUBLISHED'
-              // TODO Backend: Ajouter categorySlug: 'salons-evenements'
-            }
+              status: 'PUBLISHED',
+              sortBy: 'createdAt:asc',   // Les prochains salons en premier
+            },
           }),
-          
-          // Interview featured pour la sidebar
+
+          // Interview featured de type ARTICLE pour la sidebar
           api.get('/mag/articles', {
             params: {
+              type: 'ARTICLE',
+              categorySlug: 'interviews',
               featured: true,
               pageSize: 1,
-              status: 'PUBLISHED'
-              // TODO Backend: Ajouter categorySlug: 'interviews'
-            }
-          })
+              status: 'PUBLISHED',
+            },
+          }),
         ]);
-        
-        setSalons(resSalons.data.data || []);
-        setInterview(resInterview.data.data?.[0] || null);
+
+        setSalons(resSalons.data.data ?? []);
+        setInterview(resInterview.data.data?.[0] ?? null);
       } catch (error) {
-        console.error("Erreur lors de la récupération des salons:", error);
+        console.error('Erreur lors de la récupération des salons:', error);
         setSalons([]);
       } finally {
         setLoading(false);
       }
     };
+
     fetchData();
   }, []);
 
@@ -94,50 +96,48 @@ const SalonsPage = () => {
       await api.post('/newsletter/subscribe', {
         email: newsletterEmail,
         source: 'salons_page',
-        type: 'alerts_salons'
+        type: 'alerts_salons',
       });
 
       setNewsletterStatus('success');
-      setNewsletterEmail("");
-      
+      setNewsletterEmail('');
       setTimeout(() => setNewsletterStatus('idle'), 5000);
     } catch (error) {
       if (error instanceof AxiosError) {
-        console.error("Erreur newsletter:", error.response?.data);
+        console.error('Erreur newsletter:', error.response?.data);
       }
       setNewsletterStatus('error');
-      
       setTimeout(() => setNewsletterStatus('idle'), 5000);
     }
   };
 
-  // Transformer les articles en format Event pour AgendaSection
-  const eventsForAgenda = salons.map(salon => ({
-    id: salon.id.toString(),
-    title: salon.title,
-    date: new Date(salon.createdAt).toLocaleDateString('fr-FR', {
-      day: 'numeric',
-      month: 'long',
-      year: 'numeric'
+  // Transforme les salons en format Event pour AgendaSection
+  const eventsForAgenda = salons.map((salon) => ({
+    id:          salon.id.toString(),
+    title:       salon.title,
+    date:        new Date(salon.createdAt).toLocaleDateString('fr-FR', {
+      day: 'numeric', month: 'long', year: 'numeric',
     }),
-    location: salon.category.name,
-    description: salon.excerpt,
-    slug: salon.slug
+    location:    salon.category?.name ?? 'International',
+    description: salon.excerpt ?? '',
+    slug:        salon.slug,
   }));
 
   return (
     <main className="max-w-[1400px] mx-auto px-6 py-16 bg-white">
       <div className="flex flex-col lg:flex-row gap-12">
-        
-        {/* COLONNE GAUCHE (Main Content) */}
+
+        {/* ── COLONNE PRINCIPALE ────────────────────────────────────────────── */}
         <div className="lg:w-[72%] space-y-16">
+
           <header className="space-y-6">
             <h1 className="text-[#001A4D] text-4xl md:text-5xl font-serif font-bold uppercase tracking-tight leading-tight">
               SALONS ET ÉVÉNEMENTS DU <br /> TOURISME MONDIAL
             </h1>
             <p className="text-gray-500 text-sm md:text-base max-w-3xl leading-relaxed">
-              WAXEHO et i Tourisme TV vous accompagnent dans la découverte des plus grands événements du tourisme mondial. 
-              Suivez nos reportages exclusifs depuis les salons IFTM, ITB, WTM et bien d&apos;autres.
+              WAXEHO et i Tourisme TV vous accompagnent dans la découverte des plus grands
+              événements du tourisme mondial. Suivez nos reportages exclusifs depuis les salons
+              IFTM, ITB, WTM et bien d&apos;autres.
             </p>
           </header>
 
@@ -153,30 +153,30 @@ const SalonsPage = () => {
           <ReportageGrid />
         </div>
 
-        {/* SIDEBAR DROITE */}
+        {/* ── SIDEBAR ───────────────────────────────────────────────────────── */}
         <aside className="lg:w-[28%] space-y-10">
-          
-          {/* 1. Espace Publicitaire Skyscraper */}
+
+          {/* Publicité Skyscraper */}
           <div className="bg-[#E5E7EB] w-full h-[300px] flex items-center justify-center rounded-sm border border-gray-100 p-6 text-center">
-            {/* <p className="text-gray-400 text-[11px] font-medium leading-tight">
-              Espace Publicitaire <br /> Skyscraper 160×600
-            </p> */}
-            <AdvertisingBanner zoneSlug="skyscraper-salon-and-evenement" showDots={true} className="" />
+            <AdvertisingBanner
+              zoneSlug="skyscraper-salon-and-evenement"
+              showDots={true}
+              className=""
+            />
           </div>
 
-          {/* 2. Interview Exclusive */}
-          {/* 2. Interview Exclusive */}
+          {/* Interview exclusive */}
           {interview && (
             <div className="bg-white border border-gray-100 rounded-xl shadow-sm overflow-hidden p-5 space-y-4">
               <h4 className="text-[#001A4D] font-serif font-bold text-sm uppercase">
                 Interview Exclusive
               </h4>
-              <Link 
+              <Link
                 href={`/actualites/${interview.slug}`}
                 className="relative group cursor-pointer block"
               >
-                <img 
-                  src={interview.coverImage} 
+                <img
+                  src={interview.coverImage || '/images/placeholder.jpg'}
                   alt={interview.title}
                   className="w-full h-40 object-cover rounded-lg"
                 />
@@ -190,18 +190,18 @@ const SalonsPage = () => {
                 {interview.title}
               </p>
               <p className="text-gray-400 text-[10px]">
-                Par {interview.author.name}
+                Par {interview.author?.name ?? 'Rédaction'}
               </p>
               <Link
                 href={`/actualites/${interview.slug}`}
                 className="w-full bg-[#F39C12] text-white py-3 rounded-lg flex items-center justify-center gap-2 text-xs font-bold hover:bg-[#D68910] transition-colors"
               >
-                <Play size={12} fill="white" /> Regarder
+                <Play size={12} fill="white" /> Lire l&apos;interview
               </Link>
             </div>
           )}
 
-          {/* 3. Newsletter / Alertes Salons */}
+          {/* Newsletter / Alertes Salons */}
           <div className="bg-[#001A4D] rounded-xl p-8 text-white shadow-xl">
             <h3 className="font-serif font-bold text-sm uppercase tracking-widest mb-4 leading-tight">
               RECEVOIR LES ALERTES SALONS
@@ -212,22 +212,20 @@ const SalonsPage = () => {
 
             {newsletterStatus === 'success' ? (
               <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-4 text-center">
-                <p className="text-green-300 text-xs font-medium">
-                  ✓ Inscription réussie !
-                </p>
+                <p className="text-green-300 text-xs font-medium">✓ Inscription réussie !</p>
               </div>
             ) : (
               <form onSubmit={handleNewsletterSubmit} className="space-y-3">
-                <input 
+                <input
                   type="email"
                   value={newsletterEmail}
                   onChange={(e) => setNewsletterEmail(e.target.value)}
-                  placeholder="Votre email professionnel" 
+                  placeholder="Votre email professionnel"
                   required
                   disabled={newsletterStatus === 'loading'}
-                  className="w-full px-4 py-3 bg-white rounded-md text-gray-900 text-sm outline-none focus:ring-2 focus:ring-[#F39C12] disabled:opacity-50" 
+                  className="w-full px-4 py-3 bg-white rounded-md text-gray-900 text-sm outline-none focus:ring-2 focus:ring-[#F39C12] disabled:opacity-50"
                 />
-                <button 
+                <button
                   type="submit"
                   disabled={newsletterStatus === 'loading'}
                   className="w-full bg-[#F39C12] py-3 rounded-md text-xs font-bold uppercase tracking-widest hover:bg-white hover:text-[#001A4D] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
@@ -249,10 +247,14 @@ const SalonsPage = () => {
               </form>
             )}
           </div>
+
         </aside>
       </div>
 
-      <ModaleCouverture isOpen={isCouvertureOpen} onClose={() => setIsCouvertureOpen(false)} />
+      <ModaleCouverture
+        isOpen={isCouvertureOpen}
+        onClose={() => setIsCouvertureOpen(false)}
+      />
     </main>
   );
 };
