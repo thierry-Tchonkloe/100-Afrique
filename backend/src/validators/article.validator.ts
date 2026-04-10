@@ -5,7 +5,7 @@ import { z } from 'zod';
  * Schéma pour le contenu de l'article (tableau d'objets)
  */
 const contentBlockSchema = z.object({
-  type: z.enum(['text', 'image', 'video', 'quote', 'code']),
+  type: z.enum(['text', 'image', 'video', 'quote', 'code', 'heading']),
   value: z.string().optional(),
   url: z.string().url().optional(),
   caption: z.string().optional(),
@@ -58,6 +58,9 @@ export const quickCreateArticleSchema = z.object({
       .positive({ message: "L'auteur doit être un entier positif" }),
     type: z
       .enum(['ARTICLE', 'VIDEO', 'PAGE', 'SALON', 'DESTINATION'], {message: 'Type invalide',}).default('ARTICLE'),
+    location: z.string().optional().nullable(),
+    startDate: z.string().datetime({ message: 'Date de début invalide' }).optional().nullable(),
+    endDate: z.string().datetime({ message: 'Date de fin invalide' }).optional().nullable(),
   }),
 });
 
@@ -190,6 +193,7 @@ export const updateArticleSchema = z.object({
     startDate: z.string().datetime({ message: 'Date de début invalide' }).optional().nullable(),
     endDate: z.string().datetime({ message: 'Date de fin invalide' }).optional().nullable(),
     website: z.string().url({ message: "L'URL du site est invalide" }).optional().nullable(),
+    relatedContentIds: z.array(z.number().int().positive()).optional(),
   }),
 });
 

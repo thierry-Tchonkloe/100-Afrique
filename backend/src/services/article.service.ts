@@ -49,7 +49,7 @@ export class ArticleService {
   // Dans articleService, ajoute cette méthode
 
 async quickCreateArticle(
-  data: { title: string; status?: string; categoryId: number, type: ArticleType },
+  data: { title: string; status?: string; categoryId: number, type: ArticleType, location?: string; startDate?: string; endDate?: string; website?: string; relatedContentIds?: number[] },
   authorId: number
 ) {
   const baseSlug = slugify(data.title, { lower: true, strict: true, locale: 'fr' });
@@ -70,6 +70,10 @@ async quickCreateArticle(
       categoryId: data.categoryId,
       authorId,
       type: data.type,
+      location: data.location,
+      startDate: data.startDate ? new Date(data.startDate) : undefined,
+      endDate: data.endDate ? new Date(data.endDate) : undefined,
+      website: data.website,
     },
     select: {
       id:    true,
@@ -305,6 +309,7 @@ async quickCreateArticle(
       startDate?: string;
       endDate?: string;
       website?: string;
+      relatedContentIds?: number[];
     },
     authorId: number
   ) {
@@ -370,6 +375,7 @@ async quickCreateArticle(
         startDate: data.startDate ? new Date(data.startDate) : undefined,
         endDate: data.endDate ? new Date(data.endDate) : undefined,
         website: data.website,
+        relatedContentIds: data.relatedContentIds,
       },
       include: {
         category: true,
@@ -420,6 +426,7 @@ async quickCreateArticle(
       startDate?: string | null;
       endDate?: string | null;
       website?: string | null;
+      relatedContentIds?: number[] | [];
     }
   ) {
     // Vérifier que l'article existe
@@ -507,6 +514,7 @@ async quickCreateArticle(
     if (data.endDate !== undefined)
       updateData.endDate = data.endDate ? new Date(data.endDate) : null;
     if (data.website !== undefined) updateData.website = data.website;
+      if (data.relatedContentIds !== undefined) updateData.relatedContentIds = data.relatedContentIds;
 
     // Mettre à jour l'article
     const article = await prisma.article.update({

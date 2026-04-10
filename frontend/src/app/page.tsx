@@ -13,9 +13,9 @@ import Footer from '@/components/shared/Footer';
 import ChatWidget from '@/components/shared/ChatWidget';
 
 export const metadata = {
-  title: 'Waxeho | La Plateforme de Référence du Tourisme en Afrique',
+  title: '100%Afrique | La voix du tourisme en Afrique',
   description: 'Connectez-vous à l\'écosystème touristique africain. Actualités pro, magazine exclusif, et opportunités d\'affaires pour les acteurs du voyage.',
-  keywords: ['tourisme africain', 'voyages Afrique', 'B2B tourisme', 'Waxeho'],
+  keywords: ['tourisme africain', 'voyages Afrique', 'B2B tourisme', '100%Afrique', '100-Afrique'],
 };
 
 export default function HomePage() {
