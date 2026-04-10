@@ -98,8 +98,8 @@ export default function MagazineGrid() {
       {/* Carrousel Mobile / Grille Desktop */}
       <MagazineCarousel
         magazines={magazines}
-        title="📚 Magazines Tourisme d'Afrique"
-        subtitle="Explorez notre collection de magazines spécialisés dans le tourisme africain, mise à jour en temps réel."
+        title="📚 Nos Actualités sur le Tourisme en Afrique"
+        subtitle="Explorez notre collection d'articles sur le tourisme en Afrique, mise à jour en temps réel."
       />
  
       {/* Grille Desktop (en plus du carrousel) */}

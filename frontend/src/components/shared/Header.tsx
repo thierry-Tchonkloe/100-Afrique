@@ -180,7 +180,7 @@ const Header = () => {
             {/* Menu Mobile */}
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="lg:hidden p-2"
+              className="lg:hidden p-2 text-white "
             >
               {isMobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
             </button>

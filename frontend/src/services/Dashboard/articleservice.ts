@@ -65,6 +65,12 @@ export interface Article {
     duration?: string;
     videoType?: string;
     tags: Tag[];
+    location?: string;
+    startDate?: string;
+    endDate?: string;
+    website?: string;
+    relatedContentIds?: number[];
+    relatedContent?: Article[];
 }
 
 export interface ArticlePagination {
