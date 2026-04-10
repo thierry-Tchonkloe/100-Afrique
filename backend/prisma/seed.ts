@@ -532,6 +532,167 @@ console.log('✅ Anciens articles supprimés\n');
 
   console.log(`✅ ${sectorArticles.length} articles sectoriels créés\n`);
 
+// ========================================
+// Dans prisma/seed.ts — section SALONS & ÉVÉNEMENTS
+// Ajoute type: 'SALON' sur chaque article de salon
+// ========================================
+
+const salonArticles = [
+  // --- ÉVÉNEMENTS EXISTANTS MIS À JOUR ---
+  {
+    title: 'Indaba 2026 : Le Sommet du Tourisme Africain à Durban',
+    slug: 'africa-travel-indaba-2026-durban',
+    excerpt: 'L\'Afrique du Sud accueille l\'édition 2026 de l\'Indaba, le rendez-vous incontournable pour les décideurs du tourisme continental.',
+    coverImage: 'https://images.unsplash.com/photo-1516026672322-bc52d61a55d5',
+    content: [
+      { type: 'text', value: 'Du 12 au 14 mai 2026, l\'ICC de Durban vibrera au rythme des échanges B2B entre exposants africains et acheteurs mondiaux.' },
+    ],
+    categoryId: createdCategories['mice-evenements'].id,
+    authorId: admin.id,
+    status: 'PUBLISHED',
+    featured: false,
+    type: 'SALON',
+  },
+  {
+    title: 'Arabian Travel Market 2026 : Focus sur l\'Afrique de l\'Est',
+    slug: 'arabian-travel-market-2026',
+    excerpt: 'Dubaï accueille l\'ATM 2026, mettant en lumière les nouvelles liaisons aériennes vers le Kenya et la Tanzanie.',
+    coverImage: 'https://images.unsplash.com/photo-1512453979798-5ea266f8880c',
+    content: [
+      { type: 'text', value: 'L\'édition 2026 se tiendra du 4 au 7 mai, avec une présence accrue des agences de promotion touristique du bloc EAC.' },
+    ],
+    categoryId: createdCategories['mice-evenements'].id,
+    authorId: admin.id,
+    status: 'PUBLISHED',
+    featured: false,
+    type: 'SALON',
+  },
+
+  // --- NOUVEAUX ÉVÉNEMENTS AJOUTÉS (TOTAL 10) ---
+  {
+    title: 'SITV Abidjan 2026 : Le Salon International du Tourisme',
+    slug: 'sitv-abidjan-2026-cote-ivoire',
+    excerpt: 'La Côte d\'Ivoire réunit les acteurs de l\'Afrique de l\'Ouest pour promouvoir le tourisme intra-régional.',
+    coverImage: 'https://images.unsplash.com/photo-1620358722186-6b1e7de6bb0e?q=80&w=870&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
+    content: [
+      { type: 'text', value: 'Prévu pour juin 2026, le SITV mettra l\'accent sur le tourisme balnéaire et la culture Lagunaire.' },
+    ],
+    categoryId: createdCategories['mice-evenements'].id,
+    authorId: editor.id,
+    status: 'PUBLISHED',
+    featured: false,
+    type: 'SALON',
+  },
+  {
+    title: 'Experience Africa 2026 : Le Rendez-vous de Londres',
+    slug: 'experience-africa-london-2026',
+    excerpt: 'L\'événement majeur de l\'ATTA à Londres pour connecter les opérateurs de safari avec le marché européen.',
+    coverImage: 'https://images.unsplash.com/photo-1547471080-7cc2caa01a7e',
+    content: [
+      { type: 'text', value: 'Du 22 au 24 juin 2026, Experience Africa présentera les innovations en matière d\'écotourisme et de luxe durable.' },
+    ],
+    categoryId: createdCategories['mice-evenements'].id,
+    authorId: admin.id,
+    status: 'PUBLISHED',
+    featured: false,
+    type: 'SALON',
+  },
+  {
+    title: 'Magical Kenya Travel Expo 2026',
+    slug: 'magical-kenya-travel-expo-2026',
+    excerpt: 'Le Kenya réaffirme sa position de leader du tourisme de nature avec une édition 2026 tournée vers le digital.',
+    coverImage: 'https://images.unsplash.com/photo-1693291031243-87fa0ec6196b?q=80&w=1010&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
+    content: [
+      { type: 'text', value: 'Rendez-vous à Nairobi en octobre 2026 pour découvrir les nouvelles pépites technologiques du secteur.' },
+    ],
+    categoryId: createdCategories['mice-evenements'].id,
+    authorId: admin.id,
+    status: 'PUBLISHED',
+    featured: false,
+    type: 'SALON',
+  },
+  {
+    title: 'Sanganai/Hlanganani 2026 : Destination Zimbabwe',
+    slug: 'sanganai-zimbabwe-2026',
+    excerpt: 'Le Zimbabwe met en avant les Chutes Victoria et ses parcs nationaux lors de ce salon international.',
+    coverImage: 'https://images.unsplash.com/photo-1489392191049-fc10c97e64b6',
+    content: [
+      { type: 'text', value: 'Bulawayo accueillera l\'édition 2026 en septembre, attirant des investisseurs du monde entier.' },
+    ],
+    categoryId: createdCategories['mice-evenements'].id,
+    authorId: editor.id,
+    status: 'PUBLISHED',
+    featured: false,
+    type: 'SALON',
+  },
+  {
+    title: 'WTM Africa 2026 : Le Cap devient le Hub Mondial',
+    slug: 'wtm-africa-2026-cape-town',
+    excerpt: 'World Travel Market Africa revient au Cap pour sa plus grande édition à ce jour.',
+    coverImage: 'https://images.unsplash.com/photo-1580060839134-75a5edca2e99',
+    content: [
+      { type: 'text', value: 'L\'événement se tiendra en avril 2026 avec un focus particulier sur la Travel Tech africaine.' },
+    ],
+    categoryId: createdCategories['mice-evenements'].id,
+    authorId: admin.id,
+    status: 'PUBLISHED',
+    featured: false,
+    type: 'SALON',
+  },
+  {
+    title: 'Akwaaba African Travel Market 2026 : Destination Nigeria',
+    slug: 'akwaaba-travel-market-2026',
+    excerpt: 'Le plus grand salon de voyage en Afrique de l\'Ouest se prépare à Lagos.',
+    coverImage: 'https://images.unsplash.com/photo-1569154941061-e231b4725ef1?q=80&w=870&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
+    content: [
+      { type: 'text', value: 'En septembre 2026, Akwaaba réunira les compagnies aériennes et les hôteliers pour discuter de la connectivité aérienne.' },
+    ],
+    categoryId: createdCategories['mice-evenements'].id,
+    authorId: editor.id,
+    status: 'PUBLISHED',
+    featured: false,
+    type: 'SALON',
+  },
+  {
+    title: 'International French Travel Market (IFTM) Top Resa 2026',
+    slug: 'iftm-top-resa-2026-afrique',
+    excerpt: 'Le pavillon Afrique de Top Resa à Paris s\'agrandit pour l\'édition de septembre 2026.',
+    coverImage: 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34',
+    content: [
+      { type: 'text', value: 'Les destinations francophones comme le Sénégal et le Bénin seront au cœur des débats sur le tourisme de mémoire.' },
+    ],
+    categoryId: createdCategories['mice-evenements'].id,
+    authorId: admin.id,
+    status: 'PUBLISHED',
+    featured: false,
+    type: 'SALON',
+  },
+  {
+    title: 'World Tourism Day 2026 : Célébrations en Afrique',
+    slug: 'world-tourism-day-2026-africa',
+    excerpt: 'La Journée Mondiale du Tourisme sera célébrée avec éclat à travers le continent le 27 septembre 2026.',
+    coverImage: 'https://images.unsplash.com/photo-1621856625680-282ec3a17db8?q=80&w=870&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
+    content: [
+      { type: 'text', value: 'Le thème de 2026 mettra l\'accent sur la jeunesse et l\'entrepreneuriat numérique dans le voyage.' },
+    ],
+    categoryId: createdCategories['mice-evenements'].id,
+    authorId: admin.id,
+    status: 'PUBLISHED',
+    featured: false,
+    type: 'SALON',
+  },
+];
+
+for (const article of salonArticles) {
+  await prisma.article.upsert({
+    where: { slug: article.slug },
+    update: {},
+    create: article as any,
+  });
+}
+
+console.log(`✅ ${salonArticles.length} salons/événements créés\n`);
+
   // // ========================================
   // // 6. VIDÉOS / REPORTAGES (4 articles)
   // // ========================================

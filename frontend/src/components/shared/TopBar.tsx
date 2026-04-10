@@ -411,7 +411,7 @@ const TopBar = ({
       <AdvertisingBanner zoneSlug={zoneSlug} showDots={showDots} className={className} />
 
       {/* Utilitaires (droite) : Langue + Newsletter */}
-      <div className="flex items-center gap-6 ml-4">
+      <div className="flex flex-col items-center gap-6 ml-4">
         {/* Sélecteur de langue */}
         <div className="flex items-center border border-gray-300 rounded overflow-hidden bg-white text-[12px] font-medium">
           <button className="bg-[#002654] text-white px-3 py-1.5 transition-colors">
