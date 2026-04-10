@@ -49,11 +49,12 @@ export interface UpdateSalonPayload {
     featured?: boolean;
     /** Champs métier salon */
     location?: string;
-    startDate?: string;
-    endDate?: string;
+    startDate?: Date;
+    endDate?: Date;
     website?: string;
     planningStatus?: string;
-    tags?: string[];
+    tags?: number[];
+    relatedContentIds?: number[];
 }
 
 // ── Helpers ────────────────────────────────────────────────────────────────────

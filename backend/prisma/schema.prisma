@@ -95,6 +95,7 @@ model Article {
   startDate      DateTime? // date de début
   endDate        DateTime? // date de fin
   website        String?   // site officiel de l'événement
+  relatedContentIds Int[] @default([])
 
   type ContenusType @default(ARTICLE)
 

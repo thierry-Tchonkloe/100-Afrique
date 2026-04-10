@@ -1,12 +1,13 @@
 // "use client";
 
-// import React, { useState, useRef } from "react";
-// import {X, Save, Eye, BookOpen, MapPin, Calendar, Globe, AlignLeft, Image as ImageIcon, Tag, Search, Settings, Bold, Italic, Underline, List, ListOrdered, Link, ChevronDown, Upload, Clock, User, FileText, Video, Plus, } from "lucide-react";
-// import { Article } from "@/services/Dashboard/videoservice";
+// import React, { useState, useEffect, useRef } from "react";
+// import { X, Save, Eye, BookOpen, AlignLeft, Image as ImageIcon, Tag, Search, Settings, Bold, Italic, Underline, List, ListOrdered, Link, ChevronDown, Upload, Clock, FileText, Video, Plus, Loader2, AlertCircle, CheckCircle2,} from "lucide-react";
+// import { updateSalon } from "@/services/Dashboard/salonservice";
+// import { Article, STATUS_API_TO_UI } from "@/services/Dashboard/articleservice";
 
 // // ─── Types ────────────────────────────────────────────────────────────────────
 
-// interface SalonFormData {
+// interface SalonForm {
 //     title: string;
 //     location: string;
 //     startDate: string;
@@ -14,38 +15,78 @@
 //     website: string;
 //     description: string;
 //     planningStatus: string;
-//     responsible: string;
 //     slug: string;
 //     tags: string[];
 //     metaTitle: string;
 //     metaDescription: string;
-//     image: File | null;
 // }
 
-// interface SalonModalProps {
-//     isOpen?: boolean;
-//     salon?: Article | null; // ✅ AJOUT ICI
-//     onClose?: () => void;
-//     onSave?: (data: SalonFormData) => void;
-//     onPublish?: (data: SalonFormData) => void;
+// interface SalonEditProps {
+//     isOpen: boolean;
+//     salon: Article | null;
+//     onClose: () => void;
+//     onSubmit?: (article: Article) => void;
+// }
+
+// // ─── Constants ────────────────────────────────────────────────────────────────
+
+// const PLANNING_STATUSES = ["Brouillon", "En Révision", "Publié", "Archivé"];
+
+// const TAG_COLORS: Record<string, string> = {
+//     Tourisme:      "bg-orange-100 text-orange-700 border-orange-200",
+//     MICE:          "bg-blue-100 text-blue-700 border-blue-200",
+//     International: "bg-emerald-100 text-emerald-700 border-emerald-200",
+// };
+
+// /** Extrait le texte du content JSON de l'article */
+// function extractBodyText(article: Article): string {
+//     if (!article.content || !Array.isArray(article.content)) return "";
+//     return (article.content as { type: string; value: string }[])
+//         .filter((b) => b.type === "text" || b.type === "heading")
+//         .map((b) => (b.type === "heading" ? `## ${b.value}` : b.value))
+//         .join("\n\n");
+// }
+
+// /** Mappe le statut interne salon → statut API article */
+// function toApiStatus(planningStatus: string): "DRAFT" | "PUBLISHED" | "REVIEW" | "ARCHIVED" {
+//     const map: Record<string, "DRAFT" | "PUBLISHED" | "REVIEW" | "ARCHIVED"> = {
+//         "Brouillon":    "DRAFT",
+//         "En Révision":  "REVIEW",
+//         "Publié":       "PUBLISHED",
+//         "Archivé":      "ARCHIVED",
+//     };
+//     return map[planningStatus] ?? "DRAFT";
+// }
+
+// /** Mappe le statut API → statut interne salon */
+// function fromApiStatus(apiStatus: string): string {
+//     const map: Record<string, string> = {
+//         DRAFT:     "Brouillon",
+//         REVIEW:    "En Révision",
+//         PUBLISHED: "Publié",
+//         ARCHIVED:  "Archivé",
+//     };
+//     return map[apiStatus] ?? "À Planifier";
 // }
 
 // // ─── Sub-components ───────────────────────────────────────────────────────────
 
-// const SectionHeader = ({ icon: Icon, title, color = "text-orange-500", }: { icon: React.ElementType; title: string; color?: string; }) => (
-//     <div className="flex items-center gap-2 mb-5">
+// function SectionHeader({icon: Icon, title, color = "text-orange-500",}: { icon: React.ElementType; title: string; color?: string }) {
+//     return (
+//         <div className="flex items-center gap-2 mb-5">
 //         <Icon size={16} className={color} />
-//         <h3 className="font-semibold text-slate-800 text-sm tracking-wide uppercase">
-//             {title}
-//         </h3>
-//     </div>
-// );
+//         <h3 className="font-semibold text-slate-800 text-sm tracking-wide uppercase">{title}</h3>
+//         </div>
+//     );
+// }
 
-// const InputField = ({ label, placeholder, value, onChange, type = "text", hint, }: { label: string; placeholder?: string; value: string; onChange: (v: string) => void; type?: string; hint?: string; }) => (
-//     <div className="flex flex-col gap-1.5">
-//         <label className="text-xs font-medium text-slate-500 uppercase tracking-wider">
-//         {label}
-//         </label>
+// function InputField({label, placeholder, value, onChange, type = "text", hint,}: {
+//     label: string; placeholder?: string; value: string;
+//     onChange: (v: string) => void; type?: string; hint?: string;
+// }) {
+//     return (
+//         <div className="flex flex-col gap-1.5">
+//         <label className="text-xs font-medium text-slate-500 uppercase tracking-wider">{label}</label>
 //         <input
 //             type={type}
 //             value={value}
@@ -54,455 +95,532 @@
 //             className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-800 placeholder-slate-400 outline-none transition focus:border-orange-400 focus:ring-2 focus:ring-orange-100"
 //         />
 //         {hint && <p className="text-xs text-slate-400">{hint}</p>}
-//     </div>
-// );
+//         </div>
+//     );
+// }
 
-// const SelectField = ({ label, value, onChange, options, }: { label: string; value: string; onChange: (v: string) => void; options: string[]; }) => (
-//     <div className="flex flex-col gap-1.5">
-//         <label className="text-xs font-medium text-slate-500 uppercase tracking-wider">
-//         {label}
-//         </label>
+// function SelectField({label, value, onChange, options,}: { label: string; value: string; onChange: (v: string) => void; options: string[] }) {
+//     return (
+//         <div className="flex flex-col gap-1.5">
+//         <label className="text-xs font-medium text-slate-500 uppercase tracking-wider">{label}</label>
 //         <div className="relative">
-//         <select
+//             <select
 //             value={value}
 //             onChange={(e) => onChange(e.target.value)}
 //             className="w-full appearance-none rounded-lg border border-slate-200 bg-white px-3 py-2.5 pr-9 text-sm text-slate-800 outline-none transition focus:border-orange-400 focus:ring-2 focus:ring-orange-100"
-//         >
-//             {options.map((opt) => (
-//             <option key={opt} value={opt}>
-//                 {opt}
-//             </option>
-//             ))}
-//         </select>
-//         <ChevronDown
-//             size={14}
-//             className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-slate-400"
-//         />
+//             >
+//             {options.map((opt) => <option key={opt} value={opt}>{opt}</option>)}
+//             </select>
+//             <ChevronDown size={14} className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-slate-400" />
 //         </div>
-//     </div>
-// );
+//         </div>
+//     );
+// }
 
-// const RichTextToolbar = () => (
-//     <div className="flex items-center gap-0.5 border-b border-slate-100 bg-slate-50 px-3 py-2 rounded-t-lg">
+// function RichTextToolbar() {
+//     return (
+//         <div className="flex items-center gap-0.5 border-b border-slate-100 bg-slate-50 px-3 py-2 rounded-t-lg">
 //         {[
-//         { icon: Bold, label: "Gras" },
-//         { icon: Italic, label: "Italique" },
-//         { icon: Underline, label: "Souligné" },
+//             { icon: Bold, label: "Gras" }, { icon: Italic, label: "Italique" },
+//             { icon: Underline, label: "Souligné" },
 //         ].map(({ icon: Icon, label }) => (
-//         <button
-//             key={label}
-//             title={label}
-//             className="rounded p-1.5 text-slate-500 transition hover:bg-white hover:text-slate-800 hover:shadow-sm"
-//         >
+//             <button key={label} title={label} className="rounded p-1.5 text-slate-500 transition hover:bg-white hover:text-slate-800 hover:shadow-sm">
 //             <Icon size={14} />
-//         </button>
+//             </button>
 //         ))}
 //         <div className="mx-1.5 h-4 w-px bg-slate-200" />
 //         {[
-//         { icon: List, label: "Liste" },
-//         { icon: ListOrdered, label: "Liste numérotée" },
+//             { icon: List, label: "Liste" }, { icon: ListOrdered, label: "Liste numérotée" },
 //         ].map(({ icon: Icon, label }) => (
-//         <button
-//             key={label}
-//             title={label}
-//             className="rounded p-1.5 text-slate-500 transition hover:bg-white hover:text-slate-800 hover:shadow-sm"
-//         >
+//             <button key={label} title={label} className="rounded p-1.5 text-slate-500 transition hover:bg-white hover:text-slate-800 hover:shadow-sm">
 //             <Icon size={14} />
-//         </button>
+//             </button>
 //         ))}
 //         <div className="mx-1.5 h-4 w-px bg-slate-200" />
-//         <button
-//         title="Lien"
-//         className="rounded p-1.5 text-slate-500 transition hover:bg-white hover:text-slate-800 hover:shadow-sm"
-//         >
-//         <Link size={14} />
+//         <button title="Lien" className="rounded p-1.5 text-slate-500 transition hover:bg-white hover:text-slate-800 hover:shadow-sm">
+//             <Link size={14} />
 //         </button>
-//     </div>
-// );
+//         </div>
+//     );
+// }
 
-// // ─── Tag component ─────────────────────────────────────────────────────────
-
-// const TAG_COLORS: Record<string, string> = {
-//     Tourisme: "bg-orange-100 text-orange-700 border-orange-200",
-//     MICE: "bg-blue-100 text-blue-700 border-blue-200",
-//     International: "bg-emerald-100 text-emerald-700 border-emerald-200",
-// };
-
-// const TagBadge = ({ tag, onRemove, }: { tag: string; onRemove: () => void; }) => (
-//     <span
-//         className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-xs font-medium ${
+// function TagBadge({ tag, onRemove }: { tag: string; onRemove: () => void }) {
+//     return (
+//         <span className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-xs font-medium ${
 //         TAG_COLORS[tag] ?? "bg-slate-100 text-slate-600 border-slate-200"
-//         }`}
-//     >
+//         }`}>
 //         {tag}
-//         <button
-//         onClick={onRemove}
-//         className="ml-0.5 rounded-full opacity-60 hover:opacity-100 transition"
-//         >
-//         <X size={10} />
+//         <button onClick={onRemove} className="ml-0.5 rounded-full opacity-60 hover:opacity-100 transition">
+//             <X size={10} />
 //         </button>
-//     </span>
-// );
+//         </span>
+//     );
+// }
 
-// // ─── Main Modal ───────────────────────────────────────────────────────────────
+// // ─── Editor Content ───────────────────────────────────────────────────────────
 
-// export default function SalonModal({ salon, isOpen = true, onClose, onSave, onPublish, }: SalonModalProps) {
+// function SalonEditorContent({salon, onClose, onSubmit,}: { salon: Article; onClose: () => void; onSubmit?: (a: Article) => void }) {
 //     const fileInputRef = useRef<HTMLInputElement>(null);
 
-//     const [form, setForm] = useState<SalonFormData>({
-//         title: "Salon International du Tourisme",
-//         location: "Paris Expo Porte de Versailles",
-//         startDate: "2024-03-15",
-//         endDate: "2024-03-18",
-//         website: "",
-//         description:
-//         'Le Salon International du Tourisme est un événement majeur qui rassemble chaque année les professionnels du secteur touristique. Créé en 1985, il constitue une plateforme d\'échange privilégiée entre les destinations, les tour-opérateurs et les acteurs de l\'industrie du voyage.\nCette année, le thème principal porte sur "Le Tourisme Durable et Responsable", mettant l\'accent sur les nouvelles pratiques écoresponsables et l\'impact positif du tourisme sur les communautés locales.',
-//         planningStatus: "À Planifier",
-//         responsible: "Marie Dubois",
-//         slug: "/salons/salon-international-tourisme-2024",
-//         tags: ["Tourisme", "MICE", "International"],
-//         metaTitle: "",
-//         metaDescription: "",
-//         image: null,
+//     const [form, setForm] = useState<SalonForm>({
+//         title:          salon.title ?? "",
+//         location:       "",
+//         startDate:      "",
+//         endDate:        "",
+//         website:        "",
+//         description:    extractBodyText(salon),
+//         planningStatus: fromApiStatus(salon.status),
+//         slug:           salon.slug ?? "",
+//         tags:           [],
+//         metaTitle:      salon.metaTitle ?? "",
+//         metaDescription: salon.metaDescription ?? "",
 //     });
 
-//     const [tagInput, setTagInput] = useState("");
-//     const [lastSaved] = useState("Il y a 2 minutes");
-//     const [imagePreview, setImagePreview] = useState<string | null>(null);
+//     const [tagInput,    setTagInput]    = useState("");
+//     const [imagePreview, setImagePreview] = useState<string | null>(
+//         salon.coverImage || null
+//     );
+//     const [saving,      setSaving]      = useState(false);
+//     const [publishing,  setPublishing]  = useState(false);
+//     const [saveError,   setSaveError]   = useState<string | null>(null);
+//     const [saveSuccess, setSaveSuccess] = useState(false);
 
-//     const set = <K extends keyof SalonFormData>(key: K, value: SalonFormData[K]) =>
+//     const set = <K extends keyof SalonForm>(key: K, value: SalonForm[K]) =>
 //         setForm((prev) => ({ ...prev, [key]: value }));
 
 //     const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-//         const file = e.target.files?.[0] ?? null;
-//         set("image", file);
-//         if (file) {
+//         const file = e.target.files?.[0];
+//         if (!file) return;
 //         const reader = new FileReader();
 //         reader.onload = (ev) => setImagePreview(ev.target?.result as string);
 //         reader.readAsDataURL(file);
-//         }
 //     };
 
 //     const addTag = (tag: string) => {
 //         const trimmed = tag.trim();
-//         if (trimmed && !form.tags.includes(trimmed)) {
-//         set("tags", [...form.tags, trimmed]);
-//         }
+//         if (trimmed && !form.tags.includes(trimmed)) set("tags", [...form.tags, trimmed]);
 //         setTagInput("");
 //     };
 
-//     const removeTag = (tag: string) =>
-//         set("tags", form.tags.filter((t) => t !== tag));
+//     const removeTag = (tag: string) => set("tags", form.tags.filter((t) => t !== tag));
 
-//     if (!isOpen) return null;
+//     // ── Sauvegarde ─────────────────────────────────────────────────────────────
+
+//     const save = async (publish = false) => {
+//         if (publish) setPublishing(true); else setSaving(true);
+//         setSaveError(null);
+//         setSaveSuccess(false);
+
+//         try {
+//         const apiStatus = publish ? "PUBLISHED" : toApiStatus(form.planningStatus);
+
+//         const contentBlocks = form.description.trim()
+//             ? form.description.split(/\n{2,}/).map((line) => {
+//                 const t = line.trim();
+//                 if (!t) return null;
+//                 if (t.startsWith("## ")) return { type: "heading", value: t.slice(3) };
+//                 return { type: "text", value: t };
+//             }).filter(Boolean) as { type: string; value: string }[]
+//             : [{ type: "text", value: "Contenu vide" }];
+
+//         const payload: Parameters<typeof updateSalon>[1] = {
+//             title:   form.title.trim() || undefined,
+//             status:  apiStatus as "DRAFT" | "PUBLISHED" | "REVIEW" | "ARCHIVED",
+//             content: contentBlocks,
+//             planningStatus: form.planningStatus,
+//             location:       form.location.trim() || undefined,
+//             startDate:      form.startDate || undefined,
+//             endDate:        form.endDate || undefined,
+//             website:        form.website.trim() || undefined,
+//             tags:           form.tags.length ? form.tags : undefined,
+//         };
+//         if (form.metaTitle.trim())       payload.metaTitle       = form.metaTitle.trim();
+//         if (form.metaDescription.trim()) payload.metaDescription = form.metaDescription.trim();
+//         if (form.slug.trim())            payload.featured        = undefined; // slug non modifiable via updateArticle sans endpoint dédié
+
+//         const res = await updateSalon(salon.id, payload);
+//         setSaveSuccess(true);
+//         setTimeout(() => setSaveSuccess(false), 3000);
+//         if (publish) onSubmit?.(res.data);
+//         } catch (err: unknown) {
+//         setSaveError((err as Error).message || "Erreur lors de la sauvegarde.");
+//         } finally {
+//         setSaving(false);
+//         setPublishing(false);
+//         }
+//     };
+
+//     // ── Render ─────────────────────────────────────────────────────────────────
 
 //     return (
-//         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
-//         {/* Modal container */}
 //         <div className="relative w-full max-w-4xl max-h-[95vh] flex flex-col bg-white rounded-2xl shadow-2xl shadow-slate-900/20 overflow-hidden">
 
-//             {/* ── Header ── */}
-//             <header className="flex items-center justify-between gap-4 px-6 py-4 border-b border-slate-100 bg-white z-10 shrink-0">
+//         {/* Header */}
+//         <header className="flex items-center justify-between gap-4 px-6 py-4 border-b border-slate-100 bg-white z-10 shrink-0">
 //             <div className="flex items-center gap-3">
-//                 <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-orange-500 shadow-md shadow-orange-200">
+//             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-orange-500 shadow-md shadow-orange-200">
 //                 <BookOpen size={15} className="text-white" />
-//                 </div>
-//                 <h2 className="font-semibold text-slate-800 text-base">
-//                 Édition de la Fiche Salon :{" "}
-//                 <span className="text-orange-600">{form.title || "Nouveau Salon"}</span>
-//                 </h2>
+//             </div>
+//             <h2 className="font-semibold text-slate-800 text-base">
+//                 Édition :{" "}
+//                 <span className="text-orange-600">{form.title || salon.title}</span>
+//             </h2>
 //             </div>
 
 //             <div className="flex items-center gap-2">
-//                 {/* Last saved */}
+//             {/* Feedback */}
+//             {saveError && (
+//                 <span className="hidden sm:flex items-center gap-1 text-xs text-red-500">
+//                 <AlertCircle size={13} /> {saveError}
+//                 </span>
+//             )}
+//             {saveSuccess && (
+//                 <span className="hidden sm:flex items-center gap-1 text-xs text-green-600">
+//                 <CheckCircle2 size={13} /> Sauvegardé !
+//                 </span>
+//             )}
+//             {!saveError && !saveSuccess && (
 //                 <span className="hidden sm:flex items-center gap-1.5 text-xs text-slate-400">
 //                 <Clock size={11} />
-//                 Dernière sauvegarde : {lastSaved}
+//                 Salon #{salon.id} · {new Date(salon.updatedAt).toLocaleDateString("fr-FR")}
 //                 </span>
+//             )}
 
-//                 {/* Actions */}
-//                 <button
-//                 onClick={() => onSave?.(form)}
-//                 className="flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3.5 py-2 text-xs font-medium text-slate-600 shadow-sm transition hover:bg-slate-50 hover:border-slate-300"
-//                 >
-//                 <FileText size={13} />
-//                 Enregistrer le Brouillon
-//                 </button>
-//                 <button
-//                 onClick={() => onPublish?.(form)}
-//                 className="flex items-center gap-1.5 rounded-lg bg-orange-500 px-3.5 py-2 text-xs font-semibold text-white shadow-md shadow-orange-200 transition hover:bg-orange-600 active:scale-95"
-//                 >
-//                 <Save size={13} />
-//                 Enregistrer et Publier
-//                 </button>
-//                 <button
-//                 className="flex items-center gap-1.5 rounded-lg border border-slate-200 px-3.5 py-2 text-xs font-medium text-slate-600 transition hover:bg-slate-50"
-//                 >
-//                 <Eye size={13} />
-//                 Prévisualiser
-//                 </button>
-
-//                 {/* Close */}
-//                 <button
+//             <button
+//                 onClick={() => save(false)}
+//                 disabled={saving}
+//                 className="flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3.5 py-2 text-xs font-medium text-slate-600 shadow-sm transition hover:bg-slate-50 hover:border-slate-300 disabled:opacity-60"
+//             >
+//                 {saving ? <Loader2 size={13} className="animate-spin" /> : <FileText size={13} />}
+//                 {saving ? "Enregistrement…" : "Enregistrer le Brouillon"}
+//             </button>
+//             <button
+//                 onClick={() => save(true)}
+//                 disabled={publishing}
+//                 className="flex items-center gap-1.5 rounded-lg bg-orange-500 px-3.5 py-2 text-xs font-semibold text-white shadow-md shadow-orange-200 transition hover:bg-orange-600 active:scale-95 disabled:opacity-60"
+//             >
+//                 {publishing ? <Loader2 size={13} className="animate-spin" /> : <Save size={13} />}
+//                 {publishing ? "Publication…" : "Enregistrer et Publier"}
+//             </button>
+//             <button className="flex items-center gap-1.5 rounded-lg border border-slate-200 px-3.5 py-2 text-xs font-medium text-slate-600 transition hover:bg-slate-50">
+//                 <Eye size={13} /> Prévisualiser
+//             </button>
+//             <button
 //                 onClick={onClose}
 //                 className="ml-1 rounded-lg p-2 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700"
-//                 >
+//             >
 //                 <X size={16} />
-//                 </button>
+//             </button>
 //             </div>
-//             </header>
+//         </header>
 
-//             {/* ── Body ── */}
-//             <div className="flex flex-1 overflow-hidden">
+//         {/* Body */}
+//         <div className="flex flex-1 overflow-hidden">
+
 //             {/* Left column */}
 //             <div className="flex-1 overflow-y-auto px-6 py-6 space-y-8">
 
-//                 {/* Informations de Base */}
-//                 <section>
+//             {/* Informations de Base */}
+//             <section>
 //                 <SectionHeader icon={Settings} title="Informations de Base" />
 //                 <div className="space-y-4">
-//                     <InputField
+//                 <InputField
 //                     label="Titre du Salon / Événement"
 //                     value={form.title}
 //                     onChange={(v) => set("title", v)}
 //                     placeholder="Ex: Salon International du Tourisme"
-//                     />
-//                     <div className="grid grid-cols-3 gap-3">
+//                 />
+//                 <div className="grid grid-cols-3 gap-3">
 //                     <InputField
-//                         label="Lieu"
-//                         value={form.location}
-//                         onChange={(v) => set("location", v)}
-//                         placeholder="Paris Expo..."
-//                     />
-//                     <InputField
-//                         label="Date de Début"
-//                         type="date"
-//                         value={form.startDate}
-//                         onChange={(v) => set("startDate", v)}
+//                     label="Lieu"
+//                     value={form.location}
+//                     onChange={(v) => set("location", v)}
+//                     placeholder="Paris Expo..."
 //                     />
 //                     <InputField
-//                         label="Date de Fin"
-//                         type="date"
-//                         value={form.endDate}
-//                         onChange={(v) => set("endDate", v)}
+//                     label="Date de Début"
+//                     type="date"
+//                     value={form.startDate}
+//                     onChange={(v) => set("startDate", v)}
 //                     />
-//                     </div>
 //                     <InputField
-//                     label="Site Web Officiel de l'Événement"
+//                     label="Date de Fin"
+//                     type="date"
+//                     value={form.endDate}
+//                     onChange={(v) => set("endDate", v)}
+//                     />
+//                 </div>
+//                 <InputField
+//                     label="Site Web Officiel"
 //                     type="url"
 //                     value={form.website}
 //                     onChange={(v) => set("website", v)}
 //                     placeholder="https://..."
-//                     hint="Saisissez l'URL complète du site officiel"
-//                     />
+//                     hint="URL complète du site officiel de l'événement"
+//                 />
 //                 </div>
-//                 </section>
+//             </section>
 
-//                 {/* Description Détaillée */}
-//                 <section>
+//             {/* Description */}
+//             <section>
 //                 <SectionHeader icon={AlignLeft} title="Description Détaillée" color="text-blue-500" />
 //                 <div className="flex flex-col gap-1.5">
-//                     <label className="text-xs font-medium text-slate-500 uppercase tracking-wider">
-//                     Description du Salon (Historique, Objectifs, Thème de l`année)
-//                     </label>
-//                     <div className="rounded-lg border border-slate-200 overflow-hidden transition focus-within:border-orange-400 focus-within:ring-2 focus-within:ring-orange-100">
+//                 <label className="text-xs font-medium text-slate-500 uppercase tracking-wider">
+//                     Description (Historique, Objectifs, Thème de l&apos;année)
+//                 </label>
+//                 <div className="rounded-lg border border-slate-200 overflow-hidden transition focus-within:border-orange-400 focus-within:ring-2 focus-within:ring-orange-100">
 //                     <RichTextToolbar />
 //                     <textarea
-//                         value={form.description}
-//                         onChange={(e) => set("description", e.target.value)}
-//                         rows={7}
-//                         className="w-full px-4 py-3 text-sm text-slate-700 leading-relaxed placeholder-slate-400 outline-none resize-none bg-white"
-//                         placeholder="Décrivez le salon en détail..."
+//                     value={form.description}
+//                     onChange={(e) => set("description", e.target.value)}
+//                     rows={8}
+//                     placeholder="Décrivez le salon en détail…"
+//                     className="w-full px-4 py-3 text-sm text-slate-700 leading-relaxed placeholder-slate-400 outline-none resize-none bg-white"
 //                     />
-//                     </div>
 //                 </div>
-//                 </section>
+//                 </div>
+//             </section>
 
-//                 {/* Média à la Une */}
-//                 <section>
+//             {/* Image */}
+//             <section>
 //                 <SectionHeader icon={ImageIcon} title="Média à la Une" color="text-purple-500" />
-//                 <div className="flex flex-col gap-1.5">
-//                     <label className="text-xs font-medium text-slate-500 uppercase tracking-wider">
-//                     Image Principale / Logo
-//                     </label>
-//                     <div
+//                 <div
 //                     onClick={() => fileInputRef.current?.click()}
 //                     className="group flex flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed border-slate-200 bg-slate-50 px-6 py-10 cursor-pointer transition hover:border-orange-300 hover:bg-orange-50"
-//                     >
-//                     {imagePreview ? (
-//                         <img
-//                         src={imagePreview}
-//                         alt="Aperçu"
-//                         className="max-h-32 rounded-lg object-contain shadow"
-//                         />
-//                     ) : (
-//                         <>
-//                         <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-white shadow-sm border border-slate-100 group-hover:border-orange-200 transition">
-//                             <Upload size={20} className="text-slate-400 group-hover:text-orange-400 transition" />
-//                         </div>
-//                         <div className="text-center">
-//                             <p className="text-sm font-medium text-slate-600">
-//                             Ajouter l`image à la Une / Logo du Salon
-//                             </p>
-//                             <p className="text-xs text-slate-400 mt-0.5">PNG, JPG jusqu`à 5MB</p>
-//                         </div>
-//                         <button className="rounded-lg bg-orange-500 px-4 py-2 text-xs font-semibold text-white shadow-sm shadow-orange-200 transition hover:bg-orange-600">
-//                             Choisir un fichier
-//                         </button>
-//                         </>
-//                     )}
-//                     <input
-//                         ref={fileInputRef}
-//                         type="file"
-//                         accept="image/png,image/jpeg"
-//                         className="hidden"
-//                         onChange={handleImageChange}
-//                     />
+//                 >
+//                 {imagePreview ? (
+//                     <img src={imagePreview} alt="Aperçu" className="max-h-32 rounded-lg object-contain shadow" />
+//                 ) : (
+//                     <>
+//                     <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-white shadow-sm border border-slate-100 group-hover:border-orange-200 transition">
+//                         <Upload size={20} className="text-slate-400 group-hover:text-orange-400 transition" />
 //                     </div>
+//                     <div className="text-center">
+//                         <p className="text-sm font-medium text-slate-600">Ajouter l&apos;image à la Une / Logo du Salon</p>
+//                         <p className="text-xs text-slate-400 mt-0.5">PNG, JPG jusqu&apos;à 5 MB</p>
+//                     </div>
+//                     <button className="rounded-lg bg-orange-500 px-4 py-2 text-xs font-semibold text-white shadow-sm shadow-orange-200 transition hover:bg-orange-600">
+//                         Choisir un fichier
+//                     </button>
+//                     </>
+//                 )}
+//                 <input
+//                     ref={fileInputRef}
+//                     type="file"
+//                     accept="image/png,image/jpeg"
+//                     className="hidden"
+//                     onChange={handleImageChange}
+//                 />
 //                 </div>
-//                 </section>
+//             </section>
 //             </div>
 
-//             {/* Right column */}
+//             {/* Right sidebar */}
 //             <aside className="w-72 shrink-0 overflow-y-auto border-l border-slate-100 bg-slate-50/60 px-5 py-6 space-y-8">
 
-//                 {/* Statut et Planification */}
-//                 <section>
+//             {/* Statut */}
+//             <section>
 //                 <SectionHeader icon={Settings} title="Statut et Planification" color="text-orange-500" />
 //                 <div className="space-y-4">
-//                     <SelectField
+//                 <SelectField
 //                     label="Statut de Planification"
 //                     value={form.planningStatus}
 //                     onChange={(v) => set("planningStatus", v)}
-//                     options={["À Planifier", "En Cours", "Confirmé", "Annulé", "Terminé"]}
-//                     />
-//                     <SelectField
-//                     label="Responsable"
-//                     value={form.responsible}
-//                     onChange={(v) => set("responsible", v)}
-//                     options={["Marie Dubois", "Jean Martin", "Sophie Leclerc", "Paul Bernard"]}
-//                     />
-//                     <InputField
+//                     options={PLANNING_STATUSES}
+//                 />
+
+//                 {/* Auteur (lecture seule) */}
+//                 <div className="flex flex-col gap-1.5">
+//                     <label className="text-xs font-medium text-slate-500 uppercase tracking-wider">
+//                     Responsable
+//                     </label>
+//                     <p className="text-sm text-slate-700 border border-slate-200 rounded-lg bg-white px-3 py-2.5">
+//                     {salon.author.name}
+//                     </p>
+//                 </div>
+
+//                 {/* Catégorie (lecture seule) */}
+//                 <div className="flex flex-col gap-1.5">
+//                     <label className="text-xs font-medium text-slate-500 uppercase tracking-wider">
+//                     Catégorie
+//                     </label>
+//                     <p
+//                     className="text-sm font-medium border border-slate-200 rounded-lg bg-white px-3 py-2.5"
+//                     style={{ color: salon.category.color }}
+//                     >
+//                     {salon.category.name}
+//                     </p>
+//                 </div>
+
+//                 <InputField
 //                     label="URL de la Fiche (Slug)"
 //                     value={form.slug}
 //                     onChange={(v) => set("slug", v)}
 //                     placeholder="/salons/mon-salon-2024"
-//                     />
+//                 />
 //                 </div>
-//                 </section>
+//             </section>
 
-//                 {/* Taxonomie et Contenu */}
-//                 <section>
+//             {/* Tags */}
+//             <section>
 //                 <SectionHeader icon={Tag} title="Taxonomie et Contenu" color="text-amber-500" />
 //                 <div className="space-y-4">
-//                     {/* Tags */}
-//                     <div className="flex flex-col gap-1.5">
+//                 <div className="flex flex-col gap-1.5">
 //                     <label className="text-xs font-medium text-slate-500 uppercase tracking-wider">
-//                         Tags / Mots-clés
+//                     Tags / Mots-clés
 //                     </label>
 //                     <div className="flex gap-1.5">
-//                         <input
+//                     <input
 //                         type="text"
 //                         value={tagInput}
 //                         onChange={(e) => setTagInput(e.target.value)}
 //                         onKeyDown={(e) => {
-//                             if (e.key === "Enter" || e.key === ",") {
+//                         if (e.key === "Enter" || e.key === ",") {
 //                             e.preventDefault();
 //                             addTag(tagInput);
-//                             }
+//                         }
 //                         }}
-//                         placeholder="Ex: MICE, Hôtellerie..."
+//                         placeholder="Ex: MICE, Hôtellerie…"
 //                         className="flex-1 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs placeholder-slate-400 outline-none transition focus:border-orange-400 focus:ring-2 focus:ring-orange-100"
-//                         />
-//                         <button
+//                     />
+//                     <button
 //                         onClick={() => addTag(tagInput)}
 //                         className="rounded-lg border border-slate-200 bg-white p-2 text-slate-500 transition hover:bg-orange-50 hover:border-orange-300 hover:text-orange-500"
-//                         >
+//                     >
 //                         <Plus size={14} />
-//                         </button>
+//                     </button>
 //                     </div>
 //                     {form.tags.length > 0 && (
-//                         <div className="flex flex-wrap gap-1.5 mt-1">
+//                     <div className="flex flex-wrap gap-1.5 mt-1">
 //                         {form.tags.map((tag) => (
-//                             <TagBadge key={tag} tag={tag} onRemove={() => removeTag(tag)} />
+//                         <TagBadge key={tag} tag={tag} onRemove={() => removeTag(tag)} />
 //                         ))}
-//                         </div>
-//                     )}
 //                     </div>
+//                     )}
+//                 </div>
 
-//                     {/* Contenu Associé */}
-//                     <div className="flex flex-col gap-2">
+//                 {/* Contenu associé (placeholder statique — à connecter) */}
+//                 <div className="flex flex-col gap-2">
 //                     <label className="text-xs font-medium text-slate-500 uppercase tracking-wider">
-//                         Contenu Associé
+//                     Contenu Associé
 //                     </label>
 //                     <div className="space-y-1.5">
-//                         {[
-//                         { icon: FileText, label: 'Article: "Tendances du Tourisme 2024"', color: "text-blue-500" },
-//                         { icon: Video, label: 'Vidéo: "Interview Directeur Salon"', color: "text-purple-500" },
-//                         ].map(({ icon: Icon, label, color }) => (
-//                         <div
-//                             key={label}
-//                             className="flex items-center gap-2 rounded-lg bg-white border border-slate-100 px-3 py-2 text-xs text-slate-600 shadow-sm"
-//                         >
-//                             <Icon size={12} className={color} />
-//                             <span className="truncate">{label}</span>
+//                     {[
+//                         { icon: FileText, label: "Articles liés", color: "text-blue-500" },
+//                         { icon: Video,    label: "Vidéos liées",  color: "text-purple-500" },
+//                     ].map(({ icon: Icon, label, color }) => (
+//                         <div key={label} className="flex items-center gap-2 rounded-lg bg-white border border-slate-100 px-3 py-2 text-xs text-slate-500 shadow-sm">
+//                         <Icon size={12} className={color} />
+//                         <span>{label}</span>
 //                         </div>
-//                         ))}
-//                         <button className="flex w-full items-center gap-1.5 rounded-lg border border-dashed border-slate-200 px-3 py-2 text-xs text-slate-400 transition hover:border-orange-300 hover:text-orange-500 hover:bg-orange-50">
-//                         <Plus size={12} />
-//                         Ajouter du contenu
-//                         </button>
-//                     </div>
+//                     ))}
+//                     <button className="flex w-full items-center gap-1.5 rounded-lg border border-dashed border-slate-200 px-3 py-2 text-xs text-slate-400 transition hover:border-orange-300 hover:text-orange-500 hover:bg-orange-50">
+//                         <Plus size={12} /> Ajouter du contenu
+//                     </button>
 //                     </div>
 //                 </div>
-//                 </section>
+//                 </div>
+//             </section>
 
-//                 {/* Optimisation SEO */}
-//                 <section>
+//             {/* SEO */}
+//             <section>
 //                 <SectionHeader icon={Search} title="Optimisation SEO" color="text-emerald-500" />
 //                 <div className="space-y-3">
-//                     <div className="flex flex-col gap-1.5">
-//                     <label className="text-xs font-medium text-slate-500 uppercase tracking-wider">
-//                         Titre Méta
-//                     </label>
-//                     <input
-//                         type="text"
-//                         value={form.metaTitle}
-//                         onChange={(e) => set("metaTitle", e.target.value)}
-//                         placeholder="Titre pour le référencement..."
-//                         maxLength={60}
-//                         className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-xs placeholder-slate-400 outline-none transition focus:border-orange-400 focus:ring-2 focus:ring-orange-100"
-//                     />
+//                 <div className="flex flex-col gap-1.5">
 //                     <div className="flex justify-between">
-//                         <p className="text-xs text-slate-400">60 caractères max recommandés</p>
-//                         <p className={`text-xs font-medium ${form.metaTitle.length > 60 ? "text-red-500" : "text-slate-400"}`}>
+//                     <label className="text-xs font-medium text-slate-500 uppercase tracking-wider">Titre Méta</label>
+//                     <span className={`text-xs font-medium ${form.metaTitle.length > 60 ? "text-red-500" : "text-slate-400"}`}>
 //                         {form.metaTitle.length}/60
-//                         </p>
+//                     </span>
 //                     </div>
-//                     </div>
-//                     <div className="flex flex-col gap-1.5">
-//                     <label className="text-xs font-medium text-slate-500 uppercase tracking-wider">
-//                         Description Méta
-//                     </label>
-//                     <textarea
-//                         value={form.metaDescription}
-//                         onChange={(e) => set("metaDescription", e.target.value)}
-//                         placeholder="Description pour les moteurs de recherche..."
-//                         rows={3}
-//                         maxLength={160}
-//                         className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-xs placeholder-slate-400 outline-none resize-none transition focus:border-orange-400 focus:ring-2 focus:ring-orange-100"
+//                     <input
+//                     type="text"
+//                     value={form.metaTitle}
+//                     onChange={(e) => set("metaTitle", e.target.value)}
+//                     placeholder="Titre pour le référencement…"
+//                     maxLength={60}
+//                     className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-xs placeholder-slate-400 outline-none transition focus:border-orange-400 focus:ring-2 focus:ring-orange-100"
 //                     />
-//                     <div className="flex justify-between">
-//                         <p className="text-xs text-slate-400">160 caractères max recommandés</p>
-//                         <p className={`text-xs font-medium ${form.metaDescription.length > 160 ? "text-red-500" : "text-slate-400"}`}>
-//                         {form.metaDescription.length}/160
-//                         </p>
-//                     </div>
-//                     </div>
 //                 </div>
-//                 </section>
+//                 <div className="flex flex-col gap-1.5">
+//                     <div className="flex justify-between">
+//                     <label className="text-xs font-medium text-slate-500 uppercase tracking-wider">Description Méta</label>
+//                     <span className={`text-xs font-medium ${form.metaDescription.length > 160 ? "text-red-500" : "text-slate-400"}`}>
+//                         {form.metaDescription.length}/160
+//                     </span>
+//                     </div>
+//                     <textarea
+//                     value={form.metaDescription}
+//                     onChange={(e) => set("metaDescription", e.target.value)}
+//                     placeholder="Description pour les moteurs de recherche…"
+//                     rows={3}
+//                     maxLength={160}
+//                     className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-xs placeholder-slate-400 outline-none resize-none transition focus:border-orange-400 focus:ring-2 focus:ring-orange-100"
+//                     />
+//                 </div>
+//                 </div>
+//             </section>
 //             </aside>
-//             </div>
+//         </div>
+//         </div>
+//     );
+// }
+
+// // ─── Modal Wrapper ────────────────────────────────────────────────────────────
+
+// export default function SalonEdit({ isOpen, salon, onClose, onSubmit }: SalonEditProps) {
+//     const overlayRef            = useRef<HTMLDivElement>(null);
+//     const [visible, setVisible] = useState(false);
+//     const [mounted, setMounted] = useState(false);
+
+//     useEffect(() => {
+//         if (isOpen) {
+//         setMounted(true);
+//         requestAnimationFrame(() => requestAnimationFrame(() => setVisible(true)));
+//         } else {
+//         setVisible(false);
+//         const t = setTimeout(() => setMounted(false), 300);
+//         return () => clearTimeout(t);
+//         }
+//     }, [isOpen]);
+
+//     useEffect(() => {
+//         document.body.style.overflow = isOpen ? "hidden" : "";
+//         return () => { document.body.style.overflow = ""; };
+//     }, [isOpen]);
+
+//     useEffect(() => {
+//         const handler = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+//         if (isOpen) window.addEventListener("keydown", handler);
+//         return () => window.removeEventListener("keydown", handler);
+//     }, [isOpen, onClose]);
+
+//     if (!mounted || !salon) return null;
+
+//     return (
+//         <div
+//         ref={overlayRef}
+//         onClick={(e) => e.target === overlayRef.current && onClose()}
+//         className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6"
+//         style={{
+//             backgroundColor: visible ? "rgba(15, 23, 42, 0.6)" : "rgba(15, 23, 42, 0)",
+//             backdropFilter:  visible ? "blur(6px)" : "blur(0px)",
+//             transition:      "background-color 300ms ease, backdrop-filter 300ms ease",
+//         }}
+//         role="dialog"
+//         aria-modal="true"
+//         >
+//         <div
+//             style={{
+//             opacity:    visible ? 1 : 0,
+//             transform:  visible ? "translateY(0) scale(1)" : "translateY(24px) scale(0.97)",
+//             transition: "opacity 300ms ease, transform 300ms ease",
+//             width: "100%",
+//             display: "flex",
+//             justifyContent: "center",
+//             }}
+//         >
+//             <SalonEditorContent salon={salon} onClose={onClose} onSubmit={onSubmit} />
 //         </div>
 //         </div>
 //     );
@@ -514,14 +632,26 @@
 
 
 
+
+
+
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
-import { X, Save, Eye, BookOpen, AlignLeft, Image as ImageIcon, Tag, Search, Settings, Bold, Italic, Underline, List, ListOrdered, Link, ChevronDown, Upload, Clock, FileText, Video, Plus, Loader2, AlertCircle, CheckCircle2,} from "lucide-react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
+import { X, Save, Globe, BookOpen, Image as ImageIcon, ChevronDown, Search, Bold, Italic, Underline, List, ListOrdered, Link, Clock, FileText, Video, Plus, Loader2, AlertCircle, CheckCircle2, MapPin, Calendar, Tag as TagIcon, Trash2,} from "lucide-react";
 import { updateSalon } from "@/services/Dashboard/salonservice";
-import { Article, STATUS_API_TO_UI } from "@/services/Dashboard/articleservice";
+import { Article, Tag, fetchTags, Category, fetchCategories, STATUS_API_TO_UI, STATUS_UI_TO_API,} from "@/services/Dashboard/articleservice";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
+
+interface RelatedContent {
+    id: number;
+    title: string;
+    type: "ARTICLE" | "VIDEO";
+    slug: string;
+    coverImage?: string;
+    category?: { name: string; color: string };
+}
 
 interface SalonForm {
     title: string;
@@ -530,11 +660,15 @@ interface SalonForm {
     endDate: string;
     website: string;
     description: string;
-    planningStatus: string;
+    status: string;
     slug: string;
-    tags: string[];
+    categoryId: number | undefined;
+    selectedTagIds: number[];
+    relatedContentIds: number[];
     metaTitle: string;
     metaDescription: string;
+    coverImage: string;
+    tags: number[];
 }
 
 interface SalonEditProps {
@@ -544,17 +678,8 @@ interface SalonEditProps {
     onSubmit?: (article: Article) => void;
 }
 
-// ─── Constants ────────────────────────────────────────────────────────────────
+// ─── Helpers ──────────────────────────────────────────────────────────────────
 
-const PLANNING_STATUSES = ["Brouillon", "En Révision", "Publié", "Archivé"];
-
-const TAG_COLORS: Record<string, string> = {
-    Tourisme:      "bg-orange-100 text-orange-700 border-orange-200",
-    MICE:          "bg-blue-100 text-blue-700 border-blue-200",
-    International: "bg-emerald-100 text-emerald-700 border-emerald-200",
-};
-
-/** Extrait le texte du content JSON de l'article */
 function extractBodyText(article: Article): string {
     if (!article.content || !Array.isArray(article.content)) return "";
     return (article.content as { type: string; value: string }[])
@@ -563,71 +688,39 @@ function extractBodyText(article: Article): string {
         .join("\n\n");
 }
 
-/** Mappe le statut interne salon → statut API article */
-function toApiStatus(planningStatus: string): "DRAFT" | "PUBLISHED" | "REVIEW" | "ARCHIVED" {
-    const map: Record<string, "DRAFT" | "PUBLISHED" | "REVIEW" | "ARCHIVED"> = {
-        "Brouillon":    "DRAFT",
-        "En Révision":  "REVIEW",
-        "Publié":       "PUBLISHED",
-        "Archivé":      "ARCHIVED",
-    };
-    return map[planningStatus] ?? "DRAFT";
-}
-
-/** Mappe le statut API → statut interne salon */
-function fromApiStatus(apiStatus: string): string {
-    const map: Record<string, string> = {
-        DRAFT:     "Brouillon",
-        REVIEW:    "En Révision",
-        PUBLISHED: "Publié",
-        ARCHIVED:  "Archivé",
-    };
-    return map[apiStatus] ?? "À Planifier";
-}
-
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
-function SectionHeader({icon: Icon, title, color = "text-orange-500",}: { icon: React.ElementType; title: string; color?: string }) {
+function FieldLabel({ children }: { children: React.ReactNode }) {
     return (
-        <div className="flex items-center gap-2 mb-5">
-        <Icon size={16} className={color} />
-        <h3 className="font-semibold text-slate-800 text-sm tracking-wide uppercase">{title}</h3>
-        </div>
+        <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">
+        {children}
+        </label>
     );
 }
 
-function InputField({label, placeholder, value, onChange, type = "text", hint,}: {
-    label: string; placeholder?: string; value: string;
-    onChange: (v: string) => void; type?: string; hint?: string;
+function SectionTitle({ children }: { children: React.ReactNode }) {
+    return (
+        <h2 className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-4">
+        {children}
+        </h2>
+    );
+}
+
+function SelectField({ label, value, options, onChange }: {
+    label: string; value: string; options: string[]; onChange: (v: string) => void;
 }) {
     return (
-        <div className="flex flex-col gap-1.5">
-        <label className="text-xs font-medium text-slate-500 uppercase tracking-wider">{label}</label>
-        <input
-            type={type}
-            value={value}
-            onChange={(e) => onChange(e.target.value)}
-            placeholder={placeholder}
-            className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-800 placeholder-slate-400 outline-none transition focus:border-orange-400 focus:ring-2 focus:ring-orange-100"
-        />
-        {hint && <p className="text-xs text-slate-400">{hint}</p>}
-        </div>
-    );
-}
-
-function SelectField({label, value, onChange, options,}: { label: string; value: string; onChange: (v: string) => void; options: string[] }) {
-    return (
-        <div className="flex flex-col gap-1.5">
-        <label className="text-xs font-medium text-slate-500 uppercase tracking-wider">{label}</label>
+        <div className="space-y-1.5">
+        <FieldLabel>{label}</FieldLabel>
         <div className="relative">
             <select
             value={value}
             onChange={(e) => onChange(e.target.value)}
-            className="w-full appearance-none rounded-lg border border-slate-200 bg-white px-3 py-2.5 pr-9 text-sm text-slate-800 outline-none transition focus:border-orange-400 focus:ring-2 focus:ring-orange-100"
+            className="w-full appearance-none bg-white border border-slate-200 rounded-xl px-4 py-2.5 pr-10 text-sm text-slate-800 font-medium shadow-sm focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-transparent transition cursor-pointer"
             >
             {options.map((opt) => <option key={opt} value={opt}>{opt}</option>)}
             </select>
-            <ChevronDown size={14} className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-slate-400" />
+            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
         </div>
         </div>
     );
@@ -635,100 +728,473 @@ function SelectField({label, value, onChange, options,}: { label: string; value:
 
 function RichTextToolbar() {
     return (
-        <div className="flex items-center gap-0.5 border-b border-slate-100 bg-slate-50 px-3 py-2 rounded-t-lg">
-        {[
-            { icon: Bold, label: "Gras" }, { icon: Italic, label: "Italique" },
-            { icon: Underline, label: "Souligné" },
-        ].map(({ icon: Icon, label }) => (
-            <button key={label} title={label} className="rounded p-1.5 text-slate-500 transition hover:bg-white hover:text-slate-800 hover:shadow-sm">
-            <Icon size={14} />
+        <div className="flex items-center gap-0.5 border-b border-slate-100 bg-slate-50/80 px-3 py-2 rounded-t-xl">
+        {[Bold, Italic, Underline].map((Icon, i) => (
+            <button key={i} className="rounded-lg p-1.5 text-slate-500 transition hover:bg-white hover:text-slate-800 hover:shadow-sm">
+            <Icon size={13} />
             </button>
         ))}
         <div className="mx-1.5 h-4 w-px bg-slate-200" />
-        {[
-            { icon: List, label: "Liste" }, { icon: ListOrdered, label: "Liste numérotée" },
-        ].map(({ icon: Icon, label }) => (
-            <button key={label} title={label} className="rounded p-1.5 text-slate-500 transition hover:bg-white hover:text-slate-800 hover:shadow-sm">
-            <Icon size={14} />
+        {[List, ListOrdered].map((Icon, i) => (
+            <button key={i} className="rounded-lg p-1.5 text-slate-500 transition hover:bg-white hover:text-slate-800 hover:shadow-sm">
+            <Icon size={13} />
             </button>
         ))}
         <div className="mx-1.5 h-4 w-px bg-slate-200" />
-        <button title="Lien" className="rounded p-1.5 text-slate-500 transition hover:bg-white hover:text-slate-800 hover:shadow-sm">
-            <Link size={14} />
+        <button className="rounded-lg p-1.5 text-slate-500 transition hover:bg-white hover:text-slate-800 hover:shadow-sm">
+            <Link size={13} />
         </button>
         </div>
     );
 }
 
-function TagBadge({ tag, onRemove }: { tag: string; onRemove: () => void }) {
+// ─── Cover Image Picker (same as VideoEdit final) ─────────────────────────────
+
+function CoverImagePicker({ value, onChange }: { value: string; onChange: (url: string) => void }) {
+    const inputRef = useRef<HTMLInputElement>(null);
+    const [uploading, setUploading] = useState(false);
+    const [urlInput, setUrlInput] = useState("");
+    const [mode, setMode] = useState<"preview" | "url">("preview");
+
+    const handleFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        setUploading(true);
+        try {
+        const fd = new FormData();
+        fd.append("file", file);
+        const res = await fetch("/admin/articles", { method: "POST", body: fd });
+        const data = await res.json();
+        onChange(data.url ?? data.data?.coverImage ?? "");
+        } catch (err) {
+        console.error(err);
+        } finally {
+        setUploading(false);
+        }
+    };
+
+    const applyUrl = () => {
+        if (urlInput.trim()) { onChange(urlInput.trim()); setMode("preview"); }
+    };
+
     return (
-        <span className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-xs font-medium ${
-        TAG_COLORS[tag] ?? "bg-slate-100 text-slate-600 border-slate-200"
-        }`}>
-        {tag}
-        <button onClick={onRemove} className="ml-0.5 rounded-full opacity-60 hover:opacity-100 transition">
-            <X size={10} />
-        </button>
-        </span>
+        <section className="space-y-3">
+        <SectionTitle>Média à la Une</SectionTitle>
+
+        <div className="relative rounded-2xl overflow-hidden aspect-video bg-slate-800 shadow-lg group">
+            {value ? (
+            <>
+                <img src={value} alt="Miniature" className="w-full h-full object-cover" />
+                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100">
+                <button
+                    onClick={() => inputRef.current?.click()}
+                    className="flex items-center gap-1.5 rounded-lg bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 shadow-md hover:bg-slate-50 transition"
+                >
+                    <ImageIcon size={12} /> Changer
+                </button>
+                <button
+                    onClick={() => { setUrlInput(value); setMode("url"); }}
+                    className="flex items-center gap-1.5 rounded-lg bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 shadow-md hover:bg-slate-50 transition"
+                >
+                    <Link size={12} /> URL
+                </button>
+                <button
+                    onClick={() => onChange("")}
+                    className="flex items-center gap-1.5 rounded-lg bg-red-500 px-3 py-1.5 text-xs font-semibold text-white shadow-md hover:bg-red-600 transition"
+                >
+                    <Trash2 size={12} /> Supprimer
+                </button>
+                </div>
+            </>
+            ) : (
+            <div className="absolute inset-0 flex items-center justify-center">
+                <ImageIcon className="w-10 h-10 text-slate-600" />
+            </div>
+            )}
+        </div>
+
+        {mode === "url" ? (
+            <div className="flex gap-2">
+            <input
+                value={urlInput}
+                onChange={(e) => setUrlInput(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && applyUrl()}
+                placeholder="https://…"
+                autoFocus
+                className="flex-1 bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-700 focus:outline-none focus:ring-2 focus:ring-orange-400 transition"
+            />
+            <button onClick={applyUrl} className="px-3 py-2 rounded-xl bg-orange-500 text-white text-xs font-semibold hover:bg-orange-600 transition">OK</button>
+            <button onClick={() => setMode("preview")} className="px-3 py-2 rounded-xl border border-slate-200 text-slate-500 text-xs hover:bg-slate-50 transition">Annuler</button>
+            </div>
+        ) : (
+            <div className="flex gap-2">
+            <button
+                onClick={() => inputRef.current?.click()}
+                disabled={uploading}
+                className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-orange-500 text-white text-sm font-semibold hover:bg-orange-600 transition shadow-md shadow-orange-200 disabled:opacity-60"
+            >
+                {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <ImageIcon className="w-4 h-4" />}
+                {uploading ? "Envoi…" : "Choisir un fichier"}
+            </button>
+            <button
+                onClick={() => { setUrlInput(value); setMode("url"); }}
+                className="px-3 py-2.5 rounded-xl border border-slate-200 text-slate-600 text-sm hover:bg-slate-50 transition"
+                title="Saisir une URL"
+            >
+                URL
+            </button>
+            </div>
+        )}
+
+        <input ref={inputRef} type="file" accept="image/*" className="hidden" onChange={handleFile} />
+        </section>
+    );
+}
+
+// ─── Tag Selector (same pattern as VideoEdit final) ───────────────────────────
+
+function TagSelector({ selectedIds, onChange }: { selectedIds: number[]; onChange: (ids: number[]) => void }) {
+    const [tagIs, setTagIs] = useState<Tag[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [search, setSearch] = useState("");
+
+    useEffect(() => {
+        fetchTags()
+        .then((data) => setTagIs(data))
+        .catch(console.error)
+        .finally(() => setLoading(false));
+    }, []);
+
+    const toggle = (id: number) =>
+        onChange(selectedIds.includes(id) ? selectedIds.filter((x) => x !== id) : [...selectedIds, id]);
+
+    const filtered = tagIs.filter((t) => t.name.toLowerCase().includes(search.toLowerCase()));
+
+    return (
+        <div className="space-y-2">
+        <FieldLabel>
+            <span className="flex items-center gap-1.5">
+            <TagIcon className="w-3.5 h-3.5" /> Tags / Mots-clés
+            </span>
+        </FieldLabel>
+
+        <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
+            <input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Rechercher un tag…"
+            className="w-full bg-white border border-slate-200 rounded-xl pl-8 pr-3 py-2 text-xs text-slate-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-orange-400 transition"
+            />
+        </div>
+
+        <div className="max-h-36 overflow-y-auto rounded-xl border border-slate-200 bg-white p-2 space-y-0.5">
+            {loading && (
+            <div className="flex items-center justify-center py-4">
+                <Loader2 className="w-4 h-4 animate-spin text-orange-400" />
+            </div>
+            )}
+            {!loading && filtered.length === 0 && (
+            <p className="text-xs text-slate-400 text-center py-3">Aucun tag trouvé</p>
+            )}
+            {!loading && filtered.map((tag) => {
+            const active = selectedIds.includes(tag.id);
+            return (
+                <button
+                key={tag.id}
+                onClick={() => toggle(tag.id)}
+                className={`w-full flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium transition text-left ${
+                    active
+                    ? "bg-orange-50 text-orange-600 border border-orange-200"
+                    : "text-slate-600 hover:bg-slate-50 border border-transparent"
+                }`}
+                >
+                <span className={`w-3 h-3 rounded-full border-2 shrink-0 transition ${
+                    active ? "bg-orange-500 border-orange-500" : "border-slate-300"
+                }`} />
+                {tag.name}
+                </button>
+            );
+            })}
+        </div>
+
+        {selectedIds.length > 0 && (
+            <div className="flex flex-wrap gap-1.5 pt-1">
+            {tagIs.filter((t) => selectedIds.includes(t.id)).map((t) => (
+                <span key={t.id} className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-orange-100 text-orange-700 text-xs font-semibold">
+                {t.name}
+                <button onClick={() => toggle(t.id)} className="hover:opacity-70 transition-opacity">
+                    <X className="w-2.5 h-2.5" />
+                </button>
+                </span>
+            ))}
+            </div>
+        )}
+        </div>
+    );
+}
+
+// ─── Related Content Selector ─────────────────────────────────────────────────
+
+function RelatedContentSelector({ selectedIds, onChange }: {
+    selectedIds: number[];
+    onChange: (ids: number[]) => void;
+}) {
+    const [allContent, setAllContent] = useState<Article[]>([]);
+    const [loading, setLoading] = useState(false);
+    const [search, setSearch] = useState("");
+    const [typeFilter, setTypeFilter] = useState<"ALL" | "ARTICLE" | "VIDEO">("ALL");
+    const [open, setOpen] = useState(false);
+    const dropdownRef = useRef<HTMLDivElement>(null);
+
+    // Lazy load on first open
+    useEffect(() => {
+        if (!open || allContent.length > 0) return;
+        setLoading(true);
+        Promise.all([
+        fetch("/api/articles?type=ARTICLE&limit=100").then((r) => r.json()),
+        fetch("/api/articles?type=VIDEO&limit=100").then((r) => r.json()),
+        ])
+        .then(([artRes, vidRes]) => {
+            const arts: Article[] = (artRes.data ?? artRes ?? []).map((a: Article) => ({
+            id: a.id, title: a.title, type: "ARTICLE" as const,
+            slug: a.slug, coverImage: a.coverImage, category: a.category,
+            }));
+            const vids: Article[] = (vidRes.data ?? vidRes ?? []).map((v: Article) => ({
+            id: v.id, title: v.title, type: "VIDEO" as const,
+            slug: v.slug, coverImage: v.coverImage, category: v.category,
+            }));
+            setAllContent([...arts, ...vids]);
+        })
+        .catch(console.error)
+        .finally(() => setLoading(false));
+    }, [open, allContent.length]);
+
+    // Close on outside click
+    useEffect(() => {
+        const handler = (e: MouseEvent) => {
+        if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) setOpen(false);
+        };
+        if (open) document.addEventListener("mousedown", handler);
+        return () => document.removeEventListener("mousedown", handler);
+    }, [open]);
+
+    const toggle = (id: number) =>
+        onChange(selectedIds.includes(id) ? selectedIds.filter((x) => x !== id) : [...selectedIds, id]);
+
+    const filtered = allContent.filter((c) => {
+        const matchType = typeFilter === "ALL" || c.type === typeFilter;
+        const matchSearch = c.title.toLowerCase().includes(search.toLowerCase());
+        return matchType && matchSearch;
+    });
+
+    const selectedItems = allContent.filter((c) => selectedIds.includes(c.id));
+
+    return (
+        <div className="space-y-2">
+        <FieldLabel>Contenus Associés</FieldLabel>
+
+        {/* Selected items */}
+        {selectedItems.length > 0 && (
+            <div className="space-y-1.5">
+            {selectedItems.map((item) => (
+                <div key={item.id} className="flex items-center gap-2.5 rounded-xl border border-slate-200 bg-white px-3 py-2 shadow-sm">
+                {item.coverImage ? (
+                    <img src={item.coverImage} alt="" className="w-8 h-8 rounded-lg object-cover shrink-0" />
+                ) : (
+                    <div className={`w-8 h-8 rounded-lg shrink-0 flex items-center justify-center ${item.type === "VIDEO" ? "bg-purple-100" : "bg-blue-100"}`}>
+                    {item.type === "VIDEO"
+                        ? <Video size={12} className="text-purple-600" />
+                        : <FileText size={12} className="text-blue-600" />}
+                    </div>
+                )}
+                <div className="flex-1 min-w-0">
+                    <p className="text-xs font-semibold text-slate-700 truncate">{item.title}</p>
+                    <span className={`inline-block text-[10px] font-medium px-1.5 py-0.5 rounded-full mt-0.5 ${
+                    item.type === "VIDEO" ? "bg-purple-100 text-purple-600" : "bg-blue-100 text-blue-600"
+                    }`}>
+                    {item.type === "VIDEO" ? "Vidéo" : "Article"}
+                    </span>
+                </div>
+                <button
+                    onClick={() => toggle(item.id)}
+                    className="p-1 rounded-lg text-slate-400 hover:bg-red-50 hover:text-red-500 transition shrink-0"
+                >
+                    <X size={13} />
+                </button>
+                </div>
+            ))}
+            </div>
+        )}
+
+        {/* Dropdown trigger */}
+        <div ref={dropdownRef} className="relative">
+            <button
+            onClick={() => setOpen((o) => !o)}
+            className="w-full flex items-center gap-2 rounded-xl border border-dashed border-slate-300 bg-white px-3 py-2.5 text-xs text-slate-500 hover:border-orange-400 hover:text-orange-500 hover:bg-orange-50/50 transition"
+            >
+            <Plus size={13} />
+            <span>Ajouter du contenu associé…</span>
+            <ChevronDown size={12} className={`ml-auto transition-transform ${open ? "rotate-180" : ""}`} />
+            </button>
+
+            {open && (
+            <div className="absolute top-full left-0 right-0 mt-1.5 rounded-2xl border border-slate-200 bg-white shadow-xl shadow-slate-200/60 z-50 overflow-hidden">
+                {/* Search + type filter */}
+                <div className="p-3 space-y-2 border-b border-slate-100">
+                <div className="relative">
+                    <Search size={12} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                    <input
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    placeholder="Rechercher par titre…"
+                    autoFocus
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-8 pr-3 py-2 text-xs text-slate-700 focus:outline-none focus:ring-2 focus:ring-orange-100 focus:border-orange-400 transition"
+                    />
+                </div>
+                <div className="flex gap-1.5">
+                    {(["ALL", "ARTICLE", "VIDEO"] as const).map((t) => (
+                    <button
+                        key={t}
+                        onClick={() => setTypeFilter(t)}
+                        className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium transition ${
+                        typeFilter === t ? "bg-orange-500 text-white" : "bg-slate-100 text-slate-500 hover:bg-slate-200"
+                        }`}
+                    >
+                        {t === "VIDEO" && <Video size={10} />}
+                        {t === "ARTICLE" && <FileText size={10} />}
+                        {t === "ALL" ? "Tout" : t === "VIDEO" ? "Vidéos" : "Articles"}
+                    </button>
+                    ))}
+                </div>
+                </div>
+
+                {/* Results */}
+                <div className="max-h-56 overflow-y-auto p-2 space-y-0.5">
+                {loading && (
+                    <div className="flex justify-center py-6">
+                    <Loader2 size={16} className="animate-spin text-orange-400" />
+                    </div>
+                )}
+                {!loading && filtered.length === 0 && (
+                    <p className="text-xs text-slate-400 text-center py-4">Aucun contenu trouvé</p>
+                )}
+                {!loading && filtered.map((item) => {
+                    const selected = selectedIds.includes(item.id);
+                    return (
+                    <button
+                        key={item.id}
+                        onClick={() => toggle(item.id)}
+                        className={`w-full flex items-center gap-2.5 rounded-xl px-2.5 py-2 text-left transition ${
+                        selected ? "bg-orange-50 border border-orange-200" : "hover:bg-slate-50 border border-transparent"
+                        }`}
+                    >
+                        {item.coverImage ? (
+                        <img src={item.coverImage} alt="" className="w-7 h-7 rounded-lg object-cover shrink-0" />
+                        ) : (
+                        <div className={`w-7 h-7 rounded-lg shrink-0 flex items-center justify-center ${item.type === "VIDEO" ? "bg-purple-100" : "bg-blue-100"}`}>
+                            {item.type === "VIDEO"
+                            ? <Video size={11} className="text-purple-600" />
+                            : <FileText size={11} className="text-blue-600" />}
+                        </div>
+                        )}
+                        <div className="flex-1 min-w-0">
+                        <p className={`text-xs font-medium truncate ${selected ? "text-orange-700" : "text-slate-700"}`}>{item.title}</p>
+                        {item.category && (
+                            <p className="text-[10px] text-slate-400 truncate">{item.category.name}</p>
+                        )}
+                        </div>
+                        <span className={`inline-flex items-center gap-0.5 text-[10px] font-medium px-1.5 py-0.5 rounded-full shrink-0 ${
+                        item.type === "VIDEO" ? "bg-purple-100 text-purple-600" : "bg-blue-100 text-blue-600"
+                        }`}>
+                        {item.type === "VIDEO" ? <Video size={8} /> : <FileText size={8} />}
+                        {item.type === "VIDEO" ? "Vidéo" : "Article"}
+                        </span>
+                        <span className={`w-4 h-4 rounded-full border-2 shrink-0 flex items-center justify-center transition ${
+                        selected ? "bg-orange-500 border-orange-500" : "border-slate-300"
+                        }`}>
+                        {selected && <span className="w-1.5 h-1.5 rounded-full bg-white" />}
+                        </span>
+                    </button>
+                    );
+                })}
+                </div>
+
+                {selectedIds.length > 0 && (
+                <div className="px-3 py-2 border-t border-slate-100 bg-slate-50/60 flex items-center justify-between">
+                    <span className="text-xs text-slate-500">
+                    <strong className="text-orange-600">{selectedIds.length}</strong> sélectionné{selectedIds.length > 1 ? "s" : ""}
+                    </span>
+                    <button
+                    onClick={() => setOpen(false)}
+                    className="px-3 py-1 rounded-lg bg-orange-500 text-white text-xs font-semibold hover:bg-orange-600 transition"
+                    >
+                    Confirmer
+                    </button>
+                </div>
+                )}
+            </div>
+            )}
+        </div>
+        </div>
     );
 }
 
 // ─── Editor Content ───────────────────────────────────────────────────────────
 
-function SalonEditorContent({salon, onClose, onSubmit,}: { salon: Article; onClose: () => void; onSubmit?: (a: Article) => void }) {
-    const fileInputRef = useRef<HTMLInputElement>(null);
+function SalonEditorContent({ salon, onClose, onSubmit }: {
+    salon: Article; onClose: () => void; onSubmit?: (a: Article) => void;
+}) {
+    const [categorie, setCategories] = useState<Category[]>([]);
+
+    useEffect(() => {
+        async function loadCategories() {
+        try {
+            const data = await fetchCategories();
+            console.log("CATEGORIES 👉", data);
+            setCategories(data?.data);
+        } catch (err) {
+            console.error("Erreur catégories ❌", err);
+        }
+        }
+        loadCategories();
+    }, []);
 
     const [form, setForm] = useState<SalonForm>({
-        title:          salon.title ?? "",
-        location:       "",
-        startDate:      "",
-        endDate:        "",
-        website:        "",
-        description:    extractBodyText(salon),
-        planningStatus: fromApiStatus(salon.status),
-        slug:           salon.slug ?? "",
-        tags:           [],
-        metaTitle:      salon.metaTitle ?? "",
-        metaDescription: salon.metaDescription ?? "",
+        title:             salon.title ?? "",
+        location:          salon.location ?? "",
+        startDate:         salon.startDate ? salon.startDate.slice(0, 10) : "",
+        endDate:           salon.endDate   ? salon.endDate.slice(0, 10)   : "",
+        website:           salon.website   ?? "",
+        description:       extractBodyText(salon),
+        status:            STATUS_API_TO_UI[salon.status] ?? "DRAFT",
+        slug:              salon.slug ?? "",
+        categoryId:        salon.category?.id ?? undefined,
+        selectedTagIds:    (salon.tags ?? []).map((t: Tag) => t.id),
+        relatedContentIds: (salon.relatedContent ?? []).map((r: Article) => r.id),
+        metaTitle:         salon.metaTitle ?? "",
+        metaDescription:   salon.metaDescription ?? "",
+        coverImage:        salon.coverImage ?? "",
+        tags:              (salon.tags ?? []).map((t: Tag) => t.id),
     });
 
-    const [tagInput,    setTagInput]    = useState("");
-    const [imagePreview, setImagePreview] = useState<string | null>(
-        salon.coverImage || null
-    );
     const [saving,      setSaving]      = useState(false);
     const [publishing,  setPublishing]  = useState(false);
     const [saveError,   setSaveError]   = useState<string | null>(null);
     const [saveSuccess, setSaveSuccess] = useState(false);
 
-    const set = <K extends keyof SalonForm>(key: K, value: SalonForm[K]) =>
-        setForm((prev) => ({ ...prev, [key]: value }));
+    const update = useCallback(<K extends keyof SalonForm>(key: K, value: SalonForm[K]) =>
+        setForm((prev) => ({ ...prev, [key]: value })), []);
 
-    const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onload = (ev) => setImagePreview(ev.target?.result as string);
-        reader.readAsDataURL(file);
-    };
-
-    const addTag = (tag: string) => {
-        const trimmed = tag.trim();
-        if (trimmed && !form.tags.includes(trimmed)) set("tags", [...form.tags, trimmed]);
-        setTagInput("");
-    };
-
-    const removeTag = (tag: string) => set("tags", form.tags.filter((t) => t !== tag));
-
-    // ── Sauvegarde ─────────────────────────────────────────────────────────────
-
-    const save = async (publish = false) => {
-        if (publish) setPublishing(true); else setSaving(true);
+    const save = async (targetStatusUI?: string) => {
+        const isSaving = !targetStatusUI;
+        if (isSaving) setSaving(true); else setPublishing(true);
         setSaveError(null);
         setSaveSuccess(false);
 
         try {
-        const apiStatus = publish ? "PUBLISHED" : toApiStatus(form.planningStatus);
+        const apiStatus = STATUS_UI_TO_API[targetStatusUI ?? form.status] as
+            "DRAFT" | "REVIEW" | "PUBLISHED" | "ARCHIVED";
 
         const contentBlocks = form.description.trim()
             ? form.description.split(/\n{2,}/).map((line) => {
@@ -740,24 +1206,27 @@ function SalonEditorContent({salon, onClose, onSubmit,}: { salon: Article; onClo
             : [{ type: "text", value: "Contenu vide" }];
 
         const payload: Parameters<typeof updateSalon>[1] = {
-            title:   form.title.trim() || undefined,
-            status:  apiStatus as "DRAFT" | "PUBLISHED" | "REVIEW" | "ARCHIVED",
-            content: contentBlocks,
-            planningStatus: form.planningStatus,
-            location:       form.location.trim() || undefined,
-            startDate:      form.startDate || undefined,
-            endDate:        form.endDate || undefined,
-            website:        form.website.trim() || undefined,
-            tags:           form.tags.length ? form.tags : undefined,
+            title:             form.title.trim()           || undefined,
+            status:            apiStatus,
+            content:           contentBlocks,
+            coverImage:        form.coverImage             || undefined,
+            location:          form.location.trim()        || undefined,
+            startDate:         new Date(form.startDate)              || undefined,
+            endDate:           new Date(form.endDate)                || undefined,
+            website:           form.website.trim()         || undefined,
+            tags:              form.selectedTagIds,
+            categoryId:        form.categoryId,
+            relatedContentIds: form.relatedContentIds,
+            metaTitle:         form.metaTitle.trim()       || undefined,
+            metaDescription:   form.metaDescription.trim() || undefined,
         };
-        if (form.metaTitle.trim())       payload.metaTitle       = form.metaTitle.trim();
-        if (form.metaDescription.trim()) payload.metaDescription = form.metaDescription.trim();
-        if (form.slug.trim())            payload.featured        = undefined; // slug non modifiable via updateArticle sans endpoint dédié
+
+        console.log("Payload to save:", payload);
 
         const res = await updateSalon(salon.id, payload);
         setSaveSuccess(true);
         setTimeout(() => setSaveSuccess(false), 3000);
-        if (publish) onSubmit?.(res.data);
+        if (targetStatusUI) onSubmit?.(res.data);
         } catch (err: unknown) {
         setSaveError((err as Error).message || "Erreur lors de la sauvegarde.");
         } finally {
@@ -766,317 +1235,281 @@ function SalonEditorContent({salon, onClose, onSubmit,}: { salon: Article; onClo
         }
     };
 
-    // ── Render ─────────────────────────────────────────────────────────────────
+    const metaTitleLen = form.metaTitle.length;
+    const metaDescLen  = form.metaDescription.length;
 
     return (
-        <div className="relative w-full max-w-4xl max-h-[95vh] flex flex-col bg-white rounded-2xl shadow-2xl shadow-slate-900/20 overflow-hidden">
+        <div className="flex flex-col h-full max-h-[90vh]">
 
-        {/* Header */}
-        <header className="flex items-center justify-between gap-4 px-6 py-4 border-b border-slate-100 bg-white z-10 shrink-0">
-            <div className="flex items-center gap-3">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-orange-500 shadow-md shadow-orange-200">
-                <BookOpen size={15} className="text-white" />
-            </div>
-            <h2 className="font-semibold text-slate-800 text-base">
+        {/* ── Sticky Header ── */}
+        <div className="flex items-start justify-between px-8 py-5 border-b border-slate-100 bg-white shrink-0 rounded-t-3xl">
+            <div>
+            <h1 className="text-lg font-bold text-slate-900 leading-tight flex items-center gap-2">
+                <BookOpen size={18} className="text-orange-500" />
                 Édition :{" "}
-                <span className="text-orange-600">{form.title || salon.title}</span>
-            </h2>
+                <span className="text-orange-500">{form.title || salon.title}</span>
+            </h1>
+            <p className="text-xs text-slate-400 mt-0.5 font-medium flex items-center gap-1">
+                <Clock size={11} />
+                Salon #{salon.id} · Créé le {new Date(salon.createdAt).toLocaleDateString("fr-FR")}
+            </p>
             </div>
-
-            <div className="flex items-center gap-2">
-            {/* Feedback */}
+            <div className="flex items-center gap-2 ml-4 shrink-0">
             {saveError && (
-                <span className="hidden sm:flex items-center gap-1 text-xs text-red-500">
+                <span className="flex items-center gap-1 text-xs text-red-500">
                 <AlertCircle size={13} /> {saveError}
                 </span>
             )}
             {saveSuccess && (
-                <span className="hidden sm:flex items-center gap-1 text-xs text-green-600">
+                <span className="flex items-center gap-1 text-xs text-green-600">
                 <CheckCircle2 size={13} /> Sauvegardé !
                 </span>
             )}
-            {!saveError && !saveSuccess && (
-                <span className="hidden sm:flex items-center gap-1.5 text-xs text-slate-400">
-                <Clock size={11} />
-                Salon #{salon.id} · {new Date(salon.updatedAt).toLocaleDateString("fr-FR")}
-                </span>
-            )}
-
             <button
-                onClick={() => save(false)}
+                onClick={() => save()}
                 disabled={saving}
-                className="flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3.5 py-2 text-xs font-medium text-slate-600 shadow-sm transition hover:bg-slate-50 hover:border-slate-300 disabled:opacity-60"
+                className="flex items-center gap-2 px-4 py-2 rounded-xl border-2 border-slate-200 text-slate-700 text-sm font-semibold hover:border-slate-300 hover:bg-slate-50 transition disabled:opacity-60"
             >
-                {saving ? <Loader2 size={13} className="animate-spin" /> : <FileText size={13} />}
-                {saving ? "Enregistrement…" : "Enregistrer le Brouillon"}
+                {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                {saving ? "Enregistrement…" : "Enregistrer"}
             </button>
             <button
-                onClick={() => save(true)}
+                onClick={() => save("Publié")}
                 disabled={publishing}
-                className="flex items-center gap-1.5 rounded-lg bg-orange-500 px-3.5 py-2 text-xs font-semibold text-white shadow-md shadow-orange-200 transition hover:bg-orange-600 active:scale-95 disabled:opacity-60"
+                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-orange-500 text-white text-sm font-semibold hover:bg-orange-600 active:scale-95 transition disabled:opacity-60 shadow-lg shadow-orange-200"
             >
-                {publishing ? <Loader2 size={13} className="animate-spin" /> : <Save size={13} />}
-                {publishing ? "Publication…" : "Enregistrer et Publier"}
-            </button>
-            <button className="flex items-center gap-1.5 rounded-lg border border-slate-200 px-3.5 py-2 text-xs font-medium text-slate-600 transition hover:bg-slate-50">
-                <Eye size={13} /> Prévisualiser
+                {publishing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Globe className="w-4 h-4" />}
+                {publishing ? "Publication…" : "Publier"}
             </button>
             <button
                 onClick={onClose}
-                className="ml-1 rounded-lg p-2 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700"
+                className="p-2 rounded-xl hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition"
+                aria-label="Fermer"
             >
-                <X size={16} />
+                <X className="w-5 h-5" />
             </button>
             </div>
-        </header>
+        </div>
 
-        {/* Body */}
-        <div className="flex flex-1 overflow-hidden">
+        {/* ── Scrollable Body ── */}
+        <div className="flex-1 overflow-y-auto overscroll-contain">
+            <div className="grid grid-cols-1 lg:grid-cols-5">
 
-            {/* Left column */}
-            <div className="flex-1 overflow-y-auto px-6 py-6 space-y-8">
+            {/* LEFT */}
+            <div className="lg:col-span-3 p-8 space-y-8 border-r border-slate-100">
 
-            {/* Informations de Base */}
-            <section>
-                <SectionHeader icon={Settings} title="Informations de Base" />
-                <div className="space-y-4">
-                <InputField
-                    label="Titre du Salon / Événement"
+                {/* Infos de base */}
+                <section className="space-y-5">
+                <SectionTitle>Informations de Base</SectionTitle>
+
+                <div className="space-y-1.5">
+                    <FieldLabel>Titre du Salon / Événement</FieldLabel>
+                    <input
                     value={form.title}
-                    onChange={(v) => set("title", v)}
+                    onChange={(e) => update("title", e.target.value)}
                     placeholder="Ex: Salon International du Tourisme"
-                />
-                <div className="grid grid-cols-3 gap-3">
-                    <InputField
-                    label="Lieu"
-                    value={form.location}
-                    onChange={(v) => set("location", v)}
-                    placeholder="Paris Expo..."
-                    />
-                    <InputField
-                    label="Date de Début"
-                    type="date"
-                    value={form.startDate}
-                    onChange={(v) => set("startDate", v)}
-                    />
-                    <InputField
-                    label="Date de Fin"
-                    type="date"
-                    value={form.endDate}
-                    onChange={(v) => set("endDate", v)}
+                    className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-800 font-semibold shadow-sm focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-transparent transition"
                     />
                 </div>
-                <InputField
-                    label="Site Web Officiel"
-                    type="url"
-                    value={form.website}
-                    onChange={(v) => set("website", v)}
-                    placeholder="https://..."
-                    hint="URL complète du site officiel de l'événement"
-                />
-                </div>
-            </section>
 
-            {/* Description */}
-            <section>
-                <SectionHeader icon={AlignLeft} title="Description Détaillée" color="text-blue-500" />
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div className="space-y-1.5">
+                    <FieldLabel>Lieu</FieldLabel>
+                    <div className="relative">
+                        <MapPin size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                        <input
+                        value={form.location}
+                        onChange={(e) => update("location", e.target.value)}
+                        placeholder="Paris Expo…"
+                        className="w-full bg-white border border-slate-200 rounded-xl pl-9 pr-3 py-2.5 text-sm text-slate-800 shadow-sm focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-transparent transition"
+                        />
+                    </div>
+                    </div>
+                    <div className="space-y-1.5">
+                    <FieldLabel>Date de Début</FieldLabel>
+                    <div className="relative">
+                        <Calendar size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                        <input
+                        type="date"
+                        value={form.startDate}
+                        onChange={(e) => update("startDate", e.target.value)}
+                        className="w-full bg-white border border-slate-200 rounded-xl pl-9 pr-3 py-2.5 text-sm text-slate-800 shadow-sm focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-transparent transition"
+                        />
+                    </div>
+                    </div>
+                    <div className="space-y-1.5">
+                    <FieldLabel>Date de Fin</FieldLabel>
+                    <div className="relative">
+                        <Calendar size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                        <input
+                        type="date"
+                        value={form.endDate}
+                        onChange={(e) => update("endDate", e.target.value)}
+                        className="w-full bg-white border border-slate-200 rounded-xl pl-9 pr-3 py-2.5 text-sm text-slate-800 shadow-sm focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-transparent transition"
+                        />
+                    </div>
+                    </div>
+                </div>
+
+                <div className="space-y-1.5">
+                    <FieldLabel>Site Web Officiel</FieldLabel>
+                    <div className="relative">
+                    <Globe size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                    <input
+                        type="url"
+                        value={form.website}
+                        onChange={(e) => update("website", e.target.value)}
+                        placeholder="https://…"
+                        className="w-full bg-white border border-slate-200 rounded-xl pl-9 pr-3 py-2.5 text-sm text-slate-700 font-mono shadow-sm focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-transparent transition"
+                    />
+                    </div>
+                    <p className="text-xs text-slate-400">URL complète du site officiel de l&apos;événement</p>
+                </div>
+                </section>
+
+                {/* Description */}
+                <section className="space-y-3">
+                <SectionTitle>Description Détaillée</SectionTitle>
                 <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-medium text-slate-500 uppercase tracking-wider">
-                    Description (Historique, Objectifs, Thème de l&apos;année)
-                </label>
-                <div className="rounded-lg border border-slate-200 overflow-hidden transition focus-within:border-orange-400 focus-within:ring-2 focus-within:ring-orange-100">
+                    <FieldLabel>
+                    Description <span className="text-slate-400 normal-case font-normal">(Historique, Objectifs, Thème)</span>
+                    </FieldLabel>
+                    <div className="rounded-xl border border-slate-200 overflow-hidden transition focus-within:border-orange-400 focus-within:ring-2 focus-within:ring-orange-100">
                     <RichTextToolbar />
                     <textarea
-                    value={form.description}
-                    onChange={(e) => set("description", e.target.value)}
-                    rows={8}
-                    placeholder="Décrivez le salon en détail…"
-                    className="w-full px-4 py-3 text-sm text-slate-700 leading-relaxed placeholder-slate-400 outline-none resize-none bg-white"
+                        value={form.description}
+                        onChange={(e) => update("description", e.target.value)}
+                        rows={8}
+                        placeholder="Décrivez le salon en détail…"
+                        className="w-full px-4 py-3 text-sm text-slate-700 leading-relaxed placeholder-slate-400 outline-none resize-none bg-white"
                     />
+                    </div>
                 </div>
-                </div>
-            </section>
+                </section>
 
-            {/* Image */}
-            <section>
-                <SectionHeader icon={ImageIcon} title="Média à la Une" color="text-purple-500" />
-                <div
-                    onClick={() => fileInputRef.current?.click()}
-                    className="group flex flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed border-slate-200 bg-slate-50 px-6 py-10 cursor-pointer transition hover:border-orange-300 hover:bg-orange-50"
-                >
-                {imagePreview ? (
-                    <img src={imagePreview} alt="Aperçu" className="max-h-32 rounded-lg object-contain shadow" />
-                ) : (
-                    <>
-                    <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-white shadow-sm border border-slate-100 group-hover:border-orange-200 transition">
-                        <Upload size={20} className="text-slate-400 group-hover:text-orange-400 transition" />
-                    </div>
-                    <div className="text-center">
-                        <p className="text-sm font-medium text-slate-600">Ajouter l&apos;image à la Une / Logo du Salon</p>
-                        <p className="text-xs text-slate-400 mt-0.5">PNG, JPG jusqu&apos;à 5 MB</p>
-                    </div>
-                    <button className="rounded-lg bg-orange-500 px-4 py-2 text-xs font-semibold text-white shadow-sm shadow-orange-200 transition hover:bg-orange-600">
-                        Choisir un fichier
-                    </button>
-                    </>
-                )}
-                <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept="image/png,image/jpeg"
-                    className="hidden"
-                    onChange={handleImageChange}
+                {/* Cover image */}
+                <CoverImagePicker
+                value={form.coverImage}
+                onChange={(url) => update("coverImage", url)}
                 />
-                </div>
-            </section>
             </div>
 
-            {/* Right sidebar */}
-            <aside className="w-72 shrink-0 overflow-y-auto border-l border-slate-100 bg-slate-50/60 px-5 py-6 space-y-8">
+            {/* RIGHT sidebar */}
+            <div className="lg:col-span-2 p-8 space-y-7 bg-slate-50/60">
 
-            {/* Statut */}
-            <section>
-                <SectionHeader icon={Settings} title="Statut et Planification" color="text-orange-500" />
-                <div className="space-y-4">
+                {/* Statut & classification */}
+                <section className="space-y-4">
+                <SectionTitle>Statut et Classification</SectionTitle>
+
                 <SelectField
-                    label="Statut de Planification"
-                    value={form.planningStatus}
-                    onChange={(v) => set("planningStatus", v)}
-                    options={PLANNING_STATUSES}
+                    label="Statut"
+                    value={form.status}
+                    options={Object.values(STATUS_API_TO_UI)}
+                    onChange={(v) => update("status", v)}
                 />
+
+                {/* Catégorie — éditable via fetchCategories (même pattern que VideoEdit) */}
+                <div className="space-y-1.5">
+                    <FieldLabel>Catégorie</FieldLabel>
+                    <div className="relative">
+                    <select
+                        value={form.categoryId ?? ""}
+                        onChange={(e) => update("categoryId", Number(e.target.value))}
+                        className="w-full appearance-none bg-white border border-slate-200 rounded-xl px-4 py-2.5 pr-8 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-orange-400 transition cursor-pointer shadow-sm"
+                    >
+                        <option value="">Aucune catégorie</option>
+                        {categorie.map((c) => (
+                        <option key={c.id} value={c.id}>{c.name}</option>
+                        ))}
+                    </select>
+                    <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+                    </div>
+                </div>
 
                 {/* Auteur (lecture seule) */}
-                <div className="flex flex-col gap-1.5">
-                    <label className="text-xs font-medium text-slate-500 uppercase tracking-wider">
-                    Responsable
-                    </label>
-                    <p className="text-sm text-slate-700 border border-slate-200 rounded-lg bg-white px-3 py-2.5">
-                    {salon.author.name}
-                    </p>
+                <div className="space-y-1.5">
+                    <FieldLabel>Responsable</FieldLabel>
+                    <div className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5">
+                    <div className="w-6 h-6 rounded-full bg-orange-100 flex items-center justify-center text-xs font-bold text-orange-600 shrink-0">
+                        {salon.author.name.charAt(0)}
+                    </div>
+                    <span className="text-sm text-slate-700 truncate">{salon.author.name}</span>
+                    </div>
                 </div>
 
-                {/* Catégorie (lecture seule) */}
-                <div className="flex flex-col gap-1.5">
-                    <label className="text-xs font-medium text-slate-500 uppercase tracking-wider">
-                    Catégorie
-                    </label>
-                    <p
-                    className="text-sm font-medium border border-slate-200 rounded-lg bg-white px-3 py-2.5"
-                    style={{ color: salon.category.color }}
-                    >
-                    {salon.category.name}
-                    </p>
-                </div>
-
-                <InputField
-                    label="URL de la Fiche (Slug)"
-                    value={form.slug}
-                    onChange={(v) => set("slug", v)}
-                    placeholder="/salons/mon-salon-2024"
-                />
-                </div>
-            </section>
-
-            {/* Tags */}
-            <section>
-                <SectionHeader icon={Tag} title="Taxonomie et Contenu" color="text-amber-500" />
-                <div className="space-y-4">
-                <div className="flex flex-col gap-1.5">
-                    <label className="text-xs font-medium text-slate-500 uppercase tracking-wider">
-                    Tags / Mots-clés
-                    </label>
-                    <div className="flex gap-1.5">
+                {/* Slug */}
+                <div className="space-y-1.5">
+                    <FieldLabel>URL (Slug)</FieldLabel>
                     <input
-                        type="text"
-                        value={tagInput}
-                        onChange={(e) => setTagInput(e.target.value)}
-                        onKeyDown={(e) => {
-                        if (e.key === "Enter" || e.key === ",") {
-                            e.preventDefault();
-                            addTag(tagInput);
-                        }
-                        }}
-                        placeholder="Ex: MICE, Hôtellerie…"
-                        className="flex-1 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs placeholder-slate-400 outline-none transition focus:border-orange-400 focus:ring-2 focus:ring-orange-100"
+                    value={form.slug}
+                    onChange={(e) => update("slug", e.target.value)}
+                    placeholder="/salons/mon-salon-2025"
+                    className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-700 font-mono shadow-sm focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-transparent transition"
                     />
-                    <button
-                        onClick={() => addTag(tagInput)}
-                        className="rounded-lg border border-slate-200 bg-white p-2 text-slate-500 transition hover:bg-orange-50 hover:border-orange-300 hover:text-orange-500"
-                    >
-                        <Plus size={14} />
-                    </button>
-                    </div>
-                    {form.tags.length > 0 && (
-                    <div className="flex flex-wrap gap-1.5 mt-1">
-                        {form.tags.map((tag) => (
-                        <TagBadge key={tag} tag={tag} onRemove={() => removeTag(tag)} />
-                        ))}
-                    </div>
-                    )}
                 </div>
+                </section>
 
-                {/* Contenu associé (placeholder statique — à connecter) */}
-                <div className="flex flex-col gap-2">
-                    <label className="text-xs font-medium text-slate-500 uppercase tracking-wider">
-                    Contenu Associé
-                    </label>
-                    <div className="space-y-1.5">
-                    {[
-                        { icon: FileText, label: "Articles liés", color: "text-blue-500" },
-                        { icon: Video,    label: "Vidéos liées",  color: "text-purple-500" },
-                    ].map(({ icon: Icon, label, color }) => (
-                        <div key={label} className="flex items-center gap-2 rounded-lg bg-white border border-slate-100 px-3 py-2 text-xs text-slate-500 shadow-sm">
-                        <Icon size={12} className={color} />
-                        <span>{label}</span>
-                        </div>
-                    ))}
-                    <button className="flex w-full items-center gap-1.5 rounded-lg border border-dashed border-slate-200 px-3 py-2 text-xs text-slate-400 transition hover:border-orange-300 hover:text-orange-500 hover:bg-orange-50">
-                        <Plus size={12} /> Ajouter du contenu
-                    </button>
-                    </div>
-                </div>
-                </div>
-            </section>
+                {/* Tags */}
+                <TagSelector
+                selectedIds={form.selectedTagIds}
+                onChange={(ids) => update("selectedTagIds", ids)}
+                />
 
-            {/* SEO */}
-            <section>
-                <SectionHeader icon={Search} title="Optimisation SEO" color="text-emerald-500" />
-                <div className="space-y-3">
-                <div className="flex flex-col gap-1.5">
-                    <div className="flex justify-between">
-                    <label className="text-xs font-medium text-slate-500 uppercase tracking-wider">Titre Méta</label>
-                    <span className={`text-xs font-medium ${form.metaTitle.length > 60 ? "text-red-500" : "text-slate-400"}`}>
-                        {form.metaTitle.length}/60
+                {/* Contenus associés */}
+                <RelatedContentSelector
+                selectedIds={form.relatedContentIds}
+                onChange={(ids) => update("relatedContentIds", ids)}
+                />
+
+                {/* SEO */}
+                <section className="space-y-4">
+                <SectionTitle>Optimisation SEO</SectionTitle>
+
+                <div className="space-y-1.5">
+                    <div className="flex justify-between items-center">
+                    <FieldLabel>Titre Méta</FieldLabel>
+                    <span className={`text-xs font-medium tabular-nums ${metaTitleLen > 60 ? "text-red-500" : "text-slate-400"}`}>
+                        {metaTitleLen}/60
                     </span>
                     </div>
                     <input
-                    type="text"
                     value={form.metaTitle}
-                    onChange={(e) => set("metaTitle", e.target.value)}
-                    placeholder="Titre pour le référencement…"
-                    maxLength={60}
-                    className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-xs placeholder-slate-400 outline-none transition focus:border-orange-400 focus:ring-2 focus:ring-orange-100"
+                    onChange={(e) => update("metaTitle", e.target.value)}
+                    className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-800 shadow-sm focus:outline-none focus:ring-2 focus:ring-orange-400 transition"
                     />
+                    <div className="h-1 rounded-full bg-slate-100 overflow-hidden">
+                    <div
+                        className={`h-full rounded-full transition-all ${metaTitleLen > 60 ? "bg-red-400" : "bg-orange-400"}`}
+                        style={{ width: `${Math.min((metaTitleLen / 60) * 100, 100)}%` }}
+                    />
+                    </div>
+                    <p className="text-xs text-slate-400">60 caractères recommandés</p>
                 </div>
-                <div className="flex flex-col gap-1.5">
-                    <div className="flex justify-between">
-                    <label className="text-xs font-medium text-slate-500 uppercase tracking-wider">Description Méta</label>
-                    <span className={`text-xs font-medium ${form.metaDescription.length > 160 ? "text-red-500" : "text-slate-400"}`}>
-                        {form.metaDescription.length}/160
+
+                <div className="space-y-1.5">
+                    <div className="flex justify-between items-center">
+                    <FieldLabel>Description Méta</FieldLabel>
+                    <span className={`text-xs font-medium tabular-nums ${metaDescLen > 160 ? "text-red-500" : "text-slate-400"}`}>
+                        {metaDescLen}/160
                     </span>
                     </div>
                     <textarea
                     value={form.metaDescription}
-                    onChange={(e) => set("metaDescription", e.target.value)}
-                    placeholder="Description pour les moteurs de recherche…"
-                    rows={3}
-                    maxLength={160}
-                    className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-xs placeholder-slate-400 outline-none resize-none transition focus:border-orange-400 focus:ring-2 focus:ring-orange-100"
+                    onChange={(e) => update("metaDescription", e.target.value)}
+                    rows={4}
+                    className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-700 leading-relaxed shadow-sm focus:outline-none focus:ring-2 focus:ring-orange-400 transition resize-none"
                     />
+                    <div className="h-1 rounded-full bg-slate-100 overflow-hidden">
+                    <div
+                        className={`h-full rounded-full transition-all ${metaDescLen > 160 ? "bg-red-400" : "bg-orange-400"}`}
+                        style={{ width: `${Math.min((metaDescLen / 160) * 100, 100)}%` }}
+                    />
+                    </div>
+                    <p className="text-xs text-slate-400">160 caractères recommandés</p>
                 </div>
-                </div>
-            </section>
-            </aside>
+                </section>
+            </div>
+            </div>
         </div>
         </div>
     );
@@ -1127,13 +1560,14 @@ export default function SalonEdit({ isOpen, salon, onClose, onSubmit }: SalonEdi
         aria-modal="true"
         >
         <div
+            className="w-full max-w-5xl bg-white rounded-3xl shadow-2xl border border-slate-100 overflow-hidden"
             style={{
-            opacity:    visible ? 1 : 0,
-            transform:  visible ? "translateY(0) scale(1)" : "translateY(24px) scale(0.97)",
-            transition: "opacity 300ms ease, transform 300ms ease",
-            width: "100%",
-            display: "flex",
-            justifyContent: "center",
+            opacity:       visible ? 1 : 0,
+            transform:     visible ? "translateY(0) scale(1)" : "translateY(24px) scale(0.97)",
+            transition:    "opacity 300ms ease, transform 300ms ease",
+            maxHeight:     "90vh",
+            display:       "flex",
+            flexDirection: "column",
             }}
         >
             <SalonEditorContent salon={salon} onClose={onClose} onSubmit={onSubmit} />
