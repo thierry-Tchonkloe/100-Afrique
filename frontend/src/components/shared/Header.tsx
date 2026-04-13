@@ -145,7 +145,7 @@ const Header = () => {
               Vidéos /<br/><span className="text-[10px]">Web TV</span>
             </Link>
             <Link href="/offres" className="text-white hover:text-orange-400 transition-colors py-2">Nos offres</Link>
-            <Link href="/magazines" className="text-white hover:text-orange-400 transition-colors py-2">magazines</Link>
+            {/* <Link href="/magazines" className="text-white hover:text-orange-400 transition-colors py-2">magazines</Link> */}
             <Link href="/contact" className="text-center leading-tight text-white hover:text-orange-400 transition-colors py-2">
               À propos<br/><span className="text-[10px]">/ Contact</span>
             </Link>
