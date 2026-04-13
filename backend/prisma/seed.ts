@@ -122,58 +122,58 @@ console.log('✅ Anciens articles supprimés\n');
 
   const heroArticles = [
     {
-      title: 'IFTM Top Resa 2024 : Les Tendances du Tourisme Africain',
-      slug: 'iftm-top-resa-2024-tendances-tourisme-africain',
-      excerpt: 'Retour sur les temps forts du plus grand salon professionnel du tourisme avec un focus particulier sur les destinations africaines en pleine expansion.',
-      coverImage: 'https://images.unsplash.com/photo-1540575467063-178a50c2df87',
+      title: 'Investir dans l\'Hôtellerie Durable : Le Pari du Sénégal pour 2027',
+      slug: 'senegal-hotellerie-durable-horizon-2027',
+      excerpt: 'Le Sénégal lance une série de projets éco-responsables le long de la Petite Côte pour anticiper la demande croissante de 2027.',
+      coverImage: 'https://images.unsplash.com/photo-1751028327829-d9e0bcd1a07e?q=80&w=870&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
       content: [
-        { type: 'text', value: 'Le salon IFTM Top Resa 2024 a fermé ses portes avec un bilan exceptionnel pour les destinations africaines. Plus de 50 offices de tourisme du continent étaient présents.' },
-        { type: 'heading', value: 'Un engouement sans précédent' },
-        { type: 'text', value: 'Les visiteurs ont montré un intérêt croissant pour les destinations d\'Afrique de l\'Ouest, en particulier le Sénégal, la Côte d\'Ivoire et le Cap-Vert.' },
+        { type: 'text', value: 'Alors que la saison touristique 2026 bat son plein, le gouvernement sénégalais annonce de nouveaux incitatifs fiscaux pour les lodges zéro-carbone.' },
+        { type: 'heading', value: 'La Casamance : Un sanctuaire préservé' },
+        { type: 'text', value: 'Loin du tourisme de masse, les nouveaux projets en Casamance privilégient l\'immersion communautaire et la protection de la mangrove.' },
         { type: 'video', url: 'https://www.youtube.com/embed/dQw4w9WgXcQ' },
       ],
       categoryId: createdCategories['reportages-salons'].id,
       authorId: admin.id,
       status: 'PUBLISHED',
       featured: true,
-      metaTitle: 'IFTM Top Resa 2024 - Tourisme Africain',
-      metaDescription: 'Découvrez les tendances du tourisme africain présentées à IFTM Top Resa 2024',
+      metaTitle: 'Sénégal 2027 : Écotourisme et Investissement',
+      metaDescription: 'Analyse des stratégies hôtelières durables au Sénégal pour les prochaines saisons.',
     },
     {
-      title: 'Le Sénégal, Nouvelle Destination Tendance pour 2025',
-      slug: 'senegal-destination-tendance-2025',
-      excerpt: 'Avec ses plages paradisiaques, sa culture vibrante et son hospitalité légendaire, le Sénégal s\'impose comme la destination incontournable de 2025.',
-      coverImage: 'https://images.unsplash.com/photo-1773842136514-2527444ed71f?q=80&w=1740&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
-      content: [
-        { type: 'text', value: 'Le Sénégal connaît une croissance touristique remarquable avec une augmentation de 35% des arrivées internationales en 2024.' },
-        { type: 'heading', value: 'Des infrastructures modernisées' },
-        { type: 'text', value: 'L\'ouverture du nouvel aéroport international Blaise Diagne facilite l\'accès à cette destination de rêve.' },
-        { type: 'image', url: 'https://images.unsplash.com/photo-1564759298141-cef86f51d0b4' },
-      ],
-      categoryId: createdCategories['actualites'].id,
-      authorId: admin.id,
-      status: 'PUBLISHED',
-      featured: true,
-      metaTitle: 'Sénégal Destination 2025',
-      metaDescription: 'Pourquoi le Sénégal est la destination touristique incontournable de 2025',
-    },
-    {
-      title: 'Interview Exclusive : Le Ministre du Tourisme Ivoirien',
-      slug: 'interview-ministre-tourisme-cote-ivoire',
-      excerpt: 'Rencontre avec le Ministre du Tourisme de Côte d\'Ivoire qui nous dévoile la nouvelle stratégie de développement touristique du pays à l\'horizon 2030.',
+      title: 'Interview : La Connectivité Aérienne, Clé de Voûte du Tourisme Africain',
+      slug: 'interview-connectivite-aerienne-afrique-2026',
+      excerpt: 'Entretien exclusif avec le commissaire de l\'UA sur l\'Open Skies africain et son impact direct sur les tarifs de voyage dès cet été 2026.',
       coverImage: 'https://images.unsplash.com/photo-1557804506-669a67965ba0',
       content: [
-        { type: 'text', value: 'Dans cette interview exclusive, le Ministre présente la vision ambitieuse de la Côte d\'Ivoire pour devenir une destination touristique majeure en Afrique de l\'Ouest.' },
+        { type: 'text', value: '« Nous ne pouvons pas parler de tourisme continental sans parler de la liberté de circuler. » Une déclaration forte qui marque ce milieu d\'année 2026.' },
+        { type: 'heading', value: 'Vers une baisse des prix des billets' },
+        { type: 'text', value: 'Grâce aux accords signés le mois dernier, les vols entre Lagos, Abidjan et Nairobi devraient voir leurs tarifs baisser de 20% d\'ici juillet.' },
         { type: 'video', url: 'https://www.youtube.com/embed/dQw4w9WgXcQ' },
-        { type: 'heading', value: 'Les grands projets en cours' },
-        { type: 'text', value: 'Modernisation des sites touristiques, création de zones touristiques intégrées et formation de 10 000 professionnels du secteur.' },
       ],
       categoryId: createdCategories['interviews'].id,
       authorId: editor.id,
       status: 'PUBLISHED',
       featured: true,
-      metaTitle: 'Interview Ministre Tourisme Côte d\'Ivoire',
-      metaDescription: 'Stratégie touristique de la Côte d\'Ivoire - Interview exclusive',
+      metaTitle: 'Interview Connectivité Afrique 2026',
+      metaDescription: 'Impact de l\'Open Skies sur le tourisme intra-africain en 2026.',
+    },
+    {
+      title: 'Bénin 2026 : L\'Essor Fulgurant du Tourisme Mémoriel',
+      slug: 'benin-2026-essor-tourisme-memoriel',
+      excerpt: 'Avec l\'ouverture des nouveaux musées et la mise en valeur des sites historiques, le Bénin devient le nouveau pôle culturel majeur de l\'Afrique de l\'Ouest.',
+      coverImage: 'https://images.unsplash.com/photo-1591382696684-38c427c7547a',
+      content: [
+        { type: 'text', value: 'En ce mois d\'avril 2026, les chiffres confirment une tendance lourde : le tourisme de racines et de mémoire connaît une croissance de 45% au Bénin.' },
+        { type: 'heading', value: 'Ouidah et Abomey au cœur de la stratégie' },
+        { type: 'text', value: 'La réhabilitation des palais royaux et la modernisation de la Route des Esclaves attirent désormais une clientèle internationale exigeante, avide d\'authenticité.' },
+        { type: 'image', url: 'https://images.unsplash.com/photo-1540575467063-178a50c2df87' },
+      ],
+      categoryId: createdCategories['actualites'].id,
+      authorId: admin.id,
+      status: 'PUBLISHED',
+      featured: true,
+      metaTitle: 'Bénin Tourisme 2026 - Culture et Histoire',
+      metaDescription: 'Découvrez pourquoi le Bénin est la destination culturelle phare de cette année 2026.',
     },
   ];
 
@@ -185,7 +185,7 @@ console.log('✅ Anciens articles supprimés\n');
     });
   }
 
-  console.log('✅ Articles Hero créés\n');
+  console.log('✅ Articles Hero créés (Mise à jour 13 Avril 2026)\n');
 
   // ========================================
   // 5. ACTUALITÉS PAR SECTEUR (≥3 par secteur)
@@ -193,7 +193,7 @@ console.log('✅ Anciens articles supprimés\n');
   console.log('📰 Création des actualités par secteur...');
 
   const sectorArticles = [
-    // ── TRANSPORT (4 articles) ─────────────────────────────────────────────────
+    // ── TRANSPORT (5 articles) ─────────────────────────────────────────────────
     {
       title: 'Air Sénégal Lance une Nouvelle Liaison Paris-Dakar',
       slug: 'air-senegal-nouvelle-liaison-paris-dakar',
@@ -208,13 +208,13 @@ console.log('✅ Anciens articles supprimés\n');
       featured: false,
     },
     {
-      title: 'Royal Air Maroc Ouvre la Ligne Casablanca-Cotonou',
-      slug: 'royal-air-maroc-casablanca-cotonou',
-      excerpt: 'Trois vols par semaine relieront désormais le Maroc au Bénin, facilitant les connexions pour toute l\'Afrique de l\'Ouest.',
+      title: 'Renforcement de la Ligne Casablanca-Cotonou : Royal Air Maroc Passe au Quotidien',
+      slug: 'royal-air-maroc-frequence-quotidienne-casablanca-cotonou',
+      excerpt: 'Face à la demande croissante, la RAM intensifie ses rotations entre le Maroc et le Bénin pour la saison estivale 2026.',
       coverImage: 'https://images.pexels.com/photos/46148/aircraft-jet-landing-cloud-46148.jpeg?w=1280',
       content: [
-        { type: 'text', value: 'Royal Air Maroc inaugure sa 35e destination africaine avec cette liaison qui s\'ouvre en juin 2025.' },
-        { type: 'text', value: 'Les voyageurs béninois bénéficieront d\'une connexion directe vers Casablanca avant tout vol transatlantique.' },
+        { type: 'text', value: 'Dès le 1er juin 2026, la compagnie nationale marocaine passera à une fréquence quotidienne sur sa liaison vers Cotonou.' },
+        { type: 'text', value: 'Cette augmentation de capacité vise à soutenir le flux de touristes européens transitant par le hub de Casablanca pour découvrir les nouveaux sites culturels du Bénin.' },
       ],
       categoryId: createdCategories['transport'].id,
       authorId: editor.id,
@@ -222,15 +222,30 @@ console.log('✅ Anciens articles supprimés\n');
       featured: false,
     },
     {
-      title: 'Zanzibar : Nouvelles Liaisons Aériennes depuis l\'Europe',
-      slug: 'zanzibar-nouvelles-liaisons-europe',
-      excerpt: 'L\'archipel tanzanien devient plus accessible avec des vols directs depuis 5 capitales européennes dès l\'été 2025.',
+      title: 'Zanzibar 2026 : Extension des Vols Directs depuis les Hubs Européens',
+      slug: 'zanzibar-extension-liaisons-directes-europe-2026',
+      excerpt: 'L\'archipel tanzanien devient le point d\'entrée majeur de l\'Afrique de l\'Est avec l\'ouverture de nouvelles lignes directes en mai 2026.',
       coverImage: 'https://images.pexels.com/photos/1450353/pexels-photo-1450353.jpeg?w=1280',
       content: [
-        { type: 'text', value: 'Zanzibar renforce sa connectivité avec l\'Europe grâce à de nouvelles liaisons directes depuis Paris, Londres, Amsterdam, Rome et Vienne.' },
+        { type: 'text', value: 'À partir de mi-mai 2026, trois nouvelles compagnies majeures lanceront des vols directs saisonniers vers l\'aéroport Abeid Amani Karume.' },
+        { type: 'text', value: 'Ces connexions facilitent l\'accès aux plages de sable blanc pour les voyageurs en provenance de Francfort et Madrid, sans escale obligatoire à Dar es Salaam.' },
       ],
       categoryId: createdCategories['transport'].id,
       authorId: admin.id,
+      status: 'PUBLISHED',
+      featured: false,
+    },
+    {
+      title: 'Air Sénégal : Ouverture de la Ligne Dakar-Lagos en Mai 2026',
+      slug: 'air-senegal-dakar-lagos-mai-2026',
+      excerpt: 'Une nouvelle étape dans la connectivité régionale ouest-africaine pour booster le tourisme d\'affaires et de loisirs.',
+      coverImage: 'https://images.unsplash.com/photo-1542296332-2e4473faf563',
+      content: [
+        { type: 'text', value: 'La compagnie nationale sénégalaise annonce le lancement de ses vols directs vers Lagos à partir du 15 mai 2026.' },
+        { type: 'text', value: 'Ce corridor aérien est crucial pour renforcer les échanges entre les deux plus grandes économies de la zone CEDEAO.' },
+      ],
+      categoryId: createdCategories['transport'].id,
+      authorId: editor.id,
       status: 'PUBLISHED',
       featured: false,
     },
@@ -248,16 +263,45 @@ console.log('✅ Anciens articles supprimés\n');
       featured: false,
     },
 
-    // ── HÔTELLERIE (4 articles) ────────────────────────────────────────────────
+    // ── HÔTELLERIE (6 articles) ────────────────────────────────────────────────
     {
-      title: 'Accor Ouvre son Premier Hôtel de Luxe à Abidjan',
-      slug: 'accor-hotel-luxe-abidjan-2025',
-      excerpt: 'Le groupe Accor inaugure le Sofitel Abidjan Plateau, 280 chambres avec vue panoramique sur la lagune Ébrié.',
+      title: 'Inauguration Imminente du Sofitel Abidjan Ivoire : Le Nouveau Standard du Luxe',
+      slug: 'inauguration-sofitel-abidjan-ivoire-mai-2026',
+      excerpt: 'Le groupe Accor annonce l\'ouverture officielle de son nouveau fleuron à Abidjan pour mai 2026, redéfinissant l\'hôtellerie d\'affaires.',
       coverImage: 'https://images.unsplash.com/photo-1564501049412-61c2a3083791',
       content: [
-        { type: 'text', value: 'Le Sofitel Abidjan Plateau ouvre ses portes avec 280 chambres, 5 restaurants et un spa de 1 500 m².' },
-        { type: 'heading', value: 'Un investissement de 80 millions d\'euros' },
-        { type: 'text', value: 'Cet hôtel symbolise la montée en gamme de l\'offre hôtelière ivoirienne à l\'horizon 2025.' },
+        { type: 'text', value: 'Prévu pour le 15 mai 2026, le Sofitel Abidjan Ivoire dévoilera ses 280 chambres et sa vue imprenable sur la lagune Ébrié.' },
+        { type: 'heading', value: 'Un centre de conférence ultra-moderne' },
+        { type: 'text', value: 'Outre son spa de 1 500 m², l\'établissement se positionne comme le hub principal du MICE (Meetings, Incentives, Conferences, Exhibitions) en Afrique de l\'Ouest.' },
+      ],
+      categoryId: createdCategories['hotellerie'].id,
+      authorId: admin.id,
+      status: 'PUBLISHED',
+      featured: false,
+    },
+    {
+      title: 'Club Med Bénin : Ouverture Prévue à Avlékété pour l\'Été 2026',
+      slug: 'club-med-avlekete-benin-ouverture-2026',
+      excerpt: 'Le premier village de vacances haut de gamme du Bénin s\'apprête à accueillir ses premiers clients sur la côte de Ouidah.',
+      coverImage: 'https://images.unsplash.com/photo-1584132967334-10e028bd69f7',
+      content: [
+        { type: 'text', value: 'Le chantier d\'Avlékété touche à sa fin. Ce complexe touristique majeur est l\'un des piliers du programme "Bénin Révélé" pour cette année 2026.' },
+        { type: 'heading', value: 'Écotourisme et balnéaire' },
+        { type: 'text', value: 'Situé entre mer et lagune, ce resort mettra l\'accent sur la culture Vodun et la préservation de la biodiversité côtière.' },
+      ],
+      categoryId: createdCategories['hotellerie'].id,
+      authorId: editor.id,
+      status: 'PUBLISHED',
+      featured: false,
+    },
+    {
+      title: 'Hyatt Regency Nairobi : L\'Expansion de l\'Hôtellerie au Kenya',
+      slug: 'hyatt-regency-nairobi-expansion-2026',
+      excerpt: 'Nairobi confirme son statut de capitale économique avec l\'ouverture d\'un nouvel établissement de luxe en juin 2026.',
+      coverImage: 'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb',
+      content: [
+        { type: 'text', value: 'Le Hyatt Regency Nairobi ouvrira ses portes le mois prochain au cœur du quartier de Westlands.' },
+        { type: 'text', value: 'Avec une architecture intégrant des matériaux locaux, l\'hôtel vise une certification environnementale de haut niveau.' },
       ],
       categoryId: createdCategories['hotellerie'].id,
       authorId: admin.id,
@@ -306,7 +350,7 @@ console.log('✅ Anciens articles supprimés\n');
       featured: false,
     },
 
-    // ── RESTAURATION (3 articles) ──────────────────────────────────────────────
+    // ── RESTAURATION (5 articles) ──────────────────────────────────────────────
     {
       title: 'Gastronomie Africaine : La Grande Percée sur la Scène Mondiale',
       slug: 'gastronomie-africaine-percee-mondiale',
@@ -336,20 +380,51 @@ console.log('✅ Anciens articles supprimés\n');
       featured: false,
     },
     {
-      title: 'Les Restaurants Halal de Référence au Maroc en 2025',
-      slug: 'restaurants-halal-maroc-guide-2025',
-      excerpt: 'Sélection des meilleures adresses pour une gastronomie marocaine authentique certifiée halal, de Marrakech à Fès.',
-      coverImage: 'https://images.unsplash.com/photo-1504674900247-0877df9cc836',
+      title: 'Le Guide Gastronomie Maroc 2026 : Les Nouvelles Étoiles du Halal',
+      slug: 'guide-gastronomie-maroc-halal-2026',
+      excerpt: 'Découvrez la sélection actualisée des tables d\'exception au Maroc, alliant haute gastronomie et respect des traditions pour cette saison 2026.',
+      coverImage: 'https://images.pexels.com/photos/2233729/pexels-photo-2233729.jpeg?auto=compress&cs=tinysrgb&w=1280',
       content: [
-        { type: 'text', value: 'Le guide Michelin Maroc 2025 inclut pour la première fois une sélection spécifique halal, reconnue par 8 restaurants marocains.' },
+        { type: 'text', value: 'En ce mois d\'avril 2026, la scène culinaire marocaine franchit un nouveau palier. Le label "Saveurs Authentiques 2026" vient d\'être décerné à 12 établissements de prestige.' },
+        { type: 'heading', value: 'De Marrakech à Tanger' },
+        { type: 'text', value: 'La tendance cette année est au "Farm-to-Table", où les chefs étoilés de Fès et Marrakech revisitent les classiques de la cuisine chérifienne avec des produits 100% bio et locaux.' },
       ],
       categoryId: createdCategories['restauration'].id,
       authorId: editor.id,
       status: 'PUBLISHED',
       featured: false,
     },
+    {
+      title: 'Dakar Food Festival 2026 : Le Rendez-vous des Chefs Africains',
+      slug: 'dakar-food-festival-juin-2026',
+      excerpt: 'Prévu pour juin prochain, le plus grand festival culinaire d\'Afrique de l\'Ouest s\'apprête à célébrer la diversité des saveurs du continent.',
+      coverImage: 'https://images.unsplash.com/photo-1504674900247-0877df9cc836',
+      content: [
+        { type: 'text', value: 'Le Dakar Food Festival revient du 5 au 7 juin 2026. Cette édition mettra à l\'honneur la "New African Cuisine", un mouvement porté par de jeunes chefs sénégalais et ghanéens.' },
+        { type: 'heading', value: 'Un concours de Terroir' },
+        { type: 'text', value: 'Plus de 50 restaurants participeront à la compétition du "Meilleur Thieboudienne Revisité", attirant des critiques gastronomiques du monde entier.' },
+      ],
+      categoryId: createdCategories['restauration'].id,
+      authorId: admin.id,
+      status: 'PUBLISHED',
+      featured: false,
+    },
+    {
+      title: 'Cotonou : L\'Éclosion des Tables Raffinées sur la Route de l\'Esclave',
+      slug: 'cotonou-gastronomie-beninoise-2026',
+      excerpt: 'Le Bénin ne se contente plus d\'être une destination culturelle ; il devient une escale gourmande incontournable en 2026.',
+      coverImage: 'https://images.unsplash.com/photo-1555126634-323283e090fa',
+      content: [
+        { type: 'text', value: 'Avec l\'afflux de touristes à Ouidah et Cotonou en ce printemps 2026, de nouveaux concepts de "Bistronomie Béninoise" voient le jour.' },
+        { type: 'text', value: 'Ces établissements proposent des menus dégustation mettant en valeur l\'igname, le fonio et les produits de la pêche locale dans un cadre ultra-moderne.' },
+      ],
+      categoryId: createdCategories['restauration'].id,
+      authorId: admin.id,
+      status: 'PUBLISHED',
+      featured: false,
+    },
 
-    // ── VOYAGES D'AFFAIRES (3 articles) ───────────────────────────────────────
+    // ── VOYAGES D'AFFAIRES (5 articles) ───────────────────────────────────────
     {
       title: 'Bleisure en Afrique : La Tendance des Voyageurs d\'Affaires',
       slug: 'bleisure-afrique-tendance-voyageurs-affaires',
@@ -366,15 +441,45 @@ console.log('✅ Anciens articles supprimés\n');
       featured: false,
     },
     {
-      title: 'Nouvelles Politiques Visa pour les Businessmen Africains',
-      slug: 'visa-businessmen-africains-facilitations-2025',
-      excerpt: 'La CEDEAO annonce la suppression du visa d\'affaires entre 12 pays membres, une avancée majeure pour la mobilité professionnelle.',
+      title: 'Mobilité CEDEAO : Premier Bilan Positif du Visa d\'Affaires Unique',
+      slug: 'bilan-mobilite-professionnelle-cedeao-avril-2026',
+      excerpt: 'Trois mois après l\'entrée en vigueur des nouvelles facilitations de visa, les voyages d\'affaires intra-africains bondissent de 25%.',
       coverImage: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa',
       content: [
-        { type: 'text', value: 'La suppression du visa d\'affaires entre 12 pays de la CEDEAO entrera en vigueur au 1er janvier 2026, facilitant la mobilité de plus de 3 millions de voyageurs professionnels.' },
+        { type: 'text', value: 'Depuis janvier 2026, la libre circulation des professionnels entre les 12 pays signataires de la CEDEAO transforme le paysage économique régional.' },
+        { type: 'heading', value: 'Cotonou et Lagos : Les hubs gagnants' },
+        { type: 'text', value: 'Les aéroports de Cotonou et Lagos enregistrent une fréquentation record de voyageurs d\'affaires, portés par la suppression des barrières administratives.' },
       ],
       categoryId: createdCategories['voyages-affaires'].id,
       authorId: editor.id,
+      status: 'PUBLISHED',
+      featured: false,
+    },
+    {
+      title: 'Sommet de l\'Union Africaine : Vers le Passeport Unique d\'ici Juillet 2026',
+      slug: 'passeport-unique-africain-sommet-juillet-2026',
+      excerpt: 'Les chefs d\'État se réuniront prochainement pour valider l\'extension du passeport panafricain aux investisseurs prioritaires.',
+      coverImage: 'https://images.unsplash.com/photo-1521737604893-d14cc237f11d',
+      content: [
+        { type: 'text', value: 'Le prochain sommet prévu en juillet 2026 pourrait marquer un tournant historique avec le lancement de la phase pilote du passeport unique pour les entrepreneurs.' },
+        { type: 'text', value: 'Ce projet vise à harmoniser les droits d\'entrée sur l\'ensemble du continent pour stimuler la Zone de Libre-Échange Continentale (ZLECAf).' },
+      ],
+      categoryId: createdCategories['voyages-affaires'].id,
+      authorId: admin.id,
+      status: 'PUBLISHED',
+      featured: false,
+    },
+    {
+      title: 'Workation : La Nouvelle Tendance des Nomades Digitaux à Nairobi',
+      slug: 'workation-nairobi-nomades-digitaux-2026',
+      excerpt: 'Le Kenya lance un "Visa Business & Leisure" pour attirer les cadres internationaux souhaitant télétravailler face au Mont Kenya.',
+      coverImage: 'https://images.unsplash.com/photo-1497366216548-37526070297c',
+      content: [
+        { type: 'text', value: 'Dès juin 2026, un nouveau cadre réglementaire facilitera l\'installation temporaire des travailleurs à distance.' },
+        { type: 'text', value: 'Allier réunions stratégiques à Nairobi et safaris le week-end devient le nouveau modèle de voyage d\'affaires en Afrique de l\'Est.' },
+      ],
+      categoryId: createdCategories['voyages-affaires'].id,
+      authorId: admin.id,
       status: 'PUBLISHED',
       featured: false,
     },
@@ -392,7 +497,7 @@ console.log('✅ Anciens articles supprimés\n');
       featured: false,
     },
 
-    // ── MICE & ÉVÉNEMENTS (3 articles) ────────────────────────────────────────
+    // ── MICE & ÉVÉNEMENTS (4 articles) ────────────────────────────────────────
     {
       title: 'Rwanda : Le Tourisme de Congrès en Plein Essor',
       slug: 'rwanda-tourisme-congres-essor',
@@ -407,46 +512,88 @@ console.log('✅ Anciens articles supprimés\n');
       featured: false,
     },
     {
-      title: 'IFTM Top Resa 2025 : Les Dates et Nouveautés',
-      slug: 'iftm-top-resa-2025-dates-nouveautes',
-      excerpt: 'Marquez vos calendriers ! Le plus grand salon professionnel du tourisme revient du 30 septembre au 3 octobre 2025 à Paris Porte de Versailles.',
+      title: 'IFTM Top Resa 2026 : Le Pavillon Afrique prend de l\'ampleur',
+      slug: 'iftm-top-resa-2026-paris-focus-afrique',
+      excerpt: 'Le rendez-vous mondial du tourisme confirme ses dates : du 22 au 24 septembre 2026. L\'Afrique sera au centre des débats sur l\'aérien.',
       coverImage: 'https://images.unsplash.com/photo-1540575467063-178a50c2df87',
       content: [
-        { type: 'text', value: 'L\'IFTM Top Resa 2025 se tiendra à Paris Porte de Versailles du 30 septembre au 3 octobre.' },
-        { type: 'heading', value: 'Les nouveautés 2025' },
-        { type: 'text', value: 'Cette édition mettra l\'accent sur le tourisme durable et les nouvelles technologies de voyage.' },
+        { type: 'text', value: 'L\'édition 2026 de l\'IFTM Top Resa se tiendra à Paris Porte de Versailles à la fin du mois de septembre. Cette année, une zone dédiée aux start-ups de la "Travel Tech" africaine sera inaugurée.' },
+        { type: 'heading', value: 'Le Bénin et le Rwanda en tête d\'affiche' },
+        { type: 'text', value: 'Ces deux destinations disposeront d\'espaces interactifs pour présenter leurs nouvelles infrastructures hôtelières et leurs projets de tourisme durable.' },
       ],
       categoryId: createdCategories['mice-evenements'].id,
       authorId: admin.id,
       status: 'PUBLISHED',
-      featured: true,
+      featured: false,
     },
     {
-      title: 'Salon International du Tourisme de Dakar : L\'Édition 2025',
-      slug: 'salon-tourisme-dakar-2025',
-      excerpt: 'Le SITD s\'impose comme le rendez-vous incontournable de la filière touristique en Afrique de l\'Ouest.',
-      coverImage: 'https://i.pinimg.com/736x/58/90/42/58904251f1c8fd186a9624ea294d7bbc.jpg',
+      title: 'Salon International du Tourisme de Dakar : Succès de l\'Édition 2026',
+      slug: 'bilan-salon-tourisme-dakar-mars-2026',
+      excerpt: 'Clôturé il y a quelques semaines, le SITD 2026 a battu des records de fréquentation avec une augmentation de 40% des signatures de contrats.',
+      coverImage: 'https://images.pexels.com/photos/1181396/pexels-photo-1181396.jpeg?auto=compress&cs=tinysrgb&w=1280',
       content: [
-        { type: 'text', value: 'La 5e édition du Salon International du Tourisme de Dakar réunira plus de 200 exposants africains et européens du 12 au 15 mars 2025.' },
+        { type: 'text', value: 'Le Salon International du Tourisme de Dakar, qui s\'est tenu en mars 2026, a confirmé la vitalité du secteur en Afrique de l\'Ouest. Les professionnels se projettent déjà sur les investissements de l\'hiver prochain.' },
       ],
       categoryId: createdCategories['mice-evenements'].id,
       authorId: editor.id,
       status: 'PUBLISHED',
       featured: false,
     },
-
-    // ── DIVERTISSEMENT (3 articles) ───────────────────────────────────────────
     {
-      title: 'Festival FESPACO 2025 : Ouagadougou au Cœur du Cinéma Africain',
-      slug: 'fespaco-2025-ouagadougou-cinema-africain',
-      excerpt: 'Le plus grand festival de cinéma africain revient avec une édition spéciale célébrant les 50 ans de la révolution culturelle panafricaine.',
-      coverImage: 'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba',
+      title: 'MICE Africa Forum Cotonou 2026 : Rendez-vous en Juin',
+      slug: 'mice-africa-forum-cotonou-juin-2026',
+      excerpt: 'Le Bénin accueillera les leaders du tourisme d\'affaires en juin 2026 pour discuter de l\'avenir des centres de congrès sur le continent.',
+      coverImage: 'https://images.unsplash.com/photo-1505373877841-8d25f7d46678',
       content: [
-        { type: 'text', value: 'Le FESPACO 2025 projette plus de 150 films en compétition et accueillera des délégations de 40 pays africains et de la diaspora.' },
-        { type: 'text', value: 'Pour les touristes, un pass "Cinéphile" combinant projection, hôtel et navettes est proposé à partir de 120 000 FCFA.' },
+        { type: 'text', value: 'Prévu du 10 au 12 juin 2026 au Palais des Congrès de Cotonou, ce forum sera l\'occasion de découvrir les nouveaux outils digitaux au service des organisateurs d\'événements.' },
+        { type: 'text', value: 'La thématique centrale sera : "L\'Afrique, nouvelle terre d\'accueil des congrès mondiaux".' },
+      ],
+      categoryId: createdCategories['mice-evenements'].id,
+      authorId: admin.id,
+      status: 'PUBLISHED',
+      featured: false,
+    },
+
+    // ── DIVERTISSEMENT (5 articles) ───────────────────────────────────────────
+    {
+      title: 'Festival Gnaoua d\'Essaouira 2026 : Le Retour des Rythmes du Monde',
+      slug: 'festival-gnaoua-essaouira-juin-2026',
+      excerpt: 'La cité des Alizés s\'apprête à accueillir la 27e édition du festival en juin 2026. Un voyage sensoriel entre tradition et fusion.',
+      coverImage: 'https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3',
+      content: [
+        { type: 'text', value: 'Du 25 au 27 juin 2026, Essaouira redeviendra le carrefour des cultures. Cette édition met l\'accent sur les liens profonds entre les musiques Gnaoua et les rythmes du Sahel.' },
+        { type: 'heading', value: 'Un impact touristique majeur' },
+        { type: 'text', value: 'Les établissements hôteliers de la ville affichent déjà complet. Le festival propose cette année des circuits touristiques incluant des "Lilas" (cérémonies) privées pour les passionnés.' },
+      ],
+      categoryId: createdCategories['divertissement'].id,
+      authorId: admin.id,
+      status: 'PUBLISHED',
+      featured: false,
+    },
+    {
+      title: 'FEMUA 18 : Abidjan et Korhogo s\'animent en Mai 2026',
+      slug: 'femua-18-cote-ivoire-mai-2026',
+      excerpt: 'Le Festival des Musiques Urbaines d\'Anoumabo revient pour sa 18e édition avec une programmation internationale et des actions sociales.',
+      coverImage: 'https://images.pexels.com/photos/1105666/pexels-photo-1105666.jpeg?auto=compress&cs=tinysrgb&w=1280',
+      content: [
+        { type: 'text', value: 'Le FEMUA 18 se tiendra du 12 au 17 mai 2026. Au-delà des concerts géants, le festival renforce son volet "Tourisme Culturel" avec des visites guidées du patrimoine ivoirien.' },
       ],
       categoryId: createdCategories['divertissement'].id,
       authorId: editor.id,
+      status: 'PUBLISHED',
+      featured: false,
+    },
+    {
+      title: 'Festival des Arts de Ouidah 2026 : Immersion dans la Culture Vodun',
+      slug: 'festival-arts-ouidah-aout-2026',
+      excerpt: 'Le Bénin prépare un événement d\'envergure pour août 2026, mêlant art contemporain, danse traditionnelle et gastronomie locale.',
+      coverImage: 'https://images.pexels.com/photos/16474668/pexels-photo-16474668.jpeg?auto=compress&cs=tinysrgb&w=1280',
+      content: [
+        { type: 'text', value: 'Annoncé pour la mi-août 2026, ce festival vise à attirer la diaspora africaine. Le pass "Immersion Bénin" inclut l\'accès aux sites sacrés et des ateliers de création avec des artistes locaux.' },
+        { type: 'text', value: 'Les réservations pour les circuits "Mémoire et Créativité" sont déjà ouvertes via la plateforme nationale de tourisme.' },
+      ],
+      categoryId: createdCategories['divertissement'].id,
+      authorId: admin.id,
       status: 'PUBLISHED',
       featured: false,
     },
@@ -533,8 +680,7 @@ console.log('✅ Anciens articles supprimés\n');
   console.log(`✅ ${sectorArticles.length} articles sectoriels créés\n`);
 
 // ========================================
-// Dans prisma/seed.ts — section SALONS & ÉVÉNEMENTS
-// Ajoute type: 'SALON' sur chaque article de salon
+// SALONS & ÉVÉNEMENTS (10 articles)
 // ========================================
 
 const salonArticles = [
