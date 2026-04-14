@@ -10,11 +10,11 @@ async function main() {
   // ========================================
   // NETTOYAGE DES ANCIENS ARTICLES
   // ========================================
-  console.log('🧹 Nettoyage des anciens articles...');
+//   console.log('🧹 Nettoyage des anciens articles...');
 
-  await prisma.article.deleteMany({});
+//   await prisma.article.deleteMany({});
 
-console.log('✅ Anciens articles supprimés\n');
+// console.log('✅ Anciens articles supprimés\n');
 
   // ========================================
   // 1. UTILISATEURS
