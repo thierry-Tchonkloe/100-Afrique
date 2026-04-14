@@ -41,6 +41,8 @@ export interface QuickDestinationPayload {
 export interface UpdateDestinationPayload {
     id?: number;
     title?: string;
+    name?: string;
+    slug?: string;
     status?: ArticleStatus;
     description?: string;
     categoryId?: number;
@@ -65,6 +67,7 @@ export interface UpdateDestinationPayload {
     population?: string;
     codeTel?: string;
     meillerePeriode?: string;
+    destinationId ?: number | null;
 }
 
 export interface DestinationDetailResponse {
@@ -139,14 +142,20 @@ export async function updateDestination(id: number, payload: UpdateDestinationPa
     return updateArticle(id, payload as Parameters<typeof updateArticle>[1]);
 }
 
-export async function createArticle(payload: UpdateDestinationPayload ): Promise<DestinationDetailResponse> {
-    const res = await fetch(`${BASE_URL}/admin/articles`, {
+export async function createDestination(payload: UpdateDestinationPayload ): Promise<DestinationDetailResponse> {
+    const res = await fetch(`${API()}/destinations/admin/destinations`, {
         method: "POST",
         headers: authHeaders(),
         body: JSON.stringify(payload),
     });
     return handleResponse<DestinationDetailResponse>(res);
 }
-// export async function createDestination(payload: UpdateDestinationPayload): Promise<{ data: Article }> {
-//     return createArticle(payload as Parameters<typeof createArticle>[1]);
-// }
+
+export async function editDestination(id: number, payload: UpdateDestinationPayload): Promise<DestinationDetailResponse> {
+    const res = await fetch(`${API()}/destinations/admin/destinations/${id}`, {
+        method: "PUT",
+        headers: authHeaders(),
+        body: JSON.stringify(payload), // Ne pas oublier le body !
+    });
+    return handleResponse<DestinationDetailResponse>(res);
+}
