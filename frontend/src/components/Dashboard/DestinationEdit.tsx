@@ -8,7 +8,7 @@ import {
     CheckCircle, Loader2, AlertCircle, CheckCircle2, Clock,
     Tag as TagIcon, Search, ChevronDown,
 } from "lucide-react";
-import { updateDestination, } from "@/services/Dashboard/destinationservice";
+import { updateDestination, createDestination, editDestination, UpdateDestinationPayload } from "@/services/Dashboard/destinationservice";
 import {
     Article, Tag, fetchTags, Category, fetchCategories,
     STATUS_API_TO_UI, STATUS_UI_TO_API,
@@ -706,6 +706,8 @@ function DestinationEditorContent({ destination, onClose, onSubmit }: {
         meillerePeriode:   dest?.meillerePeriode   ?? "",
     });
 
+    const destIdRef = useRef<number | null>(dest?.id ?? null);
+
     // ── Cover image: prefer destination.coverImage then article.coverImage ─────
     const [coverImage, setCoverImage] = useState<string | null>(
         dest?.coverImage ?? destination.coverImage ?? null
@@ -732,72 +734,239 @@ function DestinationEditorContent({ destination, onClose, onSubmit }: {
     };
 
     // ── Sauvegarde ─────────────────────────────────────────────────────────────
+    // const save = async (publish = false) => {
+    //     if (publish) setPublishing(true); else setSaving(true);
+    //     setSaveError(null);
+    //     setSaveSuccess(false);
+
+    //     try {
+    //     // 1. Upload cover image if a new file was selected
+    //     let finalCoverImage = coverImage && !coverImage.startsWith("blob:") ? coverImage : null;
+    //     if (coverPendingFile) {
+    //         finalCoverImage = await uploadImage(coverPendingFile);
+    //         setCoverImage(finalCoverImage);
+    //         setCoverPendingFile(null);
+    //     }
+
+    //     const apiStatus = STATUS_UI_TO_API[form.status] as "DRAFT" | "PUBLISHED" | "REVIEW" | "ARCHIVED";
+    //     const targetStatus = publish ? "PUBLISHED" : apiStatus;
+
+    //     // 2. Build content blocks from description
+    //     const contentBlocks = form.description.trim()
+    //         ? form.description.split(/\n{2,}/).map((line) => {
+    //             const t = line.trim();
+    //             if (!t) return null;
+    //             if (t.startsWith("## ")) return { type: "heading", value: t.slice(3) };
+    //             return { type: "text", value: t };
+    //         }).filter(Boolean) as { type: string; value: string }[]
+    //         : [{ type: "text", value: "Contenu vide" }];
+
+    //     // 3. Payload — updateDestination wraps updateArticle and passes
+    //     //    both Article fields and Destination-specific fields
+    //     const payload: Parameters<typeof updateDestination>[1] = {
+    //         // Article fields
+    //         title:             form.title.trim()           || undefined,
+    //         name:              form.title.trim()           || undefined, // "name" is required by API but we use title as source of truth
+    //         status:            targetStatus,
+    //         content:           contentBlocks,
+    //         categoryId:        form.categoryId,
+    //         tags:              form.selectedTagIds,        // tagIds sent as "tags" array
+    //         metaTitle:         form.metaTitle.trim()       || undefined,
+    //         metaDescription:   form.metaDescription.trim() || undefined,
+    //         ...(finalCoverImage ? { coverImage: finalCoverImage } : {}),
+    //         // Destination-specific fields
+    //         slogan:             form.slogan.trim()            || undefined,
+    //         typeZone:           form.typeZone,
+    //         niveauGeographique: form.niveauGeographique,
+    //         continent:          form.continent,
+    //         regionAssociee:     form.regionAssociee,
+    //         langue:             form.langue.trim()            || undefined,
+    //         monnaie:            form.monnaie.trim()           || undefined,
+    //         fuseauHoraire:      form.fuseauHoraire            || undefined,
+    //         officeTourisme:     form.officeTourisme.trim()    || undefined,
+    //         climatDominant:     form.climatDominant           || undefined,
+    //         population:         form.population.trim()        || undefined,
+    //         codeTel:            form.codeTel.trim()           || undefined,
+    //         meillerePeriode:    form.meillerePeriode.trim()   || undefined,
+    //     };
+
+    //     console.log("Payload destination:", payload);
+
+    //     let destData = null;
+    //     if (!dest?.id) {
+    //         destData = await createDestination(payload);
+    //         payload.destinationId = destData.data.id;
+    //     }
+    //     else{
+    //         destData = await editDestination(dest.id);
+    //     }
+
+    //     const res = await updateDestination(destination.id, payload);
+    //     setSaveSuccess(true);
+    //     setTimeout(() => setSaveSuccess(false), 3000);
+    //     if (publish) onSubmit?.(res.data);
+    //     } catch (err: unknown) {
+    //     setSaveError((err as Error).message || "Erreur lors de la sauvegarde.");
+    //     } finally {
+    //     setSaving(false);
+    //     setPublishing(false);
+    //     }
+    // };
+
+//     const save = async (publish = false) => {
+//     if (publish) setPublishing(true); else setSaving(true);
+//     setSaveError(null);
+//     setSaveSuccess(false);
+
+//     try {
+//         // 1. Upload de l'image
+//         let finalCoverImage = coverImage && !coverImage.startsWith("blob:") ? coverImage : null;
+//         if (coverPendingFile) {
+//             finalCoverImage = await uploadImage(coverPendingFile);
+//             setCoverImage(finalCoverImage);
+//             setCoverPendingFile(null);
+//         }
+
+//         const apiStatus = STATUS_UI_TO_API[form.status] as "DRAFT" | "PUBLISHED" | "REVIEW" | "ARCHIVED";
+//         const targetStatus = publish ? "PUBLISHED" : apiStatus;
+//         // const apiStatus = STATUS_UI_TO_API[form.status] as ArticleStatus;
+//         // const targetStatus = publish ? "PUBLISHED" : apiStatus;
+
+//         const contentBlocks = form.description.trim()
+//             ? form.description.split(/\n{2,}/).map((line) => {
+//                 const t = line.trim();
+//                 if (!t) return null;
+//                 if (t.startsWith("## ")) return { type: "heading", value: t.slice(3) };
+//                 return { type: "text", value: t };
+//             }).filter(Boolean) as { type: string; value: string }[]
+//             : [{ type: "text", value: "Contenu vide" }];
+
+//         // 2. Construction du payload
+//         const payload: UpdateDestinationPayload = {
+//             title: form.title.trim(),
+//             name: form.title.trim(),
+//             status: targetStatus,
+//             content: contentBlocks,
+//             categoryId: form.categoryId,
+//             tags: form.selectedTagIds,
+//             metaTitle: form.metaTitle.trim(),
+//             metaDescription: form.metaDescription.trim(),
+//             coverImage: finalCoverImage ?? undefined,
+//             // Champs spécifiques
+//             slogan: form.slogan.trim(),
+//             typeZone: form.typeZone,
+//             niveauGeographique: form.niveauGeographique,
+//             continent: form.continent,
+//             regionAssociee: form.regionAssociee,
+//             langue: form.langue.trim(),
+//             monnaie: form.monnaie.trim(),
+//             fuseauHoraire: form.fuseauHoraire,
+//             officeTourisme: form.officeTourisme.trim(),
+//             climatDominant: form.climatDominant,
+//             population: form.population.trim(),
+//             codeTel: form.codeTel.trim(),
+//             meillerePeriode: form.meillerePeriode.trim(),
+//             description: form.description.trim(),
+//         };
+
+//         // 3. Logique de création ou mise à jour de la fiche métier
+//         if (!dest?.id) {
+//             // Si la destination n'existe pas encore (cas d'un vieil article sans fiche)
+//             const newDest = await createDestination(payload);
+//             payload.destinationId = newDest.data.id;
+//         } else {
+//             // IMPORTANT : Ici on met à jour la fiche métier AVANT ou via l'article
+//             await editDestination(dest.id, payload);
+//         }
+
+//         // 4. Mise à jour de l'Article global
+//         const res = await updateDestination(destination.id, payload);
+
+//         setSaveSuccess(true);
+//         if (publish) onSubmit?.(res.data);
+//     } catch (err: any) {
+//         setSaveError(err.message || "Erreur lors de la sauvegarde.");
+//     } finally {
+//         setSaving(false);
+//         setPublishing(false);
+//     }
+// };
+
+
+
     const save = async (publish = false) => {
         if (publish) setPublishing(true); else setSaving(true);
         setSaveError(null);
         setSaveSuccess(false);
 
         try {
-        // 1. Upload cover image if a new file was selected
-        let finalCoverImage = coverImage && !coverImage.startsWith("blob:") ? coverImage : null;
-        if (coverPendingFile) {
+            // 1. Upload image
+            let finalCoverImage = coverImage && !coverImage.startsWith("blob:") ? coverImage : null;
+            if (coverPendingFile) {
             finalCoverImage = await uploadImage(coverPendingFile);
             setCoverImage(finalCoverImage);
             setCoverPendingFile(null);
-        }
+            }
 
-        const apiStatus = STATUS_UI_TO_API[form.status] as "DRAFT" | "PUBLISHED" | "REVIEW" | "ARCHIVED";
-        const targetStatus = publish ? "PUBLISHED" : apiStatus;
+            const apiStatus = STATUS_UI_TO_API[form.status] as "DRAFT" | "PUBLISHED" | "REVIEW" | "ARCHIVED";
+            const targetStatus = publish ? "PUBLISHED" : apiStatus;
 
-        // 2. Build content blocks from description
-        const contentBlocks = form.description.trim()
+            const contentBlocks = form.description.trim()
             ? form.description.split(/\n{2,}/).map((line) => {
                 const t = line.trim();
                 if (!t) return null;
                 if (t.startsWith("## ")) return { type: "heading", value: t.slice(3) };
                 return { type: "text", value: t };
-            }).filter(Boolean) as { type: string; value: string }[]
+                }).filter(Boolean) as { type: string; value: string }[]
             : [{ type: "text", value: "Contenu vide" }];
 
-        // 3. Payload — updateDestination wraps updateArticle and passes
-        //    both Article fields and Destination-specific fields
-        const payload: Parameters<typeof updateDestination>[1] = {
-            // Article fields
-            title:             form.title.trim()           || undefined,
-            status:            targetStatus,
-            content:           contentBlocks,
-            categoryId:        form.categoryId,
-            tags:              form.selectedTagIds,        // tagIds sent as "tags" array
-            metaTitle:         form.metaTitle.trim()       || undefined,
-            metaDescription:   form.metaDescription.trim() || undefined,
-            ...(finalCoverImage ? { coverImage: finalCoverImage } : {}),
-            // Destination-specific fields
-            slogan:             form.slogan.trim()            || undefined,
-            typeZone:           form.typeZone,
+            const payload: UpdateDestinationPayload = {
+            title: form.title.trim(),
+            name: form.title.trim(),
+            status: targetStatus,
+            content: contentBlocks,
+            categoryId: form.categoryId,
+            tags: form.selectedTagIds,
+            metaTitle: form.metaTitle.trim(),
+            metaDescription: form.metaDescription.trim(),
+            coverImage: finalCoverImage ?? undefined,
+            slogan: form.slogan.trim(),
+            typeZone: form.typeZone,
             niveauGeographique: form.niveauGeographique,
-            continent:          form.continent,
-            regionAssociee:     form.regionAssociee,
-            langue:             form.langue.trim()            || undefined,
-            monnaie:            form.monnaie.trim()           || undefined,
-            fuseauHoraire:      form.fuseauHoraire            || undefined,
-            officeTourisme:     form.officeTourisme.trim()    || undefined,
-            climatDominant:     form.climatDominant           || undefined,
-            population:         form.population.trim()        || undefined,
-            codeTel:            form.codeTel.trim()           || undefined,
-            meillerePeriode:    form.meillerePeriode.trim()   || undefined,
-        };
+            continent: form.continent,
+            regionAssociee: form.regionAssociee,
+            langue: form.langue.trim(),
+            monnaie: form.monnaie.trim(),
+            fuseauHoraire: form.fuseauHoraire,
+            officeTourisme: form.officeTourisme.trim(),
+            climatDominant: form.climatDominant,
+            population: form.population.trim(),
+            codeTel: form.codeTel.trim(),
+            meillerePeriode: form.meillerePeriode.trim(),
+            description: form.description.trim(),
+            };
 
-        console.log("Payload destination:", payload);
+            // 3. Créer OU éditer la fiche destination — en utilisant le ref pour éviter la double création
+            if (!destIdRef.current) {
+            const newDest = await createDestination(payload);
+            destIdRef.current = newDest.data.id as number; // mémorise l'id pour les saves suivantes
+            payload.destinationId = destIdRef.current;
+            } else {
+            await editDestination(destIdRef.current, payload);
+            payload.destinationId = destIdRef.current;
+            }
 
-        const res = await updateDestination(destination.id, payload);
-        setSaveSuccess(true);
-        setTimeout(() => setSaveSuccess(false), 3000);
-        if (publish) onSubmit?.(res.data);
+            // 4. Mise à jour de l'Article (lie la fiche via destinationId)
+            const res = await updateDestination(destination.id, payload);
+
+            setSaveSuccess(true);
+            setTimeout(() => setSaveSuccess(false), 3000);
+            if (publish) onSubmit?.(res.data);
         } catch (err: unknown) {
-        setSaveError((err as Error).message || "Erreur lors de la sauvegarde.");
+            setSaveError((err as Error).message || "Erreur lors de la sauvegarde.");
         } finally {
-        setSaving(false);
-        setPublishing(false);
+            setSaving(false);
+            setPublishing(false);
         }
     };
 
