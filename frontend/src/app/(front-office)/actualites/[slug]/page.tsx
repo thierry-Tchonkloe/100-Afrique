@@ -579,12 +579,12 @@ const ArticleDetailPage = () => {
           const relRes = await api.get('/mag/articles', {
             params: {
               categoryId: data.category.id,
-              pageSize: 3,
+              pageSize: 50,
               status: 'PUBLISHED',
             },
           });
           const relData: RelatedArticle[] = relRes.data.data ?? [];
-          setRelated(relData.filter((a) => a.slug !== slug).slice(0, 3));
+          setRelated(relData.filter((a) => a.slug !== slug));
         } catch {
           // Related articles are optional — fail silently
         }
@@ -772,7 +772,7 @@ const ArticleDetailPage = () => {
                 <ArrowLeft size={14} className="rotate-180" />
               </Link>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-8">
               {related.map((a) => (
                 <RelatedCard key={a.id} article={a} />
               ))}
