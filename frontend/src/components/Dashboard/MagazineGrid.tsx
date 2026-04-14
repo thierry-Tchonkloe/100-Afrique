@@ -29,12 +29,12 @@ interface Magazine {
   downloadUrl?: string;
   shareUrl?: string;
 }
- 
+
 interface RSSSource {
   name: string;
   count: number;
 }
- 
+
 export default function MagazineGrid() {
   const [magazines, setMagazines] = useState<Magazine[]>([]);
   const [loading, setLoading] = useState(true);
@@ -44,11 +44,11 @@ export default function MagazineGrid() {
   const [totalPages, setTotalPages] = useState(1);
   const [sortBy, setSortBy] = useState('publishedAt');
   const [sortOrder, setSortOrder] = useState('desc');
- 
+
   useEffect(() => {
     fetchMagazinesData();
   }, [currentPage, search, sortBy, sortOrder]);
- 
+
   const fetchMagazinesData = async () => {
     try {
       setLoading(true);
