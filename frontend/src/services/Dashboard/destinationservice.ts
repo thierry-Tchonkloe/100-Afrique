@@ -5,7 +5,9 @@
  * Ajoute quickCreateDestination + updateDestination propres au type DESTINATION.
  */
 
-import { fetchAdminArticles, deleteArticle, updateArticle, Article, ArticleFilters, STATUS_API_TO_UI, STATUS_UI_TO_API, ArticleStatus,} from "@/services/Dashboard/articleservice";
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
+
+import { fetchAdminArticles, deleteArticle, updateArticle, Article, ArticleFilters, STATUS_API_TO_UI, STATUS_UI_TO_API, ArticleStatus, handleResponse} from "@/services/Dashboard/articleservice";
 import { getToken } from "@/lib/auth";
 
 // ── Re-exports utiles ──────────────────────────────────────────────────────────
@@ -37,9 +39,12 @@ export interface QuickDestinationPayload {
 }
 
 export interface UpdateDestinationPayload {
+    id?: number;
     title?: string;
     status?: ArticleStatus;
+    description?: string;
     categoryId?: number;
+    tags?: number[];
     content?: { type: string; value: string }[];
     excerpt?: string;
     coverImage?: string;
@@ -60,6 +65,11 @@ export interface UpdateDestinationPayload {
     population?: string;
     codeTel?: string;
     meillerePeriode?: string;
+}
+
+export interface DestinationDetailResponse {
+    success: boolean;
+    data: UpdateDestinationPayload;
 }
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
@@ -128,3 +138,15 @@ export async function quickCreateDestination(payload: QuickDestinationPayload): 
 export async function updateDestination(id: number, payload: UpdateDestinationPayload): Promise<{ data: Article }> {
     return updateArticle(id, payload as Parameters<typeof updateArticle>[1]);
 }
+
+export async function createArticle(payload: UpdateDestinationPayload ): Promise<DestinationDetailResponse> {
+    const res = await fetch(`${BASE_URL}/admin/articles`, {
+        method: "POST",
+        headers: authHeaders(),
+        body: JSON.stringify(payload),
+    });
+    return handleResponse<DestinationDetailResponse>(res);
+}
+// export async function createDestination(payload: UpdateDestinationPayload): Promise<{ data: Article }> {
+//     return createArticle(payload as Parameters<typeof createArticle>[1]);
+// }

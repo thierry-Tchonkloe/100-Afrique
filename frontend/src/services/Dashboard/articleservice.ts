@@ -3,6 +3,7 @@
 import { getToken } from "@/lib/auth";
 //import { Tag } from 'lucide-react';
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
+import {UpdateDestinationPayload,} from "@/services/Dashboard/destinationservice";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -59,6 +60,7 @@ export interface Article {
     categoryId: number;
     authorId: number;
     destinationId: number | null;
+    destination: UpdateDestinationPayload | null;
     category: Category;
     author: Author;
     sourceUrl?: string;
@@ -134,7 +136,7 @@ function getAuthHeaders(): HeadersInit {
 
 // ─── Error Handler ────────────────────────────────────────────────────────────
 
-    async function handleResponse<T>(res: Response): Promise<T> {
+    export async function handleResponse<T>(res: Response): Promise<T> {
         const text = await res.text();
 
         try {
