@@ -191,7 +191,26 @@ async quickCreateArticle(
             },
           },
           destination: {
-            select: { id: true, name: true, slug: true },
+            select: {
+              id: true,
+              name: true,
+              slug: true,
+              description: true,
+              coverImage: true,
+              slogan: true,
+              typeZone: true,
+              niveauGeographique: true,
+              continent: true,
+              regionAssociee: true,
+              langue: true,
+              monnaie: true,
+              fuseauHoraire: true,
+              officeTourisme: true,
+              climatDominant: true,
+              population: true,
+              codeTel: true,
+              meillerePeriode: true,
+            },
           },
         },
       }),
@@ -265,7 +284,18 @@ async quickCreateArticle(
             email: true,
           },
         },
-      destination: { select: { id: true, name: true, slug: true } },
+      destination: {
+        select: {
+          id: true, name: true, slug: true,
+          description: true, coverImage: true,
+          slogan: true, typeZone: true, niveauGeographique: true,
+          continent: true, regionAssociee: true,
+          langue: true, monnaie: true, fuseauHoraire: true,
+          officeTourisme: true, climatDominant: true,
+          population: true, codeTel: true, meillerePeriode: true,
+          status: true, featured: true,
+        },
+      },
       },
     });
 
@@ -386,7 +416,7 @@ async quickCreateArticle(
             email: true,
           },
         },
-        destination: { select: { id: true, name: true, slug: true } },
+        destination: { select: { id: true, name: true, slug: true, description:true, coverImage: true, continent: true, status: true, featured: true, slogan: true, typeZone: true, niveauGeographique: true, regionAssociee: true, langue: true, monnaie: true, fuseauHoraire: true, officeTourisme: true, climatDominant: true, population: true, codeTel: true, meillerePeriode: true } },
       },
     });
 

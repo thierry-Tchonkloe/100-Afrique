@@ -120,6 +120,7 @@ export interface CreateArticlePayload {
     sourceUrl?: string;
     duration?: string;
     videoType?: string;
+    destinationId?: number;
 }
 
 export type UpdateArticlePayload = Partial<CreateArticlePayload>;
