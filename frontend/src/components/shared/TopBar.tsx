@@ -223,26 +223,17 @@ import { AdvertisingBanner } from "@/components/AdvertisingBanner";
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 interface TopBarProps {
-  /** Slug de la zone défini dans l'admin — défaut: "top-banner-accueil" */
   zoneSlug?: string;
-  /** Afficher les points de pagination */
   showDots?: boolean;
   className?: string;
 }
 
-
 // ─── Composant principal : TopBar ─────────────────────────────────────────────
 
-const TopBar = ({
-  zoneSlug = "top-banner-accueils",
-  showDots = true,
-  className = "",
-}: TopBarProps) => {
+const TopBar = ({ zoneSlug = "top-banner-accueils", showDots = true, className = "",}: TopBarProps) => {
   return (
-    <div className="w-full bg-it-gray-light py-3 px-3 flex items-center justify-between border-b border-gray-200">
-      {/* Zone publicitaire (centre) */}
+    <div className="w-full bg-it-gray-light flex items-center justify-between border-b border-gray-200">
       <AdvertisingBanner zoneSlug={zoneSlug} showDots={showDots} className={className} />
-
     </div>
   );
 };
