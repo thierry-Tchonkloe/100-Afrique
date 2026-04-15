@@ -7,6 +7,8 @@ interface Banner {
     id: number;
     advertiser: string;
     campaign: string;
+    officialWebSite: string;
+    description: string;
     type: "IMAGE_JPG" | "HTML_JS";
     imageUrl: string | null;
     htmlCode: string | null;
@@ -45,27 +47,13 @@ export function useAdvertising(slug: string) {
             const data: Advertising = res.data.data;
 
             if (!cancelled) {
-            if (data && data.isEnabled) {
-                //const now = new Date();
-
-                // // 🔥 filtre avancé
-                // const active = data.banners.filter((b) => {
-                // const start = new Date(b.startDate);
-                // const end = new Date(b.endDate);
-
-                // return (
-                //     b.status === "ACTIF" &&
-                //     (!b.startDate || start <= now) &&
-                //     (!b.endDate || end >= now)
-                // );
-                // });
-                const active = data.banners;
-
-                setZone(data);
-                setActiveBanners(active);
-            } else {
-                setZone(null);
-                setActiveBanners([]);
+                if (data && data.isEnabled) {
+                    const active = data.banners;
+                    setZone(data);
+                    setActiveBanners(active);
+                } else {
+                    setZone(null);
+                    setActiveBanners([]);
             }
             }
         } catch (err) {
