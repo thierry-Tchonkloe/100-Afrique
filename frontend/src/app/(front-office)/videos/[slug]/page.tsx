@@ -5,7 +5,7 @@ import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
-import { ArrowLeft, Clock, Eye, Calendar, Tag, User, Loader2, Play, Facebook, Twitter, Linkedin, MessageCircle,} from 'lucide-react';
+import { ArrowLeft, Clock, Eye, Calendar, Tag, User,ExternalLink, Loader2, Play, Facebook, Twitter, Linkedin, MessageCircle,} from 'lucide-react';
 import api from '@/lib/api';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -29,6 +29,7 @@ interface VideoArticle {
     featured: boolean;
     metaTitle?: string;
     metaDescription?: string;
+    sourceUrl?: string | null;
     category: {
         id: number;
         name: string;
@@ -52,12 +53,20 @@ interface RelatedVideo {
     title: string;
     slug: string;
     coverImage: string;
+    sourceUrl: string | null;
     createdAt: string;
     excerpt: string;
     category: { name: string };
     author: { name: string };
     content: ContentBlock[];
 }
+
+interface VideoPlayerProps {
+  sourceUrl: string | null;
+  coverImage: string;
+  title: string;
+}
+
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -78,10 +87,77 @@ const getVideoType = (categoryName: string): string => {
 
 // ─── Video Player ─────────────────────────────────────────────────────────────
 
-const VideoPlayer = ({ videoUrl, coverImage, title,}: { videoUrl: string | null; coverImage: string; title: string;}) => {
+// const VideoPlayer = ({ videoUrl, coverImage, title,}: { videoUrl: string | null; coverImage: string; title: string;}) => {
+//     const [playing, setPlaying] = useState(false);
+
+//     if (!videoUrl) {
+//         return (
+//         <div className="relative aspect-video bg-[#0F172A] rounded-2xl overflow-hidden flex items-center justify-center">
+//             <Image src={coverImage || '/images/placeholder.jpg'} alt={title} fill className="object-cover opacity-50" />
+//             <p className="relative z-10 text-white/60 text-sm">Aucune vidéo disponible</p>
+//         </div>
+//         );
+//     }
+
+//     if (playing) {
+//         return (
+//         <div className="relative aspect-video rounded-2xl overflow-hidden shadow-2xl">
+//             <iframe
+//             src={`${videoUrl}?autoplay=1`}
+//             className="w-full h-full"
+//             allowFullScreen
+//             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+//             />
+//         </div>
+//         );
+//     }
+
+//     return (
+//         <div
+//         className="relative aspect-video bg-[#0F172A] rounded-2xl overflow-hidden cursor-pointer group shadow-2xl"
+//         onClick={() => setPlaying(true)}
+//         >
+//         <Image
+//             src={coverImage || '/images/placeholder.jpg'}
+//             alt={title}
+//             fill
+//             className="object-cover opacity-70 group-hover:opacity-60 transition-opacity duration-300"
+//             priority
+//         />
+//         {/* Gradient */}
+//         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+
+//         {/* Play button */}
+//         <div className="absolute inset-0 flex items-center justify-center">
+//             <div className="w-20 h-20 bg-[#F19300] rounded-full flex items-center justify-center shadow-2xl transition-transform duration-300 group-hover:scale-110">
+//             <Play size={34} fill="white" className="text-white ml-1" />
+//             </div>
+//         </div>
+
+//         {/* Cliquer label */}
+//         <p className="absolute bottom-5 left-0 right-0 text-center text-white/70 text-xs tracking-widest uppercase">
+//             Cliquer pour lancer la vidéo
+//         </p>
+//         </div>
+//     );
+// };
+
+
+const VideoPlayer = ({ sourceUrl, coverImage, title }: VideoPlayerProps) => {
     const [playing, setPlaying] = useState(false);
 
-    if (!videoUrl) {
+    // Fonction pour transformer l'URL embed en lien cliquable vers la plateforme
+    const getExternalLink = (url: string) => {
+        if (url.includes('youtube.com/embed/')) {
+            return url.replace('youtube.com/embed/', 'youtube.com/watch?v=');
+        }
+        if (url.includes('player.vimeo.com/video/')) {
+            return url.replace('player.vimeo.com/video/', 'vimeo.com/');
+        }
+        return url;
+    };
+
+    if (!sourceUrl) {
         return (
         <div className="relative aspect-video bg-[#0F172A] rounded-2xl overflow-hidden flex items-center justify-center">
             <Image src={coverImage || '/images/placeholder.jpg'} alt={title} fill className="object-cover opacity-50" />
@@ -92,13 +168,29 @@ const VideoPlayer = ({ videoUrl, coverImage, title,}: { videoUrl: string | null;
 
     if (playing) {
         return (
-        <div className="relative aspect-video rounded-2xl overflow-hidden shadow-2xl">
+        <div className="space-y-4"> {/* Container pour espacer la vidéo du lien */}
+            <div className="relative aspect-video rounded-2xl overflow-hidden shadow-2xl bg-black">
             <iframe
-            src={`${videoUrl}?autoplay=1`}
-            className="w-full h-full"
-            allowFullScreen
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                src={`${sourceUrl}?autoplay=1`}
+                className="w-full h-full"
+                title={title}
+                allowFullScreen
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
             />
+            </div>
+
+            {/* Le lien vers la plateforme externe */}
+            <div className="flex justify-center">
+            <a
+                href={getExternalLink(sourceUrl)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 text-sm text-slate-400 hover:text-[#F19300] transition-colors duration-200 py-1"
+            >
+                <ExternalLink size={14} />
+                Regarder directement sur la plateforme
+            </a>
+            </div>
         </div>
         );
     }
@@ -349,8 +441,9 @@ const VideoDetailPage = () => {
     }
 
     const parsedContent: ContentBlock[] = Array.isArray(video.content) ? video.content : [];
-    const videoUrl = getVideoUrl(parsedContent);
+    //const videoUrl = getVideoUrl(parsedContent);
     const videoType = getVideoType(video.category.name);
+    const sourceUrl = video.sourceUrl || getVideoUrl(parsedContent) || null;
 
     return (
         <main className="min-h-screen bg-white">
@@ -423,7 +516,7 @@ const VideoDetailPage = () => {
             )}
 
             {/* ── Player vidéo ──────────────────────────────────────── */}
-            <VideoPlayer videoUrl={videoUrl} coverImage={video.coverImage || '/images/placeholder.jpg'} title={video.title} />
+            <VideoPlayer sourceUrl={sourceUrl} coverImage={video.coverImage || '/images/placeholder.jpg'} title={video.title} />
 
             {/* ── Partage social (sous le player) ───────────────────── */}
             <div className="mt-6 pt-6 border-t border-gray-100">
