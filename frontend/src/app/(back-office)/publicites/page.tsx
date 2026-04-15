@@ -1,405 +1,3 @@
-// "use client";
-
-// import { useState } from "react";
-// import { ProtectedRoute } from "@/components/Dashboard/ProtectedRoute";
-
-// // ─── Types ────────────────────────────────────────────────────────────────────
-
-// type AdZone = {
-//     id: string;
-//     name: string;
-//     dimensions: string;
-//     path: string;
-//     fillRate: number;
-//     enabled: boolean;
-//     color: string;
-// };
-
-// type Banner = {
-//     id: string;
-//     advertiser: string;
-//     campaign: string;
-//     type: "Image JPG" | "Code HTML/JS";
-//     startDate: string;
-//     endDate: string;
-//     status: "Actif" | "Futur" | "Expiré";
-// };
-
-// // ─── Mock Data ─────────────────────────────────────────────────────────────────
-
-// const initialZones: AdZone[] = [
-//     { id: "top-banner", name: "Top Banner Accueil", dimensions: "728 × 90 pixels", path: "/accueil", fillRate: 85, enabled: true, color: "#f97316" },
-//     { id: "skyscraper", name: "Skyscraper Sidebar", dimensions: "160 × 600 pixels", path: "/articles/*", fillRate: 92, enabled: true, color: "#f97316" },
-//     { id: "rectangle-moyen", name: "Rectangle Moyen", dimensions: "300 × 250 pixels", path: "/destinations/*", fillRate: 0, enabled: false, color: "#f97316" },
-//     { id: "leaderboard", name: "Leaderboard Footer", dimensions: "728 × 90 pixels", path: "Toutes les pages", fillRate: 67, enabled: true, color: "#f97316" },
-//     { id: "large-rectangle", name: "Large Rectangle", dimensions: "336 × 280 pixels", path: "/videos/*", fillRate: 73, enabled: true, color: "#f97316" },
-//     { id: "mobile-banner", name: "Mobile Banner", dimensions: "320 × 50 pixels", path: "Mobile uniquement", fillRate: 88, enabled: true, color: "#f97316" },
-// ];
-
-// const initialBanners: Banner[] = [
-//     { id: "1", advertiser: "Agence Voyage Plus", campaign: "Campagne Été 2024", type: "Image JPG", startDate: "01/06/2024", endDate: "31/08/2024", status: "Actif" },
-//     { id: "2", advertiser: "Promotion Été 2024", campaign: "Office de Tourisme 2024", type: "Image JPG", startDate: "01/06/2024", endDate: "31/08/2024", status: "Actif" },
-//     { id: "3", advertiser: "Google AdSense", campaign: "Code Automatique 2024", type: "Code HTML/JS", startDate: "15/05/2024", endDate: "15/12/2024", status: "Futur" },
-// ];
-
-// // ─── Sub-components ───────────────────────────────────────────────────────────
-
-// function CircularProgress({ value }: { value: number }) {
-//     const r = 28;
-//     const circ = 2 * Math.PI * r;
-//     const offset = circ - (value / 100) * circ;
-//     return (
-//         <svg width="72" height="72" viewBox="0 0 72 72" className="-rotate-90">
-//         <circle cx="36" cy="36" r={r} fill="none" stroke="#fed7aa" strokeWidth="6" />
-//         <circle
-//             cx="36" cy="36" r={r} fill="none"
-//             stroke="#f97316" strokeWidth="6"
-//             strokeDasharray={circ}
-//             strokeDashoffset={offset}
-//             strokeLinecap="round"
-//             style={{ transition: "stroke-dashoffset 0.6s ease" }}
-//         />
-//         </svg>
-//     );
-// }
-
-// function FillRateBar({ value }: { value: number }) {
-//     const color =
-//         value >= 80 ? "bg-orange-500" : value >= 50 ? "bg-amber-400" : "bg-gray-300";
-//     return (
-//         <div className="mt-3">
-//         <div className="flex justify-between items-center mb-1">
-//             <span className="text-xs text-gray-500">Taux de Remplissage</span>
-//             <span className="text-xs font-bold text-orange-500">{value}%</span>
-//         </div>
-//         <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
-//             <div
-//             className={`h-full rounded-full transition-all duration-700 ${color}`}
-//             style={{ width: `${value}%` }}
-//             />
-//         </div>
-//         </div>
-//     );
-// }
-
-// function Toggle({ enabled, onChange }: { enabled: boolean; onChange: () => void }) {
-//     return (
-//         <button
-//         onClick={onChange}
-//         className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors duration-300 focus:outline-none ${
-//             enabled ? "bg-orange-500" : "bg-gray-200"
-//         }`}
-//         >
-//         <span
-//             className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform duration-300 ${
-//             enabled ? "translate-x-4" : "translate-x-0.5"
-//             }`}
-//         />
-//         </button>
-//     );
-// }
-
-// function StatusBadge({ status }: { status: Banner["status"] }) {
-//     const map = {
-//         Actif: "bg-emerald-50 text-emerald-600 border border-emerald-200",
-//         Futur: "bg-blue-50 text-blue-600 border border-blue-200",
-//         Expiré: "bg-gray-100 text-gray-500 border border-gray-200",
-//     };
-//     return (
-//         <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium ${map[status]}`}>
-//         <span className={`w-1.5 h-1.5 rounded-full ${
-//             status === "Actif" ? "bg-emerald-500" : status === "Futur" ? "bg-blue-500" : "bg-gray-400"
-//         }`} />
-//         {status}
-//         </span>
-//     );
-// }
-
-// function TypeBadge({ type }: { type: Banner["type"] }) {
-//     return (
-//         <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium ${
-//         type === "Image JPG"
-//             ? "bg-blue-50 text-blue-600 border border-blue-200"
-//             : "bg-purple-50 text-purple-600 border border-purple-200"
-//         }`}>
-//         {type === "Image JPG" ? (
-//             <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clipRule="evenodd" /></svg>
-//         ) : (
-//             <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M12.316 3.051a1 1 0 01.633 1.265l-4 12a1 1 0 11-1.898-.632l4-12a1 1 0 011.265-.633zM5.707 6.293a1 1 0 010 1.414L3.414 10l2.293 2.293a1 1 0 11-1.414 1.414l-3-3a1 1 0 010-1.414l3-3a1 1 0 011.414 0zm8.586 0a1 1 0 011.414 0l3 3a1 1 0 010 1.414l-3 3a1 1 0 11-1.414-1.414L16.586 10l-2.293-2.293a1 1 0 010-1.414z" clipRule="evenodd" /></svg>
-//         )}
-//         {type}
-//         </span>
-//     );
-// }
-
-// // ─── Main Component ───────────────────────────────────────────────────────────
-
-// export default function AdSpaceManager() {
-//     const [zones, setZones] = useState<AdZone[]>(initialZones);
-//     const [banners, setBanners] = useState<Banner[]>(initialBanners);
-//     const [selectedZone, setSelectedZone] = useState<AdZone>(initialZones[0]);
-//     const [thirdPartyCode, setThirdPartyCode] = useState(
-//         `<!-- Collez vos codes HTML/JavaScript ici → <! -- Exemple: Google Ad Manager →\n<script async\nsrc="https://www.googletagservices.com/tag/js/gpt.js"></script> <script> window.googletag = window.googletag || {cmd: []};\n</script>`
-//     );
-
-//     const globalFill = Math.round(
-//         zones.filter((z) => z.enabled).reduce((acc, z) => acc + z.fillRate, 0) /
-//         Math.max(zones.filter((z) => z.enabled).length, 1)
-//     );
-
-//     const toggleZone = (id: string) => {
-//         setZones((prev) =>
-//         prev.map((z) => (z.id === id ? { ...z, enabled: !z.enabled } : z))
-//         );
-//     };
-
-//     const deleteBanner = (id: string) => {
-//         setBanners((prev) => prev.filter((b) => b.id !== id));
-//     };
-
-//     return (
-//         <ProtectedRoute requiredRole="SUPER_ADMIN">
-//         <div className="min-h-screen bg-gray-50 font-sans">
-//         <div className="max-w-5xl mx-auto px-6 py-8 space-y-8">
-
-//             {/* ── Header ── */}
-//             <div className="flex items-start justify-between">
-//             <div>
-//                 <h1 className="text-2xl font-bold text-gray-900 tracking-tight">
-//                 Gestion des Espaces Publicitaires
-//                 </h1>
-//                 <p className="text-sm text-gray-500 mt-1">
-//                 Définition des emplacements, attribution des bannières et suivi des performances
-//                 </p>
-//             </div>
-//             <button className="flex items-center gap-2 bg-orange-500 hover:bg-orange-600 active:bg-orange-700 text-white text-sm font-semibold px-4 py-2.5 rounded-lg shadow-sm transition-colors duration-150">
-//                 <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-//                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
-//                 </svg>
-//                 Définir un Nouvel Emplacement
-//             </button>
-//             </div>
-
-//             {/* ── Global Fill Rate ── */}
-//             <div className="bg-white rounded-xl border border-gray-200 shadow-sm px-6 py-5 flex items-center justify-between">
-//             <div>
-//                 <p className="text-xs font-medium text-gray-400 uppercase tracking-wider mb-1">
-//                 Taux de Remplissage Global
-//                 </p>
-//                 <p className="text-4xl font-black text-gray-900">{globalFill}%</p>
-//             </div>
-//             <div className="relative flex items-center justify-center">
-//                 <CircularProgress value={globalFill} />
-//                 <span className="absolute text-sm font-bold text-orange-500">{globalFill}%</span>
-//             </div>
-//             </div>
-
-//             {/* ── Ad Zones Grid ── */}
-//             <section>
-//             <h2 className="text-base font-bold text-gray-800 mb-4">
-//                 Inventaire des Zones d&aposAffichage
-//             </h2>
-//             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-//                 {zones.map((zone) => (
-//                 <div
-//                     key={zone.id}
-//                     onClick={() => setSelectedZone(zone)}
-//                     className={`bg-white rounded-xl border transition-all duration-150 cursor-pointer shadow-sm hover:shadow-md ${
-//                     selectedZone.id === zone.id
-//                         ? "border-orange-400 ring-2 ring-orange-100"
-//                         : "border-gray-200"
-//                     }`}
-//                 >
-//                     <div className="p-4">
-//                     <div className="flex items-center justify-between mb-2">
-//                         <h3 className="text-sm font-bold text-gray-800 leading-tight">{zone.name}</h3>
-//                         <Toggle enabled={zone.enabled} onChange={() => toggleZone(zone.id)} />
-//                     </div>
-//                     <div className="space-y-0.5">
-//                         <div className="flex items-center gap-1.5 text-xs text-gray-500">
-//                         <svg className="w-3.5 h-3.5 text-orange-400 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-//                             <path strokeLinecap="round" strokeLinejoin="round" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
-//                         </svg>
-//                         {zone.dimensions}
-//                         </div>
-//                         <div className="flex items-center gap-1.5 text-xs text-gray-500">
-//                         <svg className="w-3.5 h-3.5 text-orange-400 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-//                             <path strokeLinecap="round" strokeLinejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101" />
-//                             <path strokeLinecap="round" strokeLinejoin="round" d="M14.828 14.828a4 4 0 015.656 0l4-4a4 4 0 01-5.656-5.656l-1.102 1.101" />
-//                         </svg>
-//                         {zone.path}
-//                         </div>
-//                     </div>
-//                     <FillRateBar value={zone.fillRate} />
-//                     </div>
-
-//                     {/* Card Footer */}
-//                     <div className="border-t border-gray-100 px-4 py-2.5 flex gap-2">
-//                     <button className="flex-1 flex items-center justify-center gap-1.5 text-xs font-medium text-gray-600 hover:text-orange-500 hover:bg-orange-50 rounded-md py-1.5 transition-colors">
-//                         <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-//                         <path strokeLinecap="round" strokeLinejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-//                         <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-//                         </svg>
-//                         Paramètres
-//                     </button>
-//                     <button className="flex-1 flex items-center justify-center gap-1.5 text-xs font-medium text-white bg-orange-500 hover:bg-orange-600 rounded-md py-1.5 transition-colors">
-//                         <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-//                         <path strokeLinecap="round" strokeLinejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-//                         </svg>
-//                         Bannières
-//                     </button>
-//                     </div>
-//                 </div>
-//                 ))}
-//             </div>
-//             </section>
-
-//             {/* ── Banners Table ── */}
-//             <section>
-//             <div className="flex items-center justify-between mb-4">
-//                 <h2 className="text-base font-bold text-gray-800">
-//                 Bannières pour l&aposEmplacement :{" "}
-//                 <span className="text-orange-500">{selectedZone.name}</span>
-//                 </h2>
-//                 <button className="flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white text-sm font-semibold px-4 py-2 rounded-lg shadow-sm transition-colors">
-//                 <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-//                     <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
-//                 </svg>
-//                 Ajouter une Nouvelle Bannière
-//                 </button>
-//             </div>
-
-//             <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-//                 <table className="w-full text-sm">
-//                 <thead>
-//                     <tr className="border-b border-gray-100 bg-gray-50/70">
-//                     <th className="text-left text-xs font-semibold text-gray-500 uppercase tracking-wider px-4 py-3 w-14">Aperçu</th>
-//                     <th className="text-left text-xs font-semibold text-gray-500 uppercase tracking-wider px-4 py-3">Annonceur / Campagne</th>
-//                     <th className="text-left text-xs font-semibold text-gray-500 uppercase tracking-wider px-4 py-3">Type</th>
-//                     <th className="text-left text-xs font-semibold text-gray-500 uppercase tracking-wider px-4 py-3">Période d&aposAffichage</th>
-//                     <th className="text-left text-xs font-semibold text-gray-500 uppercase tracking-wider px-4 py-3">Statut</th>
-//                     <th className="text-left text-xs font-semibold text-gray-500 uppercase tracking-wider px-4 py-3">Actions</th>
-//                     </tr>
-//                 </thead>
-//                 <tbody className="divide-y divide-gray-100">
-//                     {banners.map((banner) => (
-//                     <tr key={banner.id} className="hover:bg-gray-50/60 transition-colors">
-//                         {/* Preview */}
-//                         <td className="px-4 py-3">
-//                         <div className="w-10 h-10 bg-gray-100 rounded-lg border border-gray-200 flex items-center justify-center text-gray-400">
-//                             {banner.type === "Image JPG" ? (
-//                             <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-//                                 <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
-//                             </svg>
-//                             ) : (
-//                             <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-//                                 <path strokeLinecap="round" strokeLinejoin="round" d="M17.25 6.75L22.5 12l-5.25 5.25m-10.5 0L1.5 12l5.25-5.25m7.5-3l-4.5 16.5" />
-//                             </svg>
-//                             )}
-//                         </div>
-//                         </td>
-//                         {/* Advertiser */}
-//                         <td className="px-4 py-3">
-//                         <p className="font-semibold text-gray-800">{banner.advertiser}</p>
-//                         <p className="text-xs text-gray-500">{banner.campaign}</p>
-//                         </td>
-//                         {/* Type */}
-//                         <td className="px-4 py-3">
-//                         <TypeBadge type={banner.type} />
-//                         </td>
-//                         {/* Period */}
-//                         <td className="px-4 py-3 text-xs text-gray-600 whitespace-nowrap">
-//                         {banner.startDate} – {banner.endDate}
-//                         </td>
-//                         {/* Status */}
-//                         <td className="px-4 py-3">
-//                         <StatusBadge status={banner.status} />
-//                         </td>
-//                         {/* Actions */}
-//                         <td className="px-4 py-3">
-//                         <div className="flex items-center gap-2">
-//                             <button className="p-1.5 text-gray-400 hover:text-orange-500 hover:bg-orange-50 rounded-md transition-colors">
-//                             <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-//                                 <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931z" />
-//                             </svg>
-//                             </button>
-//                             <button
-//                             onClick={() => deleteBanner(banner.id)}
-//                             className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-md transition-colors"
-//                             >
-//                             <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-//                                 <path strokeLinecap="round" strokeLinejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
-//                             </svg>
-//                             </button>
-//                         </div>
-//                         </td>
-//                     </tr>
-//                     ))}
-//                     {banners.length === 0 && (
-//                     <tr>
-//                         <td colSpan={6} className="text-center py-10 text-sm text-gray-400">
-//                         Aucune bannière pour cet emplacement.
-//                         </td>
-//                     </tr>
-//                     )}
-//                 </tbody>
-//                 </table>
-//             </div>
-//             </section>
-
-//             {/* ── Third-Party Codes ── */}
-//             <section>
-//             <h2 className="text-base font-bold text-gray-800 mb-4">
-//                 Codes Tiers et Intégration
-//             </h2>
-//             <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
-//                 <div className="mb-3">
-//                 <p className="text-sm font-semibold text-gray-700">Codes de suivi et publicité externes</p>
-//                 <p className="text-xs text-gray-500 mt-0.5">
-//                     Collez ici vos codes Google Ad Manager, codes de vérification ou autres scripts tiers.
-//                 </p>
-//                 </div>
-//                 <div className="relative">
-//                 <div className="absolute top-3 left-3 flex gap-1.5">
-//                     <span className="w-2.5 h-2.5 rounded-full bg-red-400" />
-//                     <span className="w-2.5 h-2.5 rounded-full bg-yellow-400" />
-//                     <span className="w-2.5 h-2.5 rounded-full bg-green-400" />
-//                 </div>
-//                 <textarea
-//                     value={thirdPartyCode}
-//                     onChange={(e) => setThirdPartyCode(e.target.value)}
-//                     rows={6}
-//                     className="w-full bg-gray-900 text-green-400 font-mono text-xs rounded-lg border border-gray-700 px-4 pt-8 pb-4 resize-none focus:outline-none focus:ring-2 focus:ring-orange-400 leading-relaxed placeholder:text-gray-600"
-//                     placeholder={`<!-- Collez vos codes HTML/JavaScript ici -->`}
-//                     spellCheck={false}
-//                 />
-//                 </div>
-//                 <div className="flex justify-end mt-4">
-//                 <button className="flex items-center gap-2 bg-orange-500 hover:bg-orange-600 active:bg-orange-700 text-white text-sm font-semibold px-5 py-2.5 rounded-lg shadow-sm transition-colors">
-//                     <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-//                     <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 3.75V16.5L12 14.25 7.5 16.5V3.75m9 0H18A2.25 2.25 0 0120.25 6v12A2.25 2.25 0 0118 20.25H6A2.25 2.25 0 013.75 18V6A2.25 2.25 0 016 3.75h1.5m9 0h-9" />
-//                     </svg>
-//                     Enregistrer les Codes Tiers
-//                 </button>
-//                 </div>
-//             </div>
-//             </section>
-
-//         </div>
-//         </div>
-//     </ProtectedRoute>
-//     );
-// }
-
-
-
-
-
-
-
-
-
-
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
@@ -434,6 +32,8 @@ type BannerStatus = "ACTIF" | "FUTUR" | "EXPIRE";
 
 interface Banner {
     id: number;
+    officialWebSite: string | null;
+    description: string | null;
     advertiser: string;
     campaign: string;
     type: BannerType;
@@ -813,6 +413,8 @@ function ZoneModal({ zone, onClose, onSaved, onToast, }: { zone?: AdZone | null;
 // ─── Modal: Banner Form ───────────────────────────────────────────────────────
 
 interface BannerFormData {
+    officialWebSite: string | "";
+    description: string | "";
     advertiser: string;
     campaign: string;
     type: BannerType;
@@ -825,6 +427,8 @@ interface BannerFormData {
 function BannerModal({ banner, zoneId, onClose, onSaved, onToast, }: { banner?: Banner | null; zoneId: number; onClose: () => void; onSaved: () => void; onToast: (msg: string, type: "success" | "error") => void; }) {
     const isEdit = !!banner;
     const [form, setForm] = useState<BannerFormData>({
+        officialWebSite: banner?.officialWebSite ?? "",
+        description: banner?.description ?? "",
         advertiser: banner?.advertiser ?? "",
         campaign: banner?.campaign ?? "",
         type: banner?.type ?? "IMAGE_JPG",
@@ -909,6 +513,8 @@ function BannerModal({ banner, zoneId, onClose, onSaved, onToast, }: { banner?: 
 
             fd.append("advertiser", form.advertiser);
             fd.append("campaign", form.campaign);
+            fd.append("officialWebSite", form.officialWebSite);
+            fd.append("description", form.description);
             fd.append("type", form.type);
             fd.append("startDate", new Date(form.startDate).toISOString());
             fd.append("endDate", new Date(form.endDate).toISOString());
@@ -973,6 +579,24 @@ function BannerModal({ banner, zoneId, onClose, onSaved, onToast, }: { banner?: 
                 placeholder="Agence Voyage Plus"
                 className={inputCls}
             />
+            </Field>
+            <Field label="Site Web Officiel">
+                <input
+                    type="url"
+                    value={form.officialWebSite}
+                    onChange={(e) => handleChange("officialWebSite", e.target.value)}
+                    placeholder="https://www.voyageplus.com"
+                    className={inputCls}
+                />
+            </Field>
+            <Field label="Description">
+                <textarea
+                    value={form.description}
+                    onChange={(e) => handleChange("description", e.target.value)}
+                    rows={3}
+                    placeholder="Description de la bannière"
+                    className={inputCls}
+                />
             </Field>
             <Field label="Campagne">
             <input

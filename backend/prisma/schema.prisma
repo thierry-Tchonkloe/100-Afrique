@@ -380,6 +380,8 @@ model Advertising {
 model Banner {
     id          Int       @id @default(autoincrement())
     advertiser  String
+    description String?
+    officialWebSite String?
     campaign    String
     type        BannerType
     imageUrl    String?      // URL Cloudinary (si type = IMAGE)

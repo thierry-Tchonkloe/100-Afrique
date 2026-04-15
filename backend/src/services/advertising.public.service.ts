@@ -29,6 +29,8 @@ export const advertisingPublicService = {
                 select: {
                 id: true,
                 advertiser: true,
+                officialWebSite: true,
+                description: true,
                 campaign: true,
                 type: true,
                 imageUrl: true,
@@ -61,6 +63,8 @@ export const advertisingPublicService = {
             select: {
                 id: true,
                 advertiser: true,
+                officialWebSite: true,
+                description: true,
                 campaign: true,
                 type: true,
                 imageUrl: true,

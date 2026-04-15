@@ -156,12 +156,17 @@ export const bannerService = {
         publicId = uploaded.publicId;
         }
 
+        const officialWebSite = data.officialWebSite ?? null;
+        const description = data.description ?? null;
+
         const startDate = new Date(data.startDate);
         const endDate = new Date(data.endDate);
         const status = computeStatus(startDate, endDate);
 
         return prisma.banner.create({
         data: {
+            officialWebSite,
+            description,
             advertiser: data.advertiser,
             campaign: data.campaign,
             type: data.type,
@@ -196,6 +201,9 @@ export const bannerService = {
         publicId = uploaded.publicId;
         }
 
+        const officialWebSite = data.officialWebSite ?? existing.officialWebSite ?? null;
+        const description = data.description ?? existing.description ?? null;
+
         const startDate = data.startDate ? new Date(data.startDate) : existing.startDate;
         const endDate = data.endDate ? new Date(data.endDate) : existing.endDate;
         const status = computeStatus(startDate, endDate);
@@ -204,6 +212,8 @@ export const bannerService = {
         where: { id: Number(id) },
         data: {
             ...data,
+            officialWebSite,
+            description,
             startDate,
             endDate,
             status,
