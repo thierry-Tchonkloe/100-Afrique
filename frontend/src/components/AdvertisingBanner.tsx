@@ -113,7 +113,7 @@ function BannerSlide({
 
                     <div className="absolute inset-0 flex items-center px-6 sm:px-10">
                         {/* Advertiser — collé à gauche */}
-                        <span className="top-6 text-white/85 text-[15px] font-bold uppercase tracking-widest shrink-0">
+                        <span className="absolute top-3 lg:top-9 text-white/90 text-[16px] font-bold uppercase tracking-widest shrink-0">
                             {banner.advertiser}
                         </span>
 
@@ -133,7 +133,7 @@ function BannerSlide({
 
                                 {/* Description */}
                                 <p
-                                    className="text-white/80 leading-snug hidden lg:block"
+                                    className="text-white/80 leading-snug"
                                     style={{ fontSize: "clamp(0.72rem, 1.5vw, 0.975rem)" }}
                                 >
                                     {banner.description}
