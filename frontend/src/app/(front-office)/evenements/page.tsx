@@ -19,6 +19,11 @@ interface Salon {
   excerpt: string;
   coverImage: string;
   createdAt: string;
+  startDate?: string;   // ← nouveau
+  endDate?: string;     // ← nouveau
+  location?: string;    // ← nouveau
+  city?: string;        // ← nouveau
+  country?: string;     // ← nouveau
   category: {
     id: number;
     name: string;
@@ -115,10 +120,11 @@ const SalonsPage = () => {
   const eventsForAgenda = salons.map((salon) => ({
     id:          salon.id.toString(),
     title:       salon.title,
-    date:        new Date(salon.createdAt).toLocaleDateString('fr-FR', {
-      day: 'numeric', month: 'long', year: 'numeric',
-    }),
-    location:    salon.category?.name ?? 'International',
+    startDate:   salon.startDate ?? salon.createdAt,  // vrai champ startDate, fallback createdAt
+    endDate:     salon.endDate,                        // ← nouveau
+    location:    salon.location,                       // ← vrai champ location
+    city:        salon.city,                           // ← nouveau
+    country:     salon.country,                        // ← nouveau
     description: salon.excerpt ?? '',
     slug:        salon.slug,
   }));

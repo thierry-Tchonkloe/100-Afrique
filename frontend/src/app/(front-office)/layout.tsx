@@ -4,6 +4,7 @@ import Header from '@/components/shared/Header';
 import SubBar from '@/components/shared/SubBar';
 import Footer from '@/components/shared/Footer';
 import ChatWidget from '@/components/shared/ChatWidget';
+import LanguageSwitcher from '@/components/shared/Languageswitcher';
 
 export default function FrontLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -14,6 +15,7 @@ export default function FrontLayout({ children }: { children: React.ReactNode })
       <main className="flex-grow">
         {children}
         <ChatWidget />
+        <LanguageSwitcher />
       </main>
       <Footer />
     </div>
