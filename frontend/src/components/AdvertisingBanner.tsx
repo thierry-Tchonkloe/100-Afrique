@@ -9,6 +9,8 @@ interface Banner {
     id: number;
     advertiser: string;
     campaign: string;
+    description: string;        // ← nouveau
+    officialWebSite: string;    // ← nouveau
     type: "IMAGE_JPG" | "HTML_JS";
     imageUrl: string | null;
     htmlCode: string | null;
@@ -22,6 +24,7 @@ interface Banner {
 const ROTATION_INTERVAL = 5000; // 5s
 
 // ─── Composant : Bannière individuelle ───────────────────────────────────────
+
 
 function BannerSlide({
     banner,
@@ -40,32 +43,127 @@ function BannerSlide({
 
     if (banner.type === "HTML_JS" && banner.htmlCode) {
         return (
-        <div
-            className={baseClass}
-            dangerouslySetInnerHTML={{ __html: banner.htmlCode }}
-        />
+            <div
+                className={baseClass}
+                dangerouslySetInnerHTML={{ __html: banner.htmlCode }}
+            />
         );
     }
 
     if (banner.type === "IMAGE_JPG" && banner.imageUrl) {
         return (
-        <div className={baseClass}>
+            <div className={baseClass}>
+                {/* Background image */}
+                <div
+                    className="absolute inset-0 bg-cover bg-center"
+                    style={{
+                        backgroundImage: `url(${banner.imageUrl})`,
+                    }}
+                    onError={() => {}}
+                />
 
-            <h3 className="bg-transparent">{banner.advertiser} – {banner.campaign}</h3>
-            <img
-            src={banner.imageUrl}
-            alt={`${banner.advertiser} – ${banner.campaign}`}
-            width={width}
-            height={height}
-            onError={(e) => {
-                (e.target as HTMLImageElement).src = "https://media.istockphoto.com/id/2241142636/fr/photo/globe-num%C3%A9rique-avec-carte-neon-africa-mettant-en-%C3%A9vidence-la-connectivit%C3%A9-mondiale-de-la.webp?a=1&b=1&s=612x612&w=0&k=20&c=UJFrWe4j4fniMNAThIrcFwirJqmES3twfUUiXFxoC4Y=";
-            }}
-            className="w-full h-full object-cover"
-            />
-            <span className="absolute bottom-1 right-1.5 text-[9px] text-white/60 select-none">
-            Pub
-            </span>
-        </div>
+                {/* Gradient overlay — gauche opaque, droite transparente */}
+                <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/55 to-transparent" />
+
+                {/* Contenu superposé */}
+                <div className="absolute inset-0 flex items-center px-6 sm:px-10">
+                    {/* <div className="flex flex-row gap-1.5 max-w-[100%]">
+                        
+                        <span className="text-white/85 text-[15px] font-bold uppercase tracking-widest">
+                            {banner.advertiser}
+                        </span>
+
+                        <div className="mx-xxl-auto max-w-[100%] flex flex-col gap-1.5">
+                            
+                            <h2 className="text-white font-extrabold leading-tight drop-shadow"
+                                style={{
+                                    fontSize: "clamp(1rem, 2.5vw, 1.6rem)",
+                                    textShadow: "0 2px 8px rgba(0,0,0,0.5)",
+                                }}
+                            >
+                                {banner.campaign}
+                            </h2>
+
+                           
+                            <p className="text-white/80 leading-snug mt-0.5"
+                                style={{ fontSize: "clamp(0.7rem, 1.5vw, 0.875rem)" }}
+                            >
+                                {banner.description}
+                            </p>
+
+                            
+                            {banner.officialWebSite && (
+                                <a
+                                    href={banner.officialWebSite}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="mt-2 self-start inline-flex items-center gap-1.5 px-4 py-1.5 rounded border border-white/80 text-white text-xs font-semibold tracking-wide backdrop-blur-sm bg-white/10 hover:bg-white/25 transition-colors"
+                                    onClick={(e) => e.stopPropagation()}
+                                >
+                                    Voir plus
+                                    <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                                    </svg>
+                                </a>
+                            )}
+                        </div>
+                    </div> */}
+
+
+
+                    <div className="absolute inset-0 flex items-center px-6 sm:px-10">
+                        {/* Advertiser — collé à gauche */}
+                        <span className="top-6 text-white/85 text-[15px] font-bold uppercase tracking-widest shrink-0">
+                            {banner.advertiser}
+                        </span>
+
+                        {/* Contenu central — vraiment centré sur toute la bannière */}
+                        <div className="absolute inset-0 flex items-center justify-center pointer-events-none px-4">
+                            <div className="flex flex-col items-center gap-1.5 text-center max-w-[55%] pointer-events-auto">
+                                {/* Titre principal = campaign */}
+                                <h2
+                                    className="text-white font-extrabold leading-tight drop-shadow"
+                                    style={{
+                                        fontSize: "clamp(0.9rem, 2.5vw, 1.8rem)",
+                                        textShadow: "0 2px 8px rgba(0,0,0,0.5)",
+                                    }}
+                                >
+                                    {banner.campaign}
+                                </h2>
+
+                                {/* Description */}
+                                <p
+                                    className="text-white/80 leading-snug hidden lg:block"
+                                    style={{ fontSize: "clamp(0.72rem, 1.5vw, 0.975rem)" }}
+                                >
+                                    {banner.description}
+                                </p>
+
+                                {/* CTA */}
+                                {banner.officialWebSite && (
+                                    <a
+                                        href={banner.officialWebSite}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="mt-1 inline-flex items-center gap-1.5 px-4 py-1.5 rounded border border-white/80 text-white text-xs font-semibold tracking-wide backdrop-blur-sm bg-white/10 hover:bg-white/25 transition-colors"
+                                        onClick={(e) => e.stopPropagation()}
+                                    >
+                                        Voir plus
+                                        <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                                        </svg>
+                                    </a>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Badge "Pub" */}
+                <span className="absolute bottom-1 right-2 text-[9px] text-white/80 select-none tracking-wider">
+                    Pub
+                </span>
+            </div>
         );
     }
 
@@ -128,10 +226,10 @@ export function AdvertisingBanner({
     const { width: w, height: h } = zone;
 
     return (
-        <div className={`flex-1 flex justify-center ${className}`}>
+        <div className={`flex-1 flex justify-center w-full ${className}`}>
         <div
             className="relative overflow-hidden rounded-sm border border-gray-300 shadow-sm bg-gray-100"
-            style={{ width: "100%", maxWidth: `${w}px`, height: `${h}px` }}
+            style={{ width: "100%", maxWidth: `100%`, minHeight: `170px` }}
             onMouseEnter={() => setPaused(true)}
             onMouseLeave={() => setPaused(false)}
             role="region"

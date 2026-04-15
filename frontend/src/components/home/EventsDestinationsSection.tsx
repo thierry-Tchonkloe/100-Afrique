@@ -90,7 +90,7 @@ const EventsDestinationsSection = () => {
       <div className="max-w-[1200px] mx-auto px-6">
         
         {/* Espace publicitaire (à implémenter) */}
-        <div className="w-full bg-[#E5E7EB] rounded-sm mb-16 overflow-hidden flex items-center justify-center min-h-[90px] border border-gray-200">
+        <div className="w-full bg-it-gray-light flex items-center justify-between border-b border-gray-200">
           {/* <span className="text-gray-500 text-sm font-medium italic">
             Espace Publicitaire Leaderboard 728×90
           </span> */}
