@@ -8,8 +8,11 @@ import Link from 'next/link';
 interface Event {
   id: string;
   title: string;
-  date: string;
-  location: string;
+  startDate: string;   // ← remplace "date: string"
+  endDate?: string;    // ← nouveau
+  location?: string;
+  city?: string;       // ← nouveau
+  country?: string;    // ← nouveau
   description: string;
   type?: 'calendar' | 'globe' | 'plane';
   slug: string;
@@ -20,6 +23,23 @@ interface AgendaSectionProps {
 }
 
 const PAGE_SIZE = 4;
+
+// ── Identique à la page slug ──────────────────────────────────────────────────
+const DateRange = ({ startDate, endDate }: { startDate: string; endDate?: string }) => {
+  const start = new Date(startDate);
+  const end = endDate ? new Date(endDate) : null;
+  const fmt = (d: Date) =>
+    d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
+
+  if (!end || start.toDateString() === end.toDateString()) return <span>{fmt(start)}</span>;
+
+  if (start.getMonth() === end.getMonth() && start.getFullYear() === end.getFullYear())
+    return <span>{start.getDate()} – {fmt(end)}</span>;
+
+  return <span>{fmt(start)} – {fmt(end)}</span>;
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
 
 const AgendaSection = ({ events }: AgendaSectionProps) => {
   const [currentPage, setCurrentPage] = useState(1);
@@ -34,14 +54,13 @@ const AgendaSection = ({ events }: AgendaSectionProps) => {
     );
   }
 
-  const totalPages   = Math.ceil(events.length / PAGE_SIZE);
-  const startIndex   = (currentPage - 1) * PAGE_SIZE;
+  const totalPages    = Math.ceil(events.length / PAGE_SIZE);
+  const startIndex    = (currentPage - 1) * PAGE_SIZE;
   const visibleEvents = events.slice(startIndex, startIndex + PAGE_SIZE);
 
   const handlePageChange = (page: number) => {
     if (page < 1 || page > totalPages) return;
     setCurrentPage(page);
-    // Scroll doux vers le haut de la section
     document.getElementById('agenda-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
 
@@ -53,16 +72,14 @@ const AgendaSection = ({ events }: AgendaSectionProps) => {
     return <Calendar {...iconProps} />;
   };
 
-  // Génère les numéros de pages à afficher (max 5 visibles)
   const getPageNumbers = (): (number | '...')[] => {
     if (totalPages <= 5) return Array.from({ length: totalPages }, (_, i) => i + 1);
-
     const pages: (number | '...')[] = [1];
-    if (currentPage > 3)               pages.push('...');
+    if (currentPage > 3)              pages.push('...');
     for (let i = Math.max(2, currentPage - 1); i <= Math.min(totalPages - 1, currentPage + 1); i++) {
       pages.push(i);
     }
-    if (currentPage < totalPages - 2)  pages.push('...');
+    if (currentPage < totalPages - 2) pages.push('...');
     pages.push(totalPages);
     return pages;
   };
@@ -78,33 +95,37 @@ const AgendaSection = ({ events }: AgendaSectionProps) => {
         </span>
       </div>
 
-      {/* ── Liste des événements ── */}
       <div className="space-y-4">
         {visibleEvents.map((event) => (
           <div
             key={event.id}
             className="flex flex-col md:flex-row gap-6 border border-gray-100 rounded-xl p-8 bg-white shadow-sm hover:shadow-lg transition-shadow"
           >
-            {/* Icône */}
             <div className="w-16 h-16 shrink-0 rounded-lg flex items-center justify-center bg-[#1E3A8A]">
               {renderIcon(event)}
             </div>
 
-            {/* Contenu */}
             <div className="flex-1 space-y-3">
               <h3 className="text-xl font-bold text-[#333] hover:text-[#F39C12] transition-colors">
                 {event.title}
               </h3>
 
               <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm font-medium text-gray-500">
+                {/* ── Date période ── */}
                 <span className="flex items-center gap-2">
                   <Calendar size={16} className="text-gray-600" />
-                  {event.date}
+                  <DateRange startDate={event.startDate} endDate={event.endDate} />
                 </span>
-                <span className="flex items-center gap-2">
-                  <MapPin size={16} className="text-gray-600" />
-                  {event.location}
-                </span>
+
+                {/* ── Localisation complète ── */}
+                {event.location && (
+                  <span className="flex items-center gap-2">
+                    <MapPin size={16} className="text-gray-600" />
+                    {event.location}
+                    {event.city    && `, ${event.city}`}
+                    {event.country && ` — ${event.country}`}
+                  </span>
+                )}
               </div>
 
               <p className="text-gray-500 text-[15px] leading-relaxed font-light max-w-4xl line-clamp-2">
@@ -123,17 +144,13 @@ const AgendaSection = ({ events }: AgendaSectionProps) => {
         ))}
       </div>
 
-      {/* ── Pagination ── */}
+      {/* ── Pagination (inchangée) ── */}
       {totalPages > 1 && (
         <div className="flex items-center justify-between pt-4 border-t border-gray-100">
-          {/* Infos */}
           <p className="text-xs text-gray-400">
             Page {currentPage} sur {totalPages} — {events.length} événement{events.length > 1 ? 's' : ''}
           </p>
-
-          {/* Contrôles */}
           <div className="flex items-center gap-1">
-            {/* Précédent */}
             <button
               onClick={() => handlePageChange(currentPage - 1)}
               disabled={currentPage === 1}
@@ -142,13 +159,9 @@ const AgendaSection = ({ events }: AgendaSectionProps) => {
             >
               <ChevronLeft size={16} />
             </button>
-
-            {/* Numéros */}
             {getPageNumbers().map((page, idx) =>
               page === '...' ? (
-                <span key={`dots-${idx}`} className="px-2 text-gray-400 text-sm select-none">
-                  …
-                </span>
+                <span key={`dots-${idx}`} className="px-2 text-gray-400 text-sm select-none">…</span>
               ) : (
                 <button
                   key={page}
@@ -163,8 +176,6 @@ const AgendaSection = ({ events }: AgendaSectionProps) => {
                 </button>
               )
             )}
-
-            {/* Suivant */}
             <button
               onClick={() => handlePageChange(currentPage + 1)}
               disabled={currentPage === totalPages}
@@ -181,6 +192,3 @@ const AgendaSection = ({ events }: AgendaSectionProps) => {
 };
 
 export default AgendaSection;
-
-
-

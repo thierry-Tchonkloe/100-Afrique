@@ -21,6 +21,8 @@ export const updateAdZoneSchema = createAdZoneSchema.partial();
 
 // ✅ Base schema (SANS refine)
 const baseBannerSchema = z.object({
+    description: z.string().min(3,"Description requise").optional(),
+    officialWebSite: z.string().url("URL du site officiel invalide").optional(),
     advertiser: z.string().min(2, "Annonceur requis"),
     campaign: z.string().min(2, "Campagne requise"),
     type: z.enum(["IMAGE_JPG", "HTML_JS"]),
