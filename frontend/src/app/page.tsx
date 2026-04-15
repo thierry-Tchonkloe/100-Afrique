@@ -11,6 +11,7 @@ import Header from '@/components/shared/Header';
 import SubBar from '@/components/shared/SubBar';
 import Footer from '@/components/shared/Footer';
 import ChatWidget from '@/components/shared/ChatWidget';
+import LanguageSwitcher from '@/components/shared/Languageswitcher';
 
 export const metadata = {
   title: '100%Afrique | La voix du tourisme en Afrique',
@@ -34,6 +35,7 @@ export default function HomePage() {
           <ContactCTASection />
         </div>
         <ChatWidget />
+        <LanguageSwitcher />
       </main>
       <Footer />
     </div>

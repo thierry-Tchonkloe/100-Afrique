@@ -92,6 +92,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { Search, Menu, X } from 'lucide-react';
+import NewsletterButton from '@/components/shared/Newsletterbutton';
 
 const Header = () => {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -99,18 +100,18 @@ const Header = () => {
 
   return (
     <nav className="w-full shadow-lg relative z-50">
-<div 
-  className="absolute inset-0" 
-  style={{
-    background: 'linear-gradient(to right, white 0%, white 12%, #001A4D 25%, #001A4D 100%)'
-  }}
-></div>      <div className="px-4 sm:px-6 lg:px-8 py-4 relative z-10">
+      <div 
+        className="absolute inset-0" 
+        style={{
+          background: 'linear-gradient(to right, white 0%, white 12%, #001A4D 25%, #001A4D 100%)'
+        }}
+      ></div>
+      <div className="px-4 sm:px-6 lg:px-8 py-4 relative z-10">
         <div className="flex items-center justify-between">
           
           {/* --- LOGOS (Gauche) --- */}
-          <div className="flex items-center gap-2 sm:gap-4">
+          <div className="flex items-center gap-2 sm:gap-4 shrink-0">
             <Link href="/" className="flex items-center relative">
-              {/* Logo avec fond pour visibilité */}
               <div className="bg-white p-1 sm:p-2 rounded-sm">
                 <img 
                   src="/logos/itourismenomade.png" 
@@ -118,8 +119,6 @@ const Header = () => {
                   className="h-12 sm:h-16 md:h-20 object-contain" 
                 />
               </div>
-              
-              {/* Slogan clignotant sous le logo */}
               <div className="absolute -bottom-4 left-0 whitespace-nowrap">
                 <p className="text-xs sm:text-sm text-orange-400 font-semibold animate-pulse">
                   "La voix du tourisme en Afrique"
@@ -129,7 +128,7 @@ const Header = () => {
           </div>
 
           {/* --- NAVIGATION PRINCIPALE (Desktop) --- */}
-          <div className="hidden lg:flex items-center gap-4 xl:gap-6 text-xs sm:text-sm font-medium uppercase tracking-wider">
+          <div className="hidden xl:flex items-center gap-3 xl:gap-5 text-xs sm:text-sm font-medium uppercase tracking-wider">
             <Link href="/actualites" className="text-white hover:text-orange-400 transition-colors py-2">Actualités</Link>
             <Link href="/magazine" className="text-center leading-tight text-white hover:text-orange-400 transition-colors py-2">
               Magazine<br/><span className="text-[10px]">WAXEHO</span>
@@ -145,14 +144,13 @@ const Header = () => {
               Vidéos /<br/><span className="text-[10px]">Web TV</span>
             </Link>
             <Link href="/offres" className="text-white hover:text-orange-400 transition-colors py-2">Nos offres</Link>
-            {/* <Link href="/magazines" className="text-white hover:text-orange-400 transition-colors py-2">magazines</Link> */}
             <Link href="/contact" className="text-center leading-tight text-white hover:text-orange-400 transition-colors py-2">
               À propos<br/><span className="text-[10px]">/ Contact</span>
             </Link>
           </div>
 
           {/* --- ACTIONS (Droite) --- */}
-          <div className="flex items-center gap-2 sm:gap-4">
+          <div className="flex items-center gap-2 sm:gap-4 shrink-0">
             
             {/* Barre de recherche extensible (Desktop) */}
             <div className="hidden sm:flex items-center bg-white/10 rounded-full px-3 py-1 transition-all duration-300">
@@ -169,6 +167,11 @@ const Header = () => {
               )}
             </div>
 
+            {/* Bouton Newsletter (Desktop) */}
+            <div className="hidden sm:flex">
+              <NewsletterButton />
+            </div>
+
             {/* Bouton EMPLOI */}
             <Link 
               href="/emploi" 
@@ -180,7 +183,7 @@ const Header = () => {
             {/* Menu Mobile */}
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="lg:hidden p-2 text-white "
+              className="xl:hidden p-2 text-white"
             >
               {isMobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
             </button>
@@ -191,16 +194,13 @@ const Header = () => {
       {/* --- MENU MOBILE --- */}
       {isMobileMenuOpen && (
         <>
-          {/* Overlay sombre */}
           <div 
             className="fixed inset-0 bg-black/50 z-40 lg:hidden"
             onClick={() => setIsMobileMenuOpen(false)}
           />
           
-          {/* Menu mobile - 40% de largeur */}
           <div className="fixed top-0 left-0 h-full w-[40%] max-w-xs bg-[#001A4D] shadow-2xl z-50 lg:hidden transform transition-transform duration-300 ease-in-out">
             <div className="p-4">
-              {/* Header du menu */}
               <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center">
                   <div className="bg-white p-1 rounded-sm">
@@ -220,7 +220,7 @@ const Header = () => {
               </div>
 
               {/* Recherche Mobile */}
-              <div className="flex items-center bg-white/10 rounded-lg px-3 py-2 mb-6">
+              <div className="hidden flex xl:flex items-center bg-white/10 rounded-lg px-3 py-2 mb-4">
                 <Search size={18} className="text-white mr-2" />
                 <input 
                   type="text" 
@@ -229,79 +229,24 @@ const Header = () => {
                 />
               </div>
 
+              {/* Newsletter Mobile */}
+              <div className="hidden xl:flex mb-6">
+                <NewsletterButton />
+              </div>
+
               {/* Navigation Mobile */}
               <div className="space-y-1">
-                <Link 
-                  href="/actualites" 
-                  className="block py-3 px-2 text-white hover:bg-white/10 hover:text-orange-400 rounded transition-colors"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  Actualités
-                </Link>
-                <Link 
-                  href="/magazine" 
-                  className="block py-3 px-2 text-white hover:bg-white/10 hover:text-orange-400 rounded transition-colors"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  Magazine WAXEHO
-                </Link>
-                <Link 
-                  href="/evenements" 
-                  className="block py-3 px-2 text-white hover:bg-white/10 hover:text-orange-400 rounded transition-colors"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  Salons & Événements
-                </Link>
-                <Link 
-                  href="/partenaires" 
-                  className="block py-3 px-2 text-white hover:bg-white/10 hover:text-orange-400 rounded transition-colors"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  Partenaires & Annonceurs
-                </Link>
-                <Link 
-                  href="/destinations" 
-                  className="block py-3 px-2 text-white hover:bg-white/10 hover:text-orange-400 rounded transition-colors"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  Destinations
-                </Link>
-                <Link 
-                  href="/videos" 
-                  className="block py-3 px-2 text-white hover:bg-white/10 hover:text-orange-400 rounded transition-colors"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  Vidéos / Web TV
-                </Link>
-                <Link 
-                  href="/offres" 
-                  className="block py-3 px-2 text-white hover:bg-white/10 hover:text-orange-400 rounded transition-colors"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  Nos offres
-                </Link>
-                <Link 
-                  href="/magazines" 
-                  className="block py-3 px-2 text-white hover:bg-white/10 hover:text-orange-400 rounded transition-colors"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  Magazines
-                </Link>
-                <Link 
-                  href="/contact" 
-                  className="block py-3 px-2 text-white hover:bg-white/10 hover:text-orange-400 rounded transition-colors"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  À propos / Contact
-                </Link>
+                <Link href="/actualites" className="block py-3 px-2 text-white hover:bg-white/10 hover:text-orange-400 rounded transition-colors" onClick={() => setIsMobileMenuOpen(false)}>Actualités</Link>
+                <Link href="/magazine" className="block py-3 px-2 text-white hover:bg-white/10 hover:text-orange-400 rounded transition-colors" onClick={() => setIsMobileMenuOpen(false)}>Magazine WAXEHO</Link>
+                <Link href="/evenements" className="block py-3 px-2 text-white hover:bg-white/10 hover:text-orange-400 rounded transition-colors" onClick={() => setIsMobileMenuOpen(false)}>Salons & Événements</Link>
+                <Link href="/partenaires" className="block py-3 px-2 text-white hover:bg-white/10 hover:text-orange-400 rounded transition-colors" onClick={() => setIsMobileMenuOpen(false)}>Partenaires & Annonceurs</Link>
+                <Link href="/destinations" className="block py-3 px-2 text-white hover:bg-white/10 hover:text-orange-400 rounded transition-colors" onClick={() => setIsMobileMenuOpen(false)}>Destinations</Link>
+                <Link href="/videos" className="block py-3 px-2 text-white hover:bg-white/10 hover:text-orange-400 rounded transition-colors" onClick={() => setIsMobileMenuOpen(false)}>Vidéos / Web TV</Link>
+                <Link href="/offres" className="block py-3 px-2 text-white hover:bg-white/10 hover:text-orange-400 rounded transition-colors" onClick={() => setIsMobileMenuOpen(false)}>Nos offres</Link>
+                <Link href="/contact" className="block py-3 px-2 text-white hover:bg-white/10 hover:text-orange-400 rounded transition-colors" onClick={() => setIsMobileMenuOpen(false)}>À propos / Contact</Link>
                 
-                {/* Bouton EMPLOI dans le menu */}
                 <div className="pt-4 border-t border-gray-700">
-                  <Link 
-                    href="/emploi" 
-                    className="block w-full bg-[#FF9900] hover:bg-[#e68a00] text-[#001A4D] font-bold py-3 px-4 rounded-lg text-sm text-center transition-all shadow-md uppercase tracking-widest"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
+                  <Link href="/emploi" className="block w-full bg-[#FF9900] hover:bg-[#e68a00] text-[#001A4D] font-bold py-3 px-4 rounded-lg text-sm text-center transition-all shadow-md uppercase tracking-widest" onClick={() => setIsMobileMenuOpen(false)}>
                     EMPLOI
                   </Link>
                 </div>
