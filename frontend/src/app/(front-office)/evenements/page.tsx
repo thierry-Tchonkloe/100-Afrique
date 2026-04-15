@@ -163,7 +163,7 @@ const SalonsPage = () => {
         <aside className="lg:w-[28%] space-y-10">
 
           {/* Publicité Skyscraper */}
-          <div className="bg-[#E5E7EB] w-full h-[300px] flex items-center justify-center rounded-sm border border-gray-100 p-6 text-center">
+          <div className="bg-[#E5E7EB] w-full flex items-center justify-center rounded-sm border border-gray-100 text-center">
             <AdvertisingBanner
               zoneSlug="skyscraper-salon-and-evenement"
               showDots={true}

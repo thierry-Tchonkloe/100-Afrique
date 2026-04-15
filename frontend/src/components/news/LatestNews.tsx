@@ -559,11 +559,11 @@ const LatestNews = ({ searchFilters }: { searchFilters?: any }) => {
         <div className="space-y-12">
  
           {/* Publicité Skyscraper */}
-          <div className="w-full bg-it-gray-light flex items-center justify-between border-b border-gray-200">
+          <div className="w-full bg-it-gray-light h-[500px] flex items-center justify-between border-b border-gray-200">
             <AdvertisingBanner
               zoneSlug="skyscraper-sidebar"
               showDots={true}
-              className="w-full"
+              className="w-full h-[500px] gap-3 flex"
             />
           </div>
  
