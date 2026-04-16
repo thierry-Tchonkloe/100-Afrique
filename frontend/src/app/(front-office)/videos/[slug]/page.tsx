@@ -69,7 +69,6 @@ interface VideoPlayerProps {
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-// Convertit n'importe quelle URL YouTube/Vimeo en URL embed
 const toEmbedUrl = (raw: string): string => {
     if (!raw) return "";
     if (raw.includes("/embed/") || raw.includes("player.vimeo")) return raw;
@@ -82,7 +81,6 @@ const toEmbedUrl = (raw: string): string => {
     return raw;
 };
 
-// Extrait l'URL brute depuis les blocs de contenu (url OU value)
 const getVideoUrl = (blocks: ContentBlock[]): string | null => {
     const block = blocks.find((b) => b.type === 'video');
     return block?.url ?? block?.value ?? null;
@@ -103,7 +101,6 @@ const getVideoType = (categoryName: string): string => {
 const VideoPlayer = ({ sourceUrl, coverImage, title }: VideoPlayerProps) => {
     const [playing, setPlaying] = useState(false);
 
-    // Reconstruit le lien externe depuis l'URL embed
     const getExternalLink = (url: string) => {
         if (url.includes('youtube.com/embed/')) {
             return url.replace('youtube.com/embed/', 'youtube.com/watch?v=');
@@ -321,6 +318,7 @@ const VideoDetailPage = () => {
                     const relRes = await api.get('/mag/articles', {
                         params: {
                             categoryId: data.category.id,
+                            type: 'VIDEO',      // ← uniquement des vidéos
                             pageSize: 4,
                             status: 'PUBLISHED',
                         },
@@ -381,8 +379,6 @@ const VideoDetailPage = () => {
     const parsedContent: ContentBlock[] = Array.isArray(video.content) ? video.content : [];
     const videoType = getVideoType(video.category.name);
 
-    // ── Résolution de l'URL : sourceUrl > bloc video (url|value) ──
-    // puis conversion en URL embed pour l'iframe
     const rawUrl = video.sourceUrl || getVideoUrl(parsedContent) || null;
     const sourceUrl = rawUrl ? toEmbedUrl(rawUrl) : null;
 
@@ -448,7 +444,6 @@ const VideoDetailPage = () => {
                     </p>
                 )}
 
-                {/* ── Player — reçoit l'URL embed prête à l'emploi ── */}
                 <VideoPlayer
                     sourceUrl={sourceUrl}
                     coverImage={video.coverImage || '/images/placeholder.jpg'}
