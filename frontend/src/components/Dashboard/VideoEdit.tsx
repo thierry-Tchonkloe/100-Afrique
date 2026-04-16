@@ -561,7 +561,7 @@ function VideoEditorContent({video, onClose, onSubmit }: { video: Article; onClo
             title:   form.title.trim() || undefined,
             status:  apiStatus,
             content: [
-            { type: "video", value: form.sourceUrl.trim() },
+            { type: "video", url: form.sourceUrl.trim(), value: form.sourceUrl.trim() },
             { type: "text",  value: form.excerpt.trim() || "Contenu vide" },
             ],
             coverImage:      form.coverImage.trim() || undefined,

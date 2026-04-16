@@ -37,7 +37,7 @@ export interface UpdateVideoPayload {
     title?: string;
     status?: ArticleStatus;
     categoryId?: number;
-    content?: { type: string; value: string }[];
+    content?: { type: string; value?: string; url?: string }[];  // ← les deux optionnels
     excerpt?: string;
     coverImage?: string;
     metaTitle?: string;

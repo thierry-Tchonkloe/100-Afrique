@@ -3,7 +3,7 @@
 
 import React, { useEffect, useState } from 'react';
 import {
-  Play, Calendar, Clock, Facebook, Twitter, Linkedin, MessageCircle, Loader2,
+  Play, Calendar, Clock, Facebook, Twitter, Linkedin, MessageCircle, Loader2, ExternalLink,
 } from 'lucide-react';
 import { AxiosError } from 'axios';
 import api from '@/lib/api';
@@ -15,6 +15,7 @@ interface VideoData {
   excerpt: string;
   coverImage: string;
   createdAt: string;
+  sourceUrl?: string | null;
   content: Array<{
     type: string;
     url?: string;
@@ -26,17 +27,41 @@ interface VideoData {
   };
 }
 
+// ── Convertit n'importe quelle URL YouTube/Vimeo en URL embed ─────────────────
+const toEmbedUrl = (raw: string): string => {
+  if (!raw) return "";
+  if (raw.includes("/embed/") || raw.includes("player.vimeo")) return raw;
+  const ytShort = raw.match(/youtu\.be\/([^?&]+)/);
+  if (ytShort) return `https://www.youtube.com/embed/${ytShort[1]}`;
+  const ytWatch = raw.match(/[?&]v=([^?&]+)/);
+  if (ytWatch) return `https://www.youtube.com/embed/${ytWatch[1]}`;
+  const vimeo = raw.match(/vimeo\.com\/(\d+)/);
+  if (vimeo) return `https://player.vimeo.com/video/${vimeo[1]}`;
+  return raw;
+};
+
+// ── Reconstruit le lien externe depuis l'URL embed ────────────────────────────
+const getExternalLink = (url: string): string => {
+  if (url.includes('youtube.com/embed/')) {
+    return url.replace('youtube.com/embed/', 'youtube.com/watch?v=');
+  }
+  if (url.includes('player.vimeo.com/video/')) {
+    return url.replace('player.vimeo.com/video/', 'vimeo.com/');
+  }
+  return url;
+};
+
 const VideoHeroSection = () => {
   const [mainVideo, setMainVideo] = useState<VideoData | null>(null);
   const [loading, setLoading]     = useState(true);
+  const [playing, setPlaying]     = useState(false);
 
   useEffect(() => {
     const fetchLatestVideo = async () => {
       try {
-        // 1ère tentative : vidéo featured de type VIDEO
         const response = await api.get('/mag/articles', {
           params: {
-            type: 'VIDEO',       // ✅ uniquement les articles VIDEO
+            type: 'VIDEO',
             featured: true,
             pageSize: 1,
             page: 1,
@@ -46,7 +71,6 @@ const VideoHeroSection = () => {
 
         let data: VideoData[] = response.data.data ?? [];
 
-        // Fallback : si aucune vidéo featured, on prend la dernière vidéo publiée
         if (data.length === 0) {
           const fallback = await api.get('/mag/articles', {
             params: {
@@ -72,25 +96,23 @@ const VideoHeroSection = () => {
     fetchLatestVideo();
   }, []);
 
-  // Extrait l'URL de la vidéo depuis les blocs de contenu
-  const getVideoUrl = (): string | null => {
-    if (!mainVideo?.content) return null;
+  // Extrait l'URL brute depuis les blocs de contenu ou sourceUrl
+  const getRawVideoUrl = (): string | null => {
+    if (!mainVideo?.content) return mainVideo?.sourceUrl ?? null;
     const block = mainVideo.content.find((b) => b.type === 'video');
-    return block?.url ?? null;
+    return block?.url ?? block?.value ?? mainVideo.sourceUrl ?? null;
   };
 
   // Partage social
   const handleShare = (platform: string) => {
     const url  = window.location.href;
     const text = mainVideo?.title ?? 'Regardez cette vidéo sur WAXEHO';
-
     const shareUrls: Record<string, string> = {
       facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`,
       twitter:  `https://twitter.com/intent/tweet?url=${encodeURIComponent(url)}&text=${encodeURIComponent(text)}`,
       linkedin: `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`,
       whatsapp: `https://wa.me/?text=${encodeURIComponent(text + ' ' + url)}`,
     };
-
     if (shareUrls[platform]) {
       window.open(shareUrls[platform], '_blank', 'width=600,height=400');
     }
@@ -116,7 +138,8 @@ const VideoHeroSection = () => {
     );
   }
 
-  const videoUrl = getVideoUrl();
+  const rawUrl   = getRawVideoUrl();
+  const embedUrl = rawUrl ? toEmbedUrl(rawUrl) : null;
 
   return (
     <section className="bg-white py-12 px-6">
@@ -131,31 +154,65 @@ const VideoHeroSection = () => {
         {/* Player card */}
         <div className="bg-white rounded-xl shadow-2xl overflow-hidden border border-gray-100">
 
-          {/* Zone vidéo */}
-          <div className="relative aspect-video bg-[#0F172A] flex items-center justify-center group">
-            {videoUrl ? (
-              /* ── Lecteur intégré si URL disponible ── */
-              <iframe
-                src={videoUrl}
-                title={mainVideo.title}
-                className="absolute inset-0 w-full h-full"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-              />
-            ) : (
-              /* ── Thumbnail + bouton play si pas d'URL ── */
-              <>
-                <div
-                  className="absolute inset-0 bg-cover bg-center opacity-60 transition-transform duration-700 group-hover:scale-105"
-                  style={{ backgroundImage: `url(${mainVideo.coverImage})` }}
-                />
-                <div className="relative z-10 w-20 h-20 bg-[#F19300] rounded-full flex items-center justify-center shadow-2xl transition-transform group-hover:scale-110 cursor-pointer">
-                  <Play size={32} fill="white" className="text-white ml-1" />
+          {/* ── Zone vidéo : thumbnail → iframe au clic ── */}
+          <div className="space-y-0">
+            {playing && embedUrl ? (
+              /* ── Lecteur intégré après clic ── */
+              <div className="space-y-3">
+                <div className="relative aspect-video bg-black">
+                  <iframe
+                    src={`${embedUrl}?autoplay=1`}
+                    title={mainVideo.title}
+                    className="absolute inset-0 w-full h-full"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                  />
                 </div>
-                <span className="absolute bottom-6 text-white/60 text-sm font-light tracking-wide z-10">
-                  Vidéo non disponible en lecture directe
-                </span>
-              </>
+                <div className="flex justify-center pb-2">
+                  <a
+                    href={getExternalLink(embedUrl)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-2 text-sm text-slate-400 hover:text-[#F19300] transition-colors duration-200 py-1"
+                  >
+                    <ExternalLink size={14} />
+                    Regarder directement sur la plateforme
+                  </a>
+                </div>
+              </div>
+            ) : (
+              /* ── Thumbnail + bouton play ── */
+              <div
+                className="relative aspect-video bg-[#0F172A] cursor-pointer group"
+                onClick={() => embedUrl && setPlaying(true)}
+              >
+                <img
+                  src={mainVideo.coverImage || '/images/placeholder.jpg'}
+                  alt={mainVideo.title}
+                  className="absolute inset-0 w-full h-full object-cover opacity-70 group-hover:opacity-60 transition-opacity duration-300"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+
+                {embedUrl ? (
+                  /* Bouton play si vidéo disponible */
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="w-20 h-20 bg-[#F19300] rounded-full flex items-center justify-center shadow-2xl transition-transform duration-300 group-hover:scale-110">
+                      <Play size={34} fill="white" className="text-white ml-1" />
+                    </div>
+                  </div>
+                ) : (
+                  /* Message si pas d'URL disponible */
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <span className="text-white/60 text-sm font-light tracking-wide">
+                      Vidéo non disponible en lecture directe
+                    </span>
+                  </div>
+                )}
+
+                <p className="absolute bottom-5 left-0 right-0 text-center text-white/70 text-xs tracking-widest uppercase">
+                  {embedUrl ? 'Cliquer pour lancer la vidéo' : ''}
+                </p>
+              </div>
             )}
           </div>
 
@@ -184,11 +241,11 @@ const VideoHeroSection = () => {
                   })}
                 </span>
               </div>
-              {videoUrl && (
+              {rawUrl && (
                 <div className="flex items-center gap-2">
                   <Clock size={16} className="text-[#F19300]" />
                   <a
-                    href={videoUrl}
+                    href={rawUrl}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="underline hover:text-[#F19300] transition-colors"
