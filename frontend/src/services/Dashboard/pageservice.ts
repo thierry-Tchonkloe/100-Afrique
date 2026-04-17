@@ -55,6 +55,14 @@ export interface UpdatePagePayload {
     visibility?: "public" | "private";
 }
 
+
+export const getPageBySlug = async (slug: string) => {
+    const res = await fetch(`${API()}/mag/articles/${slug}`, {
+        method: "GET",
+    });
+    return res.json(); // déjà dépaquété
+};
+
 // ── Helpers ────────────────────────────────────────────────────────────────────
 
 function authHeaders(): HeadersInit {

@@ -4,6 +4,7 @@ import { getToken } from "@/lib/auth";
 //import { Tag } from 'lucide-react';
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 import {UpdateDestinationPayload,} from "@/services/Dashboard/destinationservice";
+import { PageTemplate, LinkGroup } from '../../components/Dashboard/StaticpageEdit';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -73,6 +74,12 @@ export interface Article {
     website?: string;
     relatedContentIds?: number[];
     relatedContent?: Article[];
+    visibility?: "public" | "private",
+    linkGroup?: LinkGroup;
+    pageTemplate?: PageTemplate;
+    includeInMainMenu?: boolean;
+    includeInFooter?: boolean;
+    sortOrder?: number;
 }
 
 export interface ArticlePagination {
