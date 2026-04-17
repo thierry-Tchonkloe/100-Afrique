@@ -124,7 +124,7 @@ export const createArticleSchema = z.object({
     includeInMainMenu: z.boolean().optional(),
     includeInFooter: z.boolean().optional(),
     sortOrder: z.number().int().optional(),
-    linkGroup: z.enum(['Société', 'Services', 'Blog', 'Légal']).optional(),
+    linkGroup: z.enum(["Hôtellerie", "Transport", "Restauration", "Voyages d'Affaires", "MICE & Événements", "Divertissement", "Tourisme Durable"]).optional(),
 
     // ── Champs SALON ──────────────────────────────────────────
     location: z.string().optional(),
@@ -186,7 +186,7 @@ export const updateArticleSchema = z.object({
     includeInMainMenu: z.boolean().optional(),
     includeInFooter: z.boolean().optional(),
     sortOrder: z.number().int().optional().nullable(),
-    linkGroup: z.enum(['Société', 'Services', 'Blog', 'Légal']).optional().nullable(),
+    linkGroup: z.enum(["Hôtellerie", "Transport", "Restauration", "Voyages d'Affaires", "MICE & Événements", "Divertissement", "Tourisme Durable"]).optional().nullable(),
 
     // ── Champs SALON ──────────────────────────────────────────
     location: z.string().optional().nullable(),

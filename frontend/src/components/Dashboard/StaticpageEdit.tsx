@@ -436,8 +436,8 @@ import { Article, STATUS_API_TO_UI, STATUS_UI_TO_API } from "@/services/Dashboar
 
 type PageStatus = "Brouillon" | "Publié" | "Archivé" | "En Révision";
 type Visibility = "Publique" | "Privée";
-type PageTemplate = "Modèle Standard" | "Modèle Pleine Largeur" | "Modèle Blog";
-type LinkGroup = "Société" | "Services" | "Blog" | "Légal";
+export type PageTemplate = "Modèle Standard" | "Modèle Pleine Largeur" | "Modèle Blog";
+export type LinkGroup = "Hôtellerie" | "Transport" | "Restauration" | "Voyages d'Affaires" | "MICE & Événements" | "Divertissement" | "Tourisme Durable";
 
 interface NavigationParams {
     includeInMainMenu: boolean;
@@ -567,9 +567,9 @@ function PageEditorContent({page, onClose, onPreview, onSubmit,
             includeInMainMenu: false,
             sortOrder:         0,
             includeInFooter:   false,
-            linkGroup:         "Société",
+            linkGroup:         page.linkGroup ?? "Hôtellerie",
             },
-            pageTemplate: "Modèle Standard",
+            pageTemplate: page.pageTemplate ?? "Modèle Standard",
             seo: {
             metaTitle:       page.metaTitle ?? page.title ?? "",
             metaDescription: page.metaDescription ?? page.excerpt ?? "",
@@ -887,7 +887,7 @@ function PageEditorContent({page, onClose, onPreview, onSubmit,
                     <SelectField
                         value={form.navigation.linkGroup}
                         onChange={(v) => updateNav("linkGroup", v as LinkGroup)}
-                        options={["Société", "Services", "Blog", "Légal"]}
+                        options={["Hôtellerie", "Transport", "Restauration", "Voyages d'Affaires", "MICE & Événements", "Divertissement", "Tourisme Durable"]}
                     />
                     </div>
 

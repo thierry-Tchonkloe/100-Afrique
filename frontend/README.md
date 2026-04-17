@@ -168,3 +168,114 @@ LoginPage → useLogin hook → lib/auth.ts (checkRateLimit)
   → AuthContext.setAuth (token + user stockés)
   → router.push('/admin/dashboard')
 ```
+
+
+
+
+# Page Templates — Guide d'intégration
+
+## Structure des fichiers
+
+```
+page-templates/
+├── types.ts              ← Types partagés + helpers (parseContent, formatDate, readingTime…)
+├── PagePreview.tsx        ← Orchestrateur : choisit le template selon pageTemplate
+├── StandardTemplate.tsx   ← Modèle Standard  (2 colonnes : contenu + sidebar)
+├── FullWidthTemplate.tsx  ← Modèle Pleine Largeur (hero + grille de cartes)
+└── BlogTemplate.tsx       ← Modèle Blog (éditorial + sommaire ancré)
+```
+
+---
+
+## Branchement dans le StaticPageEditor
+
+### 1. Le PageForm de l'éditeur est déjà compatible
+
+Le type `PageData` (types.ts) est identique au `PageForm` de votre éditeur.
+Il suffit de passer directement `form` au composant.
+
+```tsx
+// Dans PageEditorContent, bouton "Prévisualiser" :
+import PagePreview from "@/components/page-templates/PagePreview";
+import { useState } from "react";
+
+const [previewOpen, setPreviewOpen] = useState(false);
+
+// Bouton existant dans le header :
+<button onClick={() => setPreviewOpen(true)}>
+  <Eye className="h-4 w-4" /> Prévisualiser
+</button>
+
+// Modale de prévisualisation :
+{previewOpen && (
+  <div className="fixed inset-0 z-[60] bg-white overflow-y-auto">
+    <div className="sticky top-0 z-10 bg-white border-b border-slate-200 px-4 py-3 flex items-center justify-between">
+      <span className="text-sm font-medium text-slate-600">
+        Prévisualisation — {form.pageTemplate}
+      </span>
+      <button
+        onClick={() => setPreviewOpen(false)}
+        className="p-1.5 rounded-lg text-slate-400 hover:bg-slate-100"
+      >
+        <X className="h-5 w-5" />
+      </button>
+    </div>
+    <PagePreview page={form} />
+  </div>
+)}
+```
+
+### 2. Passer l'auteur et updatedAt depuis l'article source
+
+```tsx
+// Dans PageEditorContent, initialisation du form :
+const [form, setForm] = useState<PageForm>({
+  // ... vos champs existants ...
+  author: { name: page.author.name },   // déjà dispo dans Article
+  updatedAt: page.updatedAt,            // déjà dispo dans Article
+});
+```
+
+### 3. Ajout des champs manquants au type PageForm (éditeur)
+
+Dans votre éditeur, ajoutez ces deux champs à l'interface `PageForm` :
+
+```ts
+interface PageForm {
+  // ... champs existants ...
+  author?: { name: string };
+  updatedAt?: string;
+}
+```
+
+---
+
+## Logique de rendu du contenu
+
+Le textarea de l'éditeur accepte du pseudo-markdown léger :
+
+| Syntaxe            | Rendu                        |
+|--------------------|------------------------------|
+| `## Mon titre`     | `<h2>` dans le template      |
+| `> Ma citation`    | `<blockquote>` stylisé       |
+| Ligne normale      | `<p>` standard               |
+| Ligne vide         | Séparateur de paragraphe     |
+
+La fonction `parseContent()` (types.ts) gère cette conversion.
+
+---
+
+## Personnalisation des templates
+
+Chaque template reçoit uniquement `page: PageData`.
+Pour étendre sans casser l'interface :
+
+```ts
+// types.ts
+export interface PageData {
+  // Ajout futur possible :
+  coverImage?: string;
+  tags?: string[];
+  readingTimeOverride?: number;
+}
+```

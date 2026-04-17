@@ -46,18 +46,21 @@ const Header = () => {
               Magazine<br/><span className="text-[10px]">WAXEHO</span>
             </Link> */}
             <Link href="/evenements" className="text-center leading-tight text-white hover:text-orange-400 transition-colors py-2">
-              Salons &<br/><span className="text-[10px]">Événements</span>
+              {/* Salons &<br/><span className="text-[10px]">Événements</span> */}
+              Événements
             </Link>
             <Link href="/partenaires" className="text-center leading-tight text-white hover:text-orange-400 transition-colors py-2">
-              Partenaires &<br/><span className="text-[10px]">Annonceurs</span>
+              {/* Partenaires &<br/><span className="text-[10px]">Annonceurs</span> */}
+              Partenaires
             </Link>
             <Link href="/destinations" className="text-white hover:text-orange-400 transition-colors py-2">Destinations</Link>
             <Link href="/videos" className="text-center leading-tight text-white hover:text-orange-400 transition-colors py-2">
-              Vidéos /<br/><span className="text-[10px]">Web TV</span>
+              {/* Vidéos /<br/><span className="text-[10px]">Web TV</span> */}
+              Vidéos
             </Link>
             <Link href="/offres" className="text-white hover:text-orange-400 transition-colors py-2">Nos offres</Link>
             <Link href="/contact" className="text-center leading-tight text-white hover:text-orange-400 transition-colors py-2">
-              À propos<br/><span className="text-[10px]">/ Contact</span>
+              À propos & Contact
             </Link>
           </div>
 

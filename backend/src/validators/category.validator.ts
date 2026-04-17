@@ -19,6 +19,7 @@ export const createCategorySchema = z.object({
       message: 'Le type est requis',
     }),
     order: z.number().int().min(0).optional(),
+    content: z.string().array().optional(),
   }),
 });
 
@@ -41,6 +42,7 @@ export const updateCategorySchema = z.object({
       .optional(),
     type: z.enum(['MAGAZINE', 'DESTINATION']).optional(),
     order: z.number().int().min(0).optional(),
+    content: z.string().array().optional(),
   }),
 });
 
