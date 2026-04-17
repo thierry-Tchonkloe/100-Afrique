@@ -145,6 +145,7 @@ model Category {
   type        CatType  @default(MAGAZINE)
   order       Int      @default(0)
   color       String?  @default("#001A4D")
+  content     String[]
   articles    Article[]
   magazines   Magazine[]
   createdAt   DateTime @default(now())

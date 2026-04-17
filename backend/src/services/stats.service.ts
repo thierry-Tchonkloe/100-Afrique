@@ -133,6 +133,7 @@ export class StatsService {
       name: cat.name,
       type: cat.type,
       articlesCount: cat._count.articles,
+      content: cat.content, // ✅ Inclure le champ content pour les catégories
     }));
   }
 

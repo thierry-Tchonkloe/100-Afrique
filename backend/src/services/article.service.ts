@@ -181,6 +181,7 @@ async quickCreateArticle(
               slug: true,
               type: true,
               color: true,
+              content: true, // ✅ Inclure le champ content pour les blocs de type vidéo
             },
           },
           author: {
@@ -599,6 +600,7 @@ async quickCreateArticle(
             name: true,
             slug: true,
             color: true,
+            content: true, // ✅ Inclure le champ content pour les blocs de type vidéo
           },
         },
         author: {
