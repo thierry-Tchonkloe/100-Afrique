@@ -20,16 +20,16 @@ const EditorialCTA = () => {
 
   return (
     <>
-      <section className="bg-[#1A3A8A] py-24 px-6 text-center">
+      <section className="bg-gray-50 py-24 px-6 text-center">
         <div className="max-w-4xl mx-auto space-y-8">
           
           {/* Titre Principal - Style Presse Premium */}
-          <h2 className="text-3xl md:text-5xl font-serif font-bold text-white uppercase tracking-tight">
+          <h2 className="text-3xl md:text-5xl font-serif font-bold text-it-blue uppercase tracking-tight">
             Rejoignez notre équipe éditoriale
           </h2>
 
           {/* Sous-titre descriptif */}
-          <p className="text-blue-100/80 text-base md:text-lg leading-relaxed max-w-2xl mx-auto font-light">
+          <p className="text-gray-600 text-base md:text-lg leading-relaxed max-w-2xl mx-auto font-light">
             Vous souhaitez proposer un sujet, devenir rédacteur ou collaborer avec notre magazine ? 
             Notre équipe éditoriale est à votre écoute pour donner vie à vos projets.
           </p>
@@ -48,7 +48,7 @@ const EditorialCTA = () => {
             {/* Bouton 2 : Déclenche ModaleDestination */}
             <button 
               onClick={openDestination}
-              className="w-full sm:w-auto border-2 border-white/30 text-white hover:bg-white hover:text-[#1A3A8A] font-black px-12 py-5 rounded-xl text-[11px] uppercase tracking-[0.2em] transition-all active:scale-95"
+              className="w-full sm:w-auto border-2 border-it-blue text-it-blue hover:text-white hover:bg-it-blue font-black px-12 py-5 rounded-xl text-[11px] uppercase tracking-[0.2em] transition-all active:scale-95"
             >
               Proposer un article
             </button>
