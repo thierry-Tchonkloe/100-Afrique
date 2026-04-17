@@ -33,11 +33,14 @@ interface CategoryFilter {
 }
 
 const CATEGORY_FILTERS: CategoryFilter[] = [
-  { id: 'all',              label: 'Toutes',           badgeColor: 'bg-gray-100 text-gray-600'     },
-  { id: 'reportages-salons', label: 'Reportages Salons', badgeColor: 'bg-blue-100 text-blue-700'   },
-  { id: 'interviews',        label: 'Interviews',        badgeColor: 'bg-purple-100 text-purple-700' },
-  { id: 'destinations',      label: 'Destinations',      badgeColor: 'bg-green-100 text-green-700'  },
-  { id: 'analyses',          label: 'Analyses',          badgeColor: 'bg-orange-100 text-orange-700' },
+  { id: 'all',                  label: 'Toutes',               badgeColor: 'bg-gray-100 text-gray-600'      },
+  { id: 'hotellerie',           label: 'Hôtellerie',           badgeColor: 'bg-blue-100 text-blue-700'      },
+  { id: 'transport',            label: 'Transport',            badgeColor: 'bg-purple-100 text-purple-700'  },
+  { id: 'restauration',         label: 'Restauration',         badgeColor: 'bg-red-100 text-red-700'        },
+  { id: 'voyages-affaires',     label: 'Voyages d\'Affaires',  badgeColor: 'bg-orange-100 text-orange-700'  },
+  { id: 'mice-evenements',      label: 'MICE & Événements',    badgeColor: 'bg-yellow-100 text-yellow-700'  },
+  { id: 'divertissement',       label: 'Divertissement',       badgeColor: 'bg-pink-100 text-pink-700'      },
+  { id: 'tourisme-durable',     label: 'Tourisme Durable',     badgeColor: 'bg-green-100 text-green-700'    },
 ];
 
 const PAGE_SIZE = 8;
