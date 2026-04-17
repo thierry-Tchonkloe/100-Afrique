@@ -179,7 +179,7 @@ const SubBar = () => {
     });
 
     fetch(
-      `${BASE_URL}/magazines/rss?category=${slug}&pageSize=6&page=1`,
+      `${BASE_URL}/magazines/rss?category=${slug}&pageSize=3&page=1`,
       { headers: getAuthHeaders(), signal: controller.signal }
     )
       .then((r) => r.json())
@@ -288,12 +288,12 @@ const SubBar = () => {
                   </div>
 
                   {loadingMags ? (
-                    <div className="grid grid-cols-6 gap-3">
-                      {[1, 2, 3, 4, 5, 6].map((i) => <MagazineSkeleton key={i} />)}
+                    <div className="grid grid-cols-3 gap-3">
+                      {[1, 2, 3].map((i) => <MagazineSkeleton key={i} />)}
                     </div>
                   ) : categoryMagazines.length > 0 ? (
-                    <div className="grid grid-cols-6 gap-3">
-                      {categoryMagazines.slice(0, 6).map((mag) => (
+                    <div className="grid grid-cols-3 gap-3">
+                      {categoryMagazines.slice(0, 3).map((mag) => (
                         <MagazineMenuCard key={mag.id} magazine={mag} />
                       ))}
                     </div>

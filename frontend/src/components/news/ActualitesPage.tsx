@@ -35,11 +35,11 @@ export default function ActualitesPage() {
       </section>
  
       {/* Section 3 : Magazines RSS - Nouvelle section */}
-      <section className="py-8 sm:py-16 bg-gray-50">
+      {/* <section className="py-8 sm:py-16 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <MagazineGrid />
         </div>
-      </section>
+      </section> */}
  
       {/* Section 4 : Actualités - Carrousel Mobile / Grille Desktop */}
       <section className="py-8 sm:py-16 bg-white">
