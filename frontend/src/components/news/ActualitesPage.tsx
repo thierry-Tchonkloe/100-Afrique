@@ -8,6 +8,7 @@ import LatestNewsCarousel from '@/components/news/LatestNewsCarousel';
 import NewsletterSection from '@/components/news/NewsletterSection';
 import MagazineGrid from '@/components/Dashboard/MagazineGrid';
 import AdvancedSearch from '@/components/news/AdvancedSearch';
+import EditorialCTA from '@/components/magazine/EditorialCTA';
  
 export default function ActualitesPage() {
   const [searchFilters, setSearchFilters] = useState({
@@ -64,8 +65,11 @@ export default function ActualitesPage() {
           </div>
         </div>
       </section>
+
+      {/* Section 5 (Équipe & CTA) : Modales de partenariat et rédaction */}
+      <EditorialCTA />
  
-      {/* Section 5 : La Newsletter Pro */}
+      {/* Section 6 : La Newsletter Pro */}
       <NewsletterSection />
     </main>
   );
