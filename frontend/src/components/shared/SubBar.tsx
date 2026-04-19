@@ -277,10 +277,10 @@ const SubBar = () => {
                   <div className="flex items-center justify-between mb-5">
                     <h3 className="text-[#D97706] font-extrabold text-[13px] uppercase flex items-center gap-2">
                       <BookOpen size={14} className="text-[#D97706]" />
-                      Magazines &amp; Revues — {activeMenu}
+                      Actualités Récentes — {activeMenu}
                     </h3>
                     <Link
-                      href="/magazine"
+                      href="/actualites"
                       className="text-[10.5px] font-bold text-blue-600 hover:text-blue-800 flex items-center gap-1 transition-colors"
                     >
                       Voir tous <ChevronRight size={12} />
@@ -301,7 +301,7 @@ const SubBar = () => {
                     <div className="flex flex-col items-center justify-center py-10 text-center">
                       <BookOpen size={32} className="text-gray-300 mb-3" />
                       <p className="text-gray-400 text-sm italic">
-                        Aucun magazine disponible dans cette catégorie.
+                        Aucune actualité disponible dans cette catégorie.
                       </p>
                     </div>
                   )}

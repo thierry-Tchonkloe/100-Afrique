@@ -153,12 +153,12 @@ const Header = () => {
               <div className="space-y-1">
                 <Link href="/actualites" className="block py-3 px-2 text-white hover:bg-white/10 hover:text-orange-400 rounded transition-colors" onClick={() => setIsMobileMenuOpen(false)}>Actualités</Link>
                 {/* <Link href="/magazine" className="block py-3 px-2 text-white hover:bg-white/10 hover:text-orange-400 rounded transition-colors" onClick={() => setIsMobileMenuOpen(false)}>Magazine WAXEHO</Link> */}
-                <Link href="/evenements" className="block py-3 px-2 text-white hover:bg-white/10 hover:text-orange-400 rounded transition-colors" onClick={() => setIsMobileMenuOpen(false)}>Salons & Événements</Link>
-                <Link href="/partenaires" className="block py-3 px-2 text-white hover:bg-white/10 hover:text-orange-400 rounded transition-colors" onClick={() => setIsMobileMenuOpen(false)}>Partenaires & Annonceurs</Link>
+                <Link href="/evenements" className="block py-3 px-2 text-white hover:bg-white/10 hover:text-orange-400 rounded transition-colors" onClick={() => setIsMobileMenuOpen(false)}>Événements</Link>
+                <Link href="/partenaires" className="block py-3 px-2 text-white hover:bg-white/10 hover:text-orange-400 rounded transition-colors" onClick={() => setIsMobileMenuOpen(false)}>Partenaires</Link>
                 <Link href="/destinations" className="block py-3 px-2 text-white hover:bg-white/10 hover:text-orange-400 rounded transition-colors" onClick={() => setIsMobileMenuOpen(false)}>Destinations</Link>
-                <Link href="/videos" className="block py-3 px-2 text-white hover:bg-white/10 hover:text-orange-400 rounded transition-colors" onClick={() => setIsMobileMenuOpen(false)}>Vidéos / Web TV</Link>
+                <Link href="/videos" className="block py-3 px-2 text-white hover:bg-white/10 hover:text-orange-400 rounded transition-colors" onClick={() => setIsMobileMenuOpen(false)}>Vidéos</Link>
                 <Link href="/offres" className="block py-3 px-2 text-white hover:bg-white/10 hover:text-orange-400 rounded transition-colors" onClick={() => setIsMobileMenuOpen(false)}>Nos offres</Link>
-                <Link href="/contact" className="block py-3 px-2 text-white hover:bg-white/10 hover:text-orange-400 rounded transition-colors" onClick={() => setIsMobileMenuOpen(false)}>À propos / Contact</Link>
+                <Link href="/contact" className="block py-3 px-2 text-white hover:bg-white/10 hover:text-orange-400 rounded transition-colors" onClick={() => setIsMobileMenuOpen(false)}>À propos & Contact</Link>
                 
                 <div className="pt-4 border-t border-gray-700">
                   <Link href="/emploi" className="block w-full bg-[#FF9900] hover:bg-[#e68a00] text-[#001A4D] font-bold py-3 px-4 rounded-lg text-sm text-center transition-all shadow-md uppercase tracking-widest" onClick={() => setIsMobileMenuOpen(false)}>

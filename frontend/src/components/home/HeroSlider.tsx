@@ -109,7 +109,7 @@ const HeroSlider = () => {
                     href={`/magazine/${magazine.slug}`}
                     className="bg-white text-it-blue hover:bg-it-orange hover:text-white px-8 py-3 rounded-md font-bold transition-all flex items-center gap-2 group"
                   >
-                    Lire le magazine
+                    Lire l'actualité
                     <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
                   </Link>
                   <div className="flex items-center gap-2 text-white/80 text-sm">
