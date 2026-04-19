@@ -407,10 +407,10 @@ const SubBar = () => {
                         <div className="flex items-center justify-between mb-3">
                           <p className="text-[#D97706] font-extrabold text-[10px] uppercase tracking-tight flex items-center gap-1">
                             <BookOpen size={10} />
-                            Magazines — {category}
+                            Actualités Récentes — {category}
                           </p>
                           <Link
-                            href="/magazine"
+                            href="/actualites"
                             className="text-[9px] font-bold text-blue-600 flex items-center gap-0.5"
                             onClick={closeMobile}
                           >
