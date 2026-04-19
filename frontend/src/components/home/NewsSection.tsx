@@ -97,7 +97,7 @@ const NewsSection = () => {
                 </div>
 
                 <div className="flex items-center text-[#E67E22] font-bold text-[11px] uppercase tracking-[0.15em] mt-auto">
-                  Lire le magazine
+                  Lire l'actualité
                   <ExternalLink size={12} className="ml-1.5" />
                 </div>
               </div>

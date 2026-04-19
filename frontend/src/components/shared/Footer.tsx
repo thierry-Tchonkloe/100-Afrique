@@ -44,10 +44,11 @@ const Footer = () => {
             <h4 className="text-orange-400 font-bold text-lg mb-6 uppercase tracking-wider">Plan du Site</h4>
             <ul className="space-y-3 text-sm text-gray-300">
               <li><Link href="/actualites" className="hover:text-white transition-colors">Actualités du Tourisme</Link></li>
-              <li><Link href="/magazine" className="hover:text-white transition-colors">Magazine WAXEHO</Link></li>
               <li><Link href="/evenements" className="hover:text-white transition-colors">Salons & Événements</Link></li>
+              <li><Link href="/partenaires" className="hover:text-white transition-colors">Partenaires & Annonceurs</Link></li>
               <li><Link href="/destinations" className="hover:text-white transition-colors">Destinations Afrique & Monde</Link></li>
-              <li><Link href="/webtv" className="hover:text-white transition-colors">Vidéos / Web TV</Link></li>
+              <li><Link href="/videos" className="hover:text-white transition-colors">Vidéos / Web TV</Link></li>
+              <li><Link href="/offres" className="hover:text-white transition-colors">Nos offres</Link></li>
               <li><Link href="/emploi" className="hover:text-white transition-colors font-bold text-orange-400">Espace EMPLOI</Link></li>
             </ul>
           </div>
@@ -57,9 +58,11 @@ const Footer = () => {
             <h4 className="text-orange-400 font-bold text-lg mb-6 uppercase tracking-wider">Secteurs</h4>
             <ul className="space-y-3 text-sm text-gray-300">
               <li><Link href="/categories/hotellerie" className="hover:text-white transition-colors">Hôtellerie</Link></li>
-              <li><Link href="/categories/transport" className="hover:text-white transition-colors">Transport & Mobilité</Link></li>
+              <li><Link href="/categories/transport" className="hover:text-white transition-colors">Transport</Link></li>
               <li><Link href="/categories/restauration" className="hover:text-white transition-colors">Restauration</Link></li>
-              <li><Link href="/categories/mice" className="hover:text-white transition-colors">MICE & Événementiel</Link></li>
+              <li><Link href="/categories/voyages" className="hover:text-white transition-colors">Voyages d'Affaires</Link></li>
+              <li><Link href="/categories/mice" className="hover:text-white transition-colors">MICE & Événements</Link></li>
+              <li><Link href="/categories/divertissement" className="hover:text-white transition-colors">Divertissement</Link></li>
               <li><Link href="/categories/durable" className="hover:text-white transition-colors">Tourisme Durable</Link></li>
             </ul>
           </div>
@@ -74,11 +77,11 @@ const Footer = () => {
               </li>
               <li className="flex items-center gap-3">
                 <Phone size={18} className="text-orange-400 shrink-0" />
-                <span>+229 XX XX XX XX</span>
+                <span>+229 01 97 44 80 97</span>
               </li>
               <li className="flex items-center gap-3">
                 <Mail size={18} className="text-orange-400 shrink-0" />
-                <span>contact@itourisme-nomade.com</span>
+                <span>contact@100-afrique.com</span>
               </li>
             </ul>
           </div>
@@ -87,7 +90,7 @@ const Footer = () => {
 
         {/* --- BARRE DE COPYRIGHT --- */}
         <div className="border-t border-white/10 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-gray-400">
-          <p>© {new Date().getFullYear()} WAXEHO et iTourisme TV. Tous droits réservés.</p>
+          <p>© {new Date().getFullYear()} 100% Afrique. Tous droits réservés.</p>
           <div className="flex gap-6">
             <Link href="/mentions-legales" className="hover:text-white">Mentions Légales</Link>
             <Link href="/confidentialite" className="hover:text-white">Politique de Confidentialité</Link>
