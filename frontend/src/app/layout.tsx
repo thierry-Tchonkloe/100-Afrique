@@ -4,7 +4,7 @@ import type { Metadata } from "next";
 import { AuthProvider } from '@/lib/AuthContext';
 
 export const metadata: Metadata = {
-    title: "iTourisme Nomade | Média du Tourisme International",
+    title: "100% Afrique | Média du Tourisme International",
     description: "Plateforme dédiée au tourisme international et africain.",
 };
 
