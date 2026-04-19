@@ -203,7 +203,7 @@ const LatestNews = ({ searchFilters }: { searchFilters?: any }) => {
 
       <div className="text-center mb-8 sm:mb-16">
         <h2 className="text-xl sm:text-2xl md:text-3xl font-serif font-bold text-[#001A4D] uppercase tracking-widest">
-          Magazines &amp; Revues — Explorer par source
+          Actualités — Explorer par source
         </h2>
       </div>
 
@@ -248,8 +248,8 @@ const LatestNews = ({ searchFilters }: { searchFilters?: any }) => {
             {magazines.length === 0 ? (
               <div className="py-20 text-center text-gray-400">
                 {searchFilters?.query || searchFilters?.region || searchFilters?.country || searchFilters?.topic
-                  ? 'Aucun magazine ne correspond à vos critères de recherche.'
-                  : 'Aucun magazine disponible pour le moment.'}
+                  ? 'Aucune actualité ne correspond à vos critères de recherche.'
+                  : 'Aucune actualité disponible pour le moment.'}
               </div>
             ) : (
               <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 sm:gap-6">

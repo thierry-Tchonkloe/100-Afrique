@@ -33,10 +33,10 @@ const VideoSection = () => {
       try {
         const res = await api.get('/mag/articles', {
           params: {
-            pageSize: 4,
+            pageSize: 3,          // ✅ 1 principale + 2 secondaires
             page: 1,
             status: 'PUBLISHED',
-            type: 'VIDEO',        // ✅ uniquement les articles de type VIDEO
+            type: 'VIDEO',
           },
         });
         setVideos(res.data.data ?? []);
@@ -58,15 +58,11 @@ const VideoSection = () => {
     );
   }
 
-  // Pas de vidéos : on n'affiche pas la section
-  if (videos.length === 0) {
-    return null;
-  }
+  if (videos.length === 0) return null;
 
   const mainVideo  = videos[0];
-  const sideVideos = videos.slice(1, 4);
+  const sideVideos = videos.slice(1, 3); // ✅ 2 vidéos secondaires
 
-  // Extrait l'URL YouTube/Vimeo depuis les blocs de contenu
   const getVideoUrl = (article: VideoArticle): string | null => {
     const block = article.content?.find((b) => b.type === 'video');
     return block?.url ?? null;
@@ -82,7 +78,7 @@ const VideoSection = () => {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-12">
 
-          {/* ── Vidéo principale ──────────────────────────────────────────── */}
+          {/* ── Vidéo principale ── */}
           <Link
             href={`/videos/${mainVideo.slug}`}
             className="lg:col-span-2 group relative overflow-hidden rounded-xl shadow-lg cursor-pointer bg-black"
@@ -95,7 +91,6 @@ const VideoSection = () => {
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent" />
 
-              {/* Bouton play central */}
               <div className="absolute inset-0 flex items-center justify-center">
                 <div className="w-24 h-24 bg-white/30 backdrop-blur-sm rounded-full flex items-center justify-center border-4 border-white/50">
                   <div className="w-16 h-16 bg-[#F39C12] rounded-full flex items-center justify-center shadow-xl group-hover:scale-110 transition-transform">
@@ -104,7 +99,6 @@ const VideoSection = () => {
                 </div>
               </div>
 
-              {/* Badge catégorie */}
               <span className="absolute top-4 left-4 bg-[#F39C12] text-white text-[10px] font-bold px-3 py-1.5 rounded uppercase tracking-wider">
                 {mainVideo.category?.name ?? 'Vidéo'}
               </span>
@@ -120,7 +114,7 @@ const VideoSection = () => {
             </div>
           </Link>
 
-          {/* ── Vidéos secondaires ────────────────────────────────────────── */}
+          {/* ── 2 Vidéos secondaires ── */}
           <div className="flex flex-col gap-4">
             {sideVideos.map((video) => (
               <Link
@@ -139,7 +133,6 @@ const VideoSection = () => {
                       <Play size={16} fill="white" className="text-white ml-0.5" />
                     </div>
                   </div>
-                  {/* Indicateur vidéo disponible */}
                   {getVideoUrl(video) && (
                     <span className="absolute bottom-2 right-2 bg-black/70 text-white text-[9px] font-bold px-2 py-0.5 rounded">
                       ▶ VIDÉO
