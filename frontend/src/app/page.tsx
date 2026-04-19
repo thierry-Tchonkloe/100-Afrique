@@ -30,7 +30,7 @@ export default function HomePage() {
           <HeroSlider />
           <NewsSection />
           <VideoSection />
-          <MagazineSection />
+          {/* <MagazineSection /> */}
           <EventsDestinationsSection />
           <ContactCTASection />
         </div>
