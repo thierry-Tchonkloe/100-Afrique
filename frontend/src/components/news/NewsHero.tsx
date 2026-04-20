@@ -62,10 +62,10 @@ const NewsHero = () => {
       <section className="bg-[#1A3A8A] py-8 sm:py-12 md:py-20 px-4">
         <div className="max-w-7xl mx-auto text-center">
           <h1 className="text-white text-2xl sm:text-4xl md:text-5xl font-bold uppercase tracking-tight mb-4">
-            Magazines &amp; Revues
+            Actualités du Tourisme
           </h1>
           <p className="text-gray-300 text-sm sm:text-base">
-            Aucun magazine disponible pour le moment
+            Aucune actualité disponible pour le moment
           </p>
         </div>
       </section>
@@ -83,7 +83,7 @@ const NewsHero = () => {
       <div className="max-w-7xl mx-auto">
 
         <h1 className="text-center text-white text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold uppercase tracking-tight mb-8 sm:mb-12 max-w-4xl mx-auto leading-tight">
-          Magazines &amp; Revues — Tourisme Africain et Mondial
+          Actualités — Tourisme Africain et Mondial
         </h1>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
