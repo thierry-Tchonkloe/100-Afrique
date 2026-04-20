@@ -1,3 +1,4 @@
+// src/components/Dashboard/StaticPage.tsx
 "use client";
 
 import { useState } from "react";

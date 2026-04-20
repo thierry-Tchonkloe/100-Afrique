@@ -1,3 +1,4 @@
+// src/app/(back-office)/contenus/page.tsx
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
