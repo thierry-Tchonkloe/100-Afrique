@@ -53,6 +53,24 @@ const nextConfig = {
       },
     ],
   },
+
+  async redirects() {
+    return [
+      // /secteurs (sans slug) → accueil
+      {
+        source:      '/secteurs',
+        destination: '/',
+        permanent:   false, // 307 — à passer à true (308) une fois stabilisé
+      },
+ 
+      // /magazine (sans slug) → accueil
+      {
+        source:      '/magazine',
+        destination: '/',
+        permanent:   false,
+      },
+    ];
+  },
 };
 
 export default nextConfig;
