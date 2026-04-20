@@ -1,3 +1,4 @@
+// src/app/(back-office)/publicites/page.tsx
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";

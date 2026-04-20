@@ -416,7 +416,7 @@
 
 
 
-
+// src/app/(back-office)/newsletter/page.tsx
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
