@@ -1,8 +1,8 @@
 'use client';
 
 import { Eye, Building2 } from 'lucide-react';
-import { updatePrivacy } from '../../services/parametres.service';
-import type { PrivacySettings, RecentAccess } from '../../types/parametres.types';
+import { updatePrivacy } from '../../../services/parametres.service';
+import type { PrivacySettings, RecentAccess } from '../../../types/parametres.types';
 
 function Toggle({ checked, onChange }: { checked: boolean; onChange: (v: boolean) => void }) {
   return (

@@ -3,9 +3,9 @@
 import { useState, useMemo } from 'react';
 import { Send, Clock, CalendarCheck, Search } from 'lucide-react';
 import { useCandidatures } from '@/hooks/useCandidatures';
-import KpiCard from '@/components/emploi/KpiCard';
-import ApplicationRow from '@/components/candidatures/ApplicationRow';
-import ApplicationDrawer from '@/components/candidatures/ApplicationDrawer';
+import KpiCard from '@/components/candidat/dashboard/KpiCard';
+import ApplicationRow from '@/components/candidat/candidatures/ApplicationRow';
+import ApplicationDrawer from '@/components/candidat/candidatures/ApplicationDrawer';
 import type { Application, FilterTab } from '@/types/candidatures.types';
 import clsx from 'clsx';
 

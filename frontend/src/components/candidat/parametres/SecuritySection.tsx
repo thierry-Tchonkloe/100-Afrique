@@ -2,9 +2,9 @@
 
 import { useState } from 'react';
 import { Lock, Eye, EyeOff, CheckCircle, AlertCircle } from 'lucide-react';
-import { updateEmail, changePassword, toggleTwoFactor } from '../../services/parametres.service';
-import type { PasswordStrength } from '../../types/parametres.types';
-import { STRENGTH_LABELS, STRENGTH_COLORS } from '../../types/parametres.types';
+import { updateEmail, changePassword, toggleTwoFactor } from '../../../services/parametres.service';
+import type { PasswordStrength } from '../../../types/parametres.types';
+import { STRENGTH_LABELS, STRENGTH_COLORS } from '../../../types/parametres.types';
 
 // ── Password strength scorer ──────────────────────────────────────────────────
 function scorePassword(p: string): PasswordStrength {

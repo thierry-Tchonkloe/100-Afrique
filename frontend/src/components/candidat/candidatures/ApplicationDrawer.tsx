@@ -3,9 +3,9 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { X, FileText, MessageCircle, AlertTriangle, CheckCircle, Eye, Send, Clock, Star, CalendarCheck } from 'lucide-react';
-import type { Application, ApplicationStatus, TimelineEvent } from '../../types/candidatures.types';
-import StatusBadge from '../emploi/StatusBadge';
-import { withdrawApplication } from '../../services/candidatures.service';
+import type { Application, ApplicationStatus, TimelineEvent } from '@/types/candidatures.types';
+import StatusBadge from '../dashboard/StatusBadge';
+import { withdrawApplication } from '@/services/candidatures.service';
 
 // ── Timeline ──────────────────────────────────────────────────────────────────
 

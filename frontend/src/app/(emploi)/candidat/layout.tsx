@@ -2,8 +2,8 @@
 'use client';
 
 import { useState } from 'react';
-import CandidatSidebar from '@/components/emploi/CandidatSidebar';
-import CandidatHeader from '@/components/emploi/CandidatHeader';
+import CandidatSidebar from '@/components/candidat/CandidatSidebar';
+import CandidatHeader from '@/components/candidat/CandidatHeader';
 
 export default function CandidatLayout({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
