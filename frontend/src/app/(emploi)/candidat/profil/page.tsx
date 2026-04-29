@@ -4,12 +4,12 @@
 import { useState, useEffect, useRef } from 'react';
 import { Save } from 'lucide-react';
 import { useProfil } from '@/hooks/useProfil';
-import SectionNav, { SECTIONS } from '@/components/profil/SectionNav';
-import IdentiteSection from '@/components/profil/IdentiteSection';
-import ExperiencesSection from '@/components/profil/ExperiencesSection';
-import FormationsSection from '@/components/profil/FormationsSection';
-import CompetencesSection from '@/components/profil/CompetencesSection';
-import { CvSection, VisibilitySection } from '@/components/profil/CvVisibilitySection';
+import SectionNav, { SECTIONS } from '@/components/candidat/profil/SectionNav';
+import IdentiteSection from '@/components/candidat/profil/IdentiteSection';
+import ExperiencesSection from '@/components/candidat/profil/ExperiencesSection';
+import FormationsSection from '@/components/candidat/profil/FormationsSection';
+import CompetencesSection from '@/components/candidat/profil/CompetencesSection';
+import { CvSection, VisibilitySection } from '@/components/candidat/profil/CvVisibilitySection';
 import type { CandidatProfil, AvailabilityOption } from '@/types/profil.types';
 
 export default function MonProfilPage() {

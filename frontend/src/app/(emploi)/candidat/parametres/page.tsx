@@ -1,10 +1,10 @@
 'use client';
 
 import { useSettings } from '@/hooks/useSettings';
-import SecuritySection from '@/components/parametres/SecuritySection';
-import PrivacySection from '@/components/parametres/PrivacySection';
-import { NotificationsSection, SocialSection } from '@/components/parametres/NotifSocialSections';
-import DangerZone from '@/components/parametres/DangerZone';
+import SecuritySection from '@/components/candidat/parametres/SecuritySection';
+import PrivacySection from '@/components/candidat/parametres/PrivacySection';
+import { NotificationsSection, SocialSection } from '@/components/candidat/parametres/NotifSocialSections';
+import DangerZone from '@/components/candidat/parametres/DangerZone';
 import type { CandidatSettings } from '@/types/parametres.types';
 
 // ── Skeleton loader ───────────────────────────────────────────────────────────

@@ -2,9 +2,9 @@
 'use client';
 
 import { ExternalLink } from 'lucide-react';
-import type { Application } from '../../types/candidatures.types';
-import StatusBadge from '../emploi/StatusBadge';
-import SectorIcon from '../emploi/SectorIcon';
+import type { Application } from '@/types/candidatures.types';
+import StatusBadge from '../dashboard/StatusBadge';
+import SectorIcon from '../dashboard/SectorIcon';
 
 function formatDate(iso: string): string {
   return new Date(iso).toLocaleDateString('fr-FR', {

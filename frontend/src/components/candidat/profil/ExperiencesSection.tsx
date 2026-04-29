@@ -7,7 +7,7 @@ import {
   createExperience,
   updateExperience,
   deleteExperience,
-} from '../../services/profil.service';
+} from '../../../services/profil.service';
 import type { Experience, ContractType } from '@/types/profil.types';
 import { CONTRACT_TYPES } from '@/types/profil.types';
 

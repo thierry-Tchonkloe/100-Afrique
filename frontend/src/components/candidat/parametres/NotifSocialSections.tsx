@@ -2,8 +2,8 @@
 
 import Link from 'next/link';
 import { Mail, Linkedin, ArrowRight } from 'lucide-react';
-import { updateNotifications, linkLinkedIn } from '../../services/parametres.service';
-import type { NotificationPrefs, SocialIntegrations } from '../../types/parametres.types';
+import { updateNotifications, linkLinkedIn } from '../../../services/parametres.service';
+import type { NotificationPrefs, SocialIntegrations } from '../../../types/parametres.types';
 
 function Toggle({
   checked, onChange, disabled,
