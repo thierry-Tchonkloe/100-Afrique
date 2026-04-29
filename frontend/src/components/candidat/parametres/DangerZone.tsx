@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { AlertTriangle, Download, PauseCircle, X } from 'lucide-react';
-import { pauseAccount, exportData, deleteAccount } from '../../services/parametres.service';
+import { pauseAccount, exportData, deleteAccount } from '../../../services/parametres.service';
 
 // ── Delete Confirmation Modal ─────────────────────────────────────────────────
 function DeleteModal({

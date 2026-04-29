@@ -10,9 +10,9 @@ import {
   toggleAlerte,
   deleteAlerte,
 } from '@/services/alertes.service';
-import AlerteCard from '@/components/alertes/AlerteCard';
-import AlerteModal from '@/components/alertes/AlerteModal';
-import AlertesSkeleton from '@/components/alertes/AlertesSkeleton';
+import AlerteCard from '@/components/candidat/alertes/AlerteCard';
+import AlerteModal from '@/components/candidat/alertes/AlerteModal';
+import AlertesSkeleton from '@/components/candidat/alertes/AlertesSkeleton';
 import type { AlerteJob, AlerteFormData } from '@/types/alertes.types';
 
 export default function MesAlertesPage() {

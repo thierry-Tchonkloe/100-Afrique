@@ -9,7 +9,7 @@ import {
   HARD_SKILLS_SUGGESTIONS,
   SOFT_SKILLS_OPTIONS,
   LANGUAGE_LEVELS,
-} from '../../types/profil.types';
+} from '../../../types/profil.types';
 
 interface Props {
   hardSkills: string[];

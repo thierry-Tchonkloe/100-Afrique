@@ -1,5 +1,5 @@
 // src/components/emploi/StatusBadge.tsx
-import type { ApplicationStatus } from '../../types/candidatures.types';
+import type { ApplicationStatus } from '@/types/candidatures.types';
 import clsx from 'clsx';
 import { Send, Eye, Clock, CalendarCheck, X, Star } from 'lucide-react';
 

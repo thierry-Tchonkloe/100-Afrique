@@ -15,11 +15,11 @@ import {
 } from 'lucide-react';
 import { useCandidatDashboard } from '@/hooks/useCandidatDashboard';
 import { applyToJob } from '@/services/emploi.service';
-import ProfileStrengthRing from '@/components/emploi/ProfileStrengthRing';
-import KpiCard from '@/components/emploi/KpiCard';
-import StatusBadge from '@/components/emploi/StatusBadge';
-import SectorIcon from '@/components/emploi/SectorIcon';
-import NotificationItem from '@/components/emploi/NotificationItem';
+import ProfileStrengthRing from '@/components/candidat/dashboard/ProfileStrengthRing';
+import KpiCard from '@/components/candidat/dashboard/KpiCard';
+import StatusBadge from '@/components/candidat/dashboard/StatusBadge';
+import SectorIcon from '@/components/candidat/dashboard/SectorIcon';
+import NotificationItem from '@/components/candidat/dashboard/NotificationItem';
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
