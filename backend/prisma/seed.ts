@@ -1,6 +1,7 @@
 // prisma/seed.ts
 import { PrismaClient, BannerType, BannerStatus } from '@prisma/client';
 import bcrypt from 'bcrypt';
+import { seedEmploi } from './seed-emploi';
 
 const prisma = new PrismaClient();
 
@@ -1255,6 +1256,11 @@ async function seedAdSpaces() {
     articlesPublished: await prisma.article.count({ where: { status: 'PUBLISHED' } }),
     newsletterSubscribers: await prisma.newsletterSubscriber.count(),
   };
+
+  // ── Seed Emploi (nouveau) ─────────────────────────────────────────────────
+  await seedEmploi();
+ 
+  console.log('\n✅ Seed complet terminé.');
 
   console.log(`
   👤 Utilisateurs: ${stats.users}
