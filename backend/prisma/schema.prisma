@@ -419,3 +419,310 @@ enum BannerStatus {
     FUTUR
     EXPIRE
 }
+
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// SOUS-UNIVERS EMPLOI
+// ═══════════════════════════════════════════════════════════════════════════════
+
+// ── 1. Utilisateur Emploi ─────────────────────────────────────────────────────
+
+model EmploiUser {
+  id        Int        @id @default(autoincrement())
+  email     String     @unique
+  password  String
+  firstName String
+  lastName  String
+  avatar    String?
+  role      EmploiRole @default(CANDIDAT)
+  isActive  Boolean    @default(true)
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  candidatProfil CandidatProfil?
+  applications   Application[]
+  alertes        AlerteJob[]
+  notifications  EmploiNotification[]
+  settings       EmploiSettings?
+  etablissements RecruteurEtablissement[]
+
+  @@map("emploi_users")
+}
+
+enum EmploiRole {
+  CANDIDAT
+  RECRUITER
+}
+
+// ── 2. Établissement & Recruteur ──────────────────────────────────────────────
+
+model Etablissement {
+  id        Int      @id @default(autoincrement())
+  name      String
+  sector    String
+  city      String
+  logo      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  recruteurs   RecruteurEtablissement[]
+  offres       Offre[]
+  vitrine      Vitrine?
+  applications Application[]
+
+  @@map("etablissements")
+}
+
+model RecruteurEtablissement {
+  id              Int           @id @default(autoincrement())
+  userId          Int
+  etablissementId Int
+  isDefault       Boolean       @default(false)
+  user            EmploiUser    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  etablissement   Etablissement @relation(fields: [etablissementId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, etablissementId])
+  @@map("recruteur_etablissements")
+}
+
+// ── 3. Profil Candidat ────────────────────────────────────────────────────────
+
+model CandidatProfil {
+  id              Int        @id @default(autoincrement())
+  userId          Int        @unique
+  user            EmploiUser @relation(fields: [userId], references: [id], onDelete: Cascade)
+  headline        String?
+  city            String?
+  mobility        String?
+  bio             String?    @db.Text
+  avatar          String?
+  hardSkills      Json       @default("[]")
+  softSkills      Json       @default("[]")
+  languages       Json       @default("[]")
+  isVisible       Boolean    @default(true)
+  availability    String     @default("immediate")
+  profileStrength Int        @default(0)
+  cvFileName      String?
+  cvFileUrl       String?
+  cvUpdatedAt     DateTime?
+  experiences     Experience[]
+  formations      Formation[]
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+
+  @@map("candidat_profils")
+}
+
+model Experience {
+  id           Int            @id @default(autoincrement())
+  profilId     Int
+  profil       CandidatProfil @relation(fields: [profilId], references: [id], onDelete: Cascade)
+  jobTitle     String
+  companyName  String
+  location     String?
+  startDate    String
+  endDate      String?
+  contractType String         @default("CDI")
+  missions     Json           @default("[]")
+  sortOrder    Int            @default(0)
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+
+  @@index([profilId])
+  @@map("experiences")
+}
+
+model Formation {
+  id        Int            @id @default(autoincrement())
+  profilId  Int
+  profil    CandidatProfil @relation(fields: [profilId], references: [id], onDelete: Cascade)
+  diploma   String
+  school    String
+  year      String
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+
+  @@index([profilId])
+  @@map("formations")
+}
+
+// ── 4. Offres d'emploi ────────────────────────────────────────────────────────
+
+model Offre {
+  id                Int           @id @default(autoincrement())
+  etablissementId   Int
+  etablissement     Etablissement @relation(fields: [etablissementId], references: [id], onDelete: Cascade)
+  title             String
+  sector            String
+  contractType      String
+  location          String
+  salaryMin         Int?
+  salaryMax         Int?
+  remote            String        @default("none")
+  missions          String?       @db.Text
+  profileDesc       String?       @db.Text
+  advantages        String?       @db.Text
+  requiredSkills    Json          @default("[]")
+  requiredLangs     Json          @default("[]")
+  requiredSoftwares Json          @default("[]")
+  status            OffreStatus   @default(DRAFT)
+  isPremium         Boolean       @default(false)
+  views             Int           @default(0)
+  publishedAt       DateTime?
+  expiresAt         DateTime?
+  applications      Application[]
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+
+  @@index([etablissementId])
+  @@index([status])
+  @@index([sector])
+  @@index([location])
+  @@map("offres")
+}
+
+enum OffreStatus {
+  DRAFT
+  ACTIVE
+  PAUSED
+  ARCHIVED
+}
+
+// ── 5. Candidatures ───────────────────────────────────────────────────────────
+
+model Application {
+  id              Int               @id @default(autoincrement())
+  userId          Int
+  user            EmploiUser        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  offreId         Int
+  offre           Offre             @relation(fields: [offreId], references: [id], onDelete: Cascade)
+  etablissementId Int
+  etablissement   Etablissement     @relation(fields: [etablissementId], references: [id], onDelete: Cascade)
+  status          ApplicationStatus @default(SENT)
+  matchScore      Int               @default(0)
+  isRead          Boolean           @default(false)
+  isFavorite      Boolean           @default(false)
+  recruiterNotes  String?           @db.Text
+  timeline        Json              @default("[]")
+  appliedAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+
+  @@unique([userId, offreId])
+  @@index([userId])
+  @@index([offreId])
+  @@index([etablissementId])
+  @@index([status])
+  @@map("applications")
+}
+
+enum ApplicationStatus {
+  PENDING
+  SENT
+  VIEWED
+  IN_PROGRESS
+  SELECTED
+  INTERVIEW
+  ACCEPTED
+  REFUSED
+  ARCHIVED
+}
+
+// ── 6. Alertes Job ────────────────────────────────────────────────────────────
+
+model AlerteJob {
+  id            Int        @id @default(autoincrement())
+  userId        Int
+  user          EmploiUser @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name          String
+  keywords      Json       @default("[]")
+  location      String?
+  radius        Int?
+  contractTypes Json       @default("[]")
+  sector        String?
+  frequency     AlerteFreq @default(DAILY)
+  isActive      Boolean    @default(true)
+  lastSentAt    DateTime?
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+
+  @@index([userId])
+  @@map("alerte_jobs")
+}
+
+enum AlerteFreq {
+  REALTIME
+  DAILY
+  WEEKLY
+}
+
+// ── 7. Vitrine Entreprise ─────────────────────────────────────────────────────
+
+model Vitrine {
+  id              Int           @id @default(autoincrement())
+  etablissementId Int           @unique
+  etablissement   Etablissement @relation(fields: [etablissementId], references: [id], onDelete: Cascade)
+  logoUrl         String?
+  bannerUrl       String?
+  slogan          String?       @db.Text
+  location        String?
+  sector          String?
+  aboutUs         String?       @db.Text
+  kpis            Json          @default("[]")
+  values          Json          @default("[]")
+  perks           Json          @default("[]")
+  photos          Json          @default("[]")
+  videos          Json          @default("[]")
+  socials         Json          @default("{}")
+  completionScore Int           @default(0)
+  views           Int           @default(0)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  @@map("vitrines")
+}
+
+// ── 8. Notifications ──────────────────────────────────────────────────────────
+
+model EmploiNotification {
+  id          Int        @id @default(autoincrement())
+  userId      Int
+  user        EmploiUser @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type        NotifType
+  title       String
+  description String
+  isRead      Boolean    @default(false)
+  relatedId   String?
+  createdAt   DateTime   @default(now())
+
+  @@index([userId])
+  @@index([isRead])
+  @@map("emploi_notifications")
+}
+
+enum NotifType {
+  NEW_OFFER
+  PROFILE_VIEWED
+  APPLICATION_ACCEPTED
+  APPLICATION_REFUSED
+  NEW_APPLICATION
+}
+
+// ── 9. Paramètres Compte ──────────────────────────────────────────────────────
+
+model EmploiSettings {
+  id                Int        @id @default(autoincrement())
+  userId            Int        @unique
+  user              EmploiUser @relation(fields: [userId], references: [id], onDelete: Cascade)
+  twoFactorEnabled  Boolean    @default(false)
+  profileVisible    Boolean    @default(true)
+  hideLastName      Boolean    @default(false)
+  hidePhoto         Boolean    @default(false)
+  hideContactInfo   Boolean    @default(false)
+  newsletter        Boolean    @default(true)
+  serviceAlerts     Boolean    @default(true)
+  linkedinConnected Boolean    @default(false)
+  linkedinEmail     String?
+  updatedAt         DateTime   @updatedAt
+
+  @@map("emploi_settings")
+}
