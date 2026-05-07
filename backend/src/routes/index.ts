@@ -465,6 +465,11 @@ import advertisingAdminRoutes from './admin/advertising.routes';
 import advertisingPublicRouter from "./advertising.public.routes";
 import rssScraperRoutes from './rss-scraper.routes';
 import rssScraperAdminRoutes from "./rss-scraper.admin.routes";
+
+// ========================================
+// ROUTES EMPLOI (NOUVEAU)
+// ========================================
+import emploiRoutes from './emploi/index';
  
 const router = Router();
  
@@ -699,6 +704,20 @@ router.use("/advertising", advertisingPublicRouter);
 * PUT  /api/admin/scraper/:id/status - Mettre à jour statut magazine (ADMIN)
 */
 router.use("/admin/scraper", rssScraperAdminRoutes);
+
+// ========================================
+// ROUTES EMPLOI
+// Préfixe: /api/emploi
+// Auth:    POST /api/emploi/auth/register
+//          POST /api/emploi/auth/login
+//          GET  /api/emploi/auth/me
+// Candidat: /api/emploi/candidat/**
+// Recruteur: /api/emploi/recruteur/**
+// Public:   GET /api/emploi/jobs
+//           GET /api/emploi/jobs/:id
+//           GET /api/emploi/vitrines/:etablissementId
+// ========================================
+router.use('/emploi', emploiRoutes);
  
 // ========================================
 // ROUTE DE BIENVENUE / DOCUMENTATION
@@ -849,6 +868,53 @@ router.get('/', (_req, res) => {
         thirdPartyCodes: {
           get: 'GET /api/admin/advertising/third-party',
           upsert: 'PUT /api/admin/advertising/third-party',
+        },
+      },
+      emploi: {
+        auth: {
+          register:       'POST /api/emploi/auth/register',
+          login:          'POST /api/emploi/auth/login',
+          me:             'GET  /api/emploi/auth/me',
+          changePassword: 'PATCH /api/emploi/auth/password',
+        },
+        public: {
+          jobs:     'GET /api/emploi/jobs',
+          job:      'GET /api/emploi/jobs/:id',
+          vitrine:  'GET /api/emploi/vitrines/:etablissementId',
+        },
+        candidat: {
+          dashboard:    'GET   /api/emploi/candidat/dashboard',
+          profil:       'GET   /api/emploi/candidat/profil',
+          updateProfil: 'PATCH /api/emploi/candidat/profil/identity',
+          skills:       'PATCH /api/emploi/candidat/profil/skills',
+          visibility:   'PATCH /api/emploi/candidat/profil/visibility',
+          avatar:       'POST  /api/emploi/candidat/profil/avatar',
+          cv:           'POST  /api/emploi/candidat/profil/cv',
+          experiences:  'POST  /api/emploi/candidat/profil/experiences',
+          formations:   'POST  /api/emploi/candidat/profil/formations',
+          applications: 'GET   /api/emploi/candidat/applications',
+          apply:        'POST  /api/emploi/candidat/applications',
+          withdraw:     'DELETE /api/emploi/candidat/applications/:id',
+          suggestions:  'GET   /api/emploi/candidat/suggestions',
+          alertes:      'GET   /api/emploi/candidat/alertes',
+          notifications:'GET   /api/emploi/candidat/notifications',
+          settings:     'GET   /api/emploi/candidat/settings',
+        },
+        recruteur: {
+          profile:        'GET   /api/emploi/recruteur/profile',
+          switchEtab:     'PATCH /api/emploi/recruteur/profile/etablissement',
+          dashboard:      'GET   /api/emploi/recruteur/dashboard',
+          offres:         'GET   /api/emploi/recruteur/offres',
+          createOffre:    'POST  /api/emploi/recruteur/offres',
+          updateOffre:    'PATCH /api/emploi/recruteur/offres/:id',
+          offreStatus:    'PATCH /api/emploi/recruteur/offres/:id/status',
+          duplicateOffre: 'POST  /api/emploi/recruteur/offres/:id/duplicate',
+          vitrine:        'GET   /api/emploi/recruteur/vitrine',
+          updateVitrine:  'PATCH /api/emploi/recruteur/vitrine',
+          candidatures:   'GET   /api/emploi/recruteur/candidatures',
+          updateStatus:   'PATCH /api/emploi/recruteur/candidatures/:id/status',
+          notes:          'PATCH /api/emploi/recruteur/candidatures/:id/notes',
+          message:        'POST  /api/emploi/recruteur/candidatures/:id/message',
         },
       },
     },
