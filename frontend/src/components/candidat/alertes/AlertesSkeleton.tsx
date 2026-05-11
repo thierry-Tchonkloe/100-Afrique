@@ -1,4 +1,4 @@
-// src/components/alertes/AlertesSkeleton.tsx
+// src/components/candidat/alertes/AlertesSkeleton.tsx
 export default function AlertesSkeleton() {
   return (
     <div className="space-y-4">

@@ -15,9 +15,11 @@ import { CONTRACT_TYPES } from '@/types/profil.types';
 
 function formatPeriod(exp: Experience): string {
   const fmt = (d: string) => {
+    if (!d || !d.includes('-')) return d || '—';
     const [y, m] = d.split('-');
     const months = ['Jan','Fév','Mars','Avr','Mai','Juin','Juil','Août','Sep','Oct','Nov','Déc'];
-    return `${months[parseInt(m) - 1]} ${y}`;
+    const monthIndex = parseInt(m) - 1;
+    return `${months[monthIndex] ?? m} ${y}`;
   };
   return `${fmt(exp.startDate)} • ${exp.endDate ? fmt(exp.endDate) : 'En poste'} • ${exp.contractType}`;
 }
@@ -157,10 +159,12 @@ export default function ExperiencesSection({ experiences, onChange }: ExpSection
 
   async function handleAdd(data: Omit<Experience, 'id'>) {
     try {
-      const created = await createExperience(data);
-      onChange([created, ...experiences]);
+      const raw = await createExperience(data);
+      // L'API retourne { success, data } — unwrap si nécessaire
+      const created = (raw as any)?.data ?? raw;
+      onChange([{ ...created, missions: created.missions ?? [] }, ...experiences]);
     } catch {
-      const mock = { ...data, id: `exp-${Date.now()}` };
+      const mock = { ...data, id: `exp-${Date.now()}`, missions: data.missions ?? [] };
       onChange([mock, ...experiences]);
     }
     setAdding(false);
@@ -225,9 +229,9 @@ export default function ExperiencesSection({ experiences, onChange }: ExpSection
                         {exp.companyName} • {exp.location}
                       </p>
                       <p className="text-xs text-gray-400 mt-0.5">{formatPeriod(exp)}</p>
-                      {exp.missions.length > 0 && (
+                      {(exp.missions ?? []).length > 0 && (
                         <ul className="mt-2 space-y-0.5">
-                          {exp.missions.map((m, i) => (
+                          {(exp.missions ?? []).map((m, i) => (
                             <li key={i} className="text-xs text-gray-600 flex items-start gap-1.5">
                               <span className="text-gray-400 mt-0.5">•</span>
                               {m}

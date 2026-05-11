@@ -26,8 +26,8 @@ emploiApi.interceptors.request.use((config) => {
 // ─── Dashboard ────────────────────────────────────────────────────────────────
 
 export async function fetchCandidatDashboard(): Promise<DashboardData> {
-  const { data } = await emploiApi.get<DashboardData>('/candidat/dashboard');
-  return data;
+  const { data } = await emploiApi.get<{ success: boolean; data: DashboardData }>('/candidat/dashboard');
+  return data.data;
 }
 
 // ─── Applications ─────────────────────────────────────────────────────────────
@@ -38,24 +38,22 @@ export async function fetchAllApplications(): Promise<Application[]> {
 }
 
 export async function applyToJob(jobId: string): Promise<{ message: string }> {
-  const { data } = await emploiApi.post('/candidat/applications', { jobId });
-  return data;
+  const { data } = await emploiApi.post<{ success: boolean; data: { message: string } }>('/candidat/applications', { jobId });
+  return data.data;
 }
 
 // ─── Suggestions ──────────────────────────────────────────────────────────────
 
 export async function fetchJobSuggestions(sector?: string): Promise<JobSuggestion[]> {
-  const { data } = await emploiApi.get<JobSuggestion[]>('/candidat/suggestions', {
-    params: { sector },
-  });
-  return data;
+  const { data } = await emploiApi.get<{ success: boolean; data: JobSuggestion[] }>('/candidat/suggestions', { params: { sector } });
+  return data.data;
 }
 
 // ─── Notifications ────────────────────────────────────────────────────────────
 
 export async function fetchNotifications(): Promise<CandidatNotification[]> {
-  const { data } = await emploiApi.get<CandidatNotification[]>('/candidat/notifications');
-  return data;
+  const { data } = await emploiApi.get<{ success: boolean; data: CandidatNotification[] }>('/candidat/notifications');
+  return data.data;
 }
 
 export async function markNotificationRead(id: string): Promise<void> {

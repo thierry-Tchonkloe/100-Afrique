@@ -106,10 +106,7 @@ export default function FormationsSection({ formations, onChange }: Props) {
                 <div className="flex items-start justify-between">
                   <div>
                     <p className="font-semibold text-gray-800 text-sm">{f.diploma}</p>
-                    <p className="text-xs text-gray-500 mt-0.5">{f.school} • {f.year && f.year.split('-')[0]}</p>
-                    {f.year && !f.year.includes('-') && (
-                      <p className="text-xs text-gray-400 mt-0.5">{f.year}</p>
-                    )}
+                    <p className="text-xs text-gray-500 mt-0.5">{f.school} • {f.year}</p>
                   </div>
                   <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition">
                     <button onClick={() => setEditingId(f.id)}

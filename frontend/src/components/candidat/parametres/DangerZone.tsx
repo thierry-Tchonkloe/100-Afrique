@@ -1,3 +1,4 @@
+// src/components/candidat/parametres/DangerZone.tsx
 'use client';
 
 import { useState } from 'react';

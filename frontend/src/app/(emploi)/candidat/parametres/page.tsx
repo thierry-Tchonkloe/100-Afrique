@@ -1,3 +1,4 @@
+// src/app/(emploi)/candidat/parametres/page.tsx
 'use client';
 
 import { useSettings } from '@/hooks/useSettings';

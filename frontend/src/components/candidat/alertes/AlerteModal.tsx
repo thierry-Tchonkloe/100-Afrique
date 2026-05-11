@@ -1,4 +1,4 @@
-// src/components/alertes/AlerteModal.tsx
+// src/components/candidat/alertes/AlerteModal.tsx
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
