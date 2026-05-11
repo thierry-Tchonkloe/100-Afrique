@@ -25,10 +25,22 @@ export default function MesAlertesPage() {
   async function handleCreate(data: AlerteFormData) {
     setSaving(true);
     try {
-      const created = await createAlerte(data);
+      const raw = await createAlerte(data);
+      // Garantir que l'objet retourné est complet même si l'API fail partiellement
+      const created: AlerteJob = {
+        id:            raw.id            ?? `alert-${Date.now()}`,
+        name:          raw.name          ?? data.name,
+        keywords:      raw.keywords      ?? data.keywords      ?? [],
+        location:      raw.location      ?? data.location      ?? '',
+        contractTypes: raw.contractTypes ?? data.contractTypes ?? [],
+        sector:        raw.sector        ?? data.sector        ?? '',
+        frequency:     raw.frequency     ?? data.frequency     ?? 'daily',
+        isActive:      raw.isActive      ?? data.isActive      ?? true,
+        createdAt:     raw.createdAt     ?? new Date().toISOString(),
+        lastSentAt:    raw.lastSentAt,
+      };
       setAlertes((prev) => [created, ...prev]);
     } catch {
-      // Optimistic fallback
       const mock: AlerteJob = {
         ...data,
         id: `alert-${Date.now()}`,

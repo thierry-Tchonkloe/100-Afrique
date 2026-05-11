@@ -141,14 +141,15 @@ export function VisibilitySection({ isVisible, availability, onChange }: Visibil
           </p>
         </div>
         <button
+          type="button"
           onClick={() => setLocalVisible((v) => !v)}
-          className={`relative w-12 h-6 rounded-full transition-colors flex-shrink-0 ${
+          className={`relative inline-flex items-center w-12 h-6 rounded-full transition-colors flex-shrink-0 cursor-pointer ${
             localVisible ? 'bg-[#E8622A]' : 'bg-gray-200'
           }`}
         >
           <span
-            className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${
-              localVisible ? 'translate-x-6' : 'translate-x-0.5'
+            className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow-sm transition-transform duration-200 ${
+              localVisible ? 'translate-x-6' : 'translate-x-0'
             }`}
           />
         </button>

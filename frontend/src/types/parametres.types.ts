@@ -1,3 +1,4 @@
+// src/types/parametres.types.ts
 // ─── Account Settings ─────────────────────────────────────────────────────────
 
 export interface AccountSettings {

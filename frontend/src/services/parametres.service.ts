@@ -1,3 +1,4 @@
+// src/services/parametres.service.ts
 import axios from 'axios';
 import type {
   CandidatSettings,
@@ -8,54 +9,75 @@ import type {
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:5000/api';
 
+// ── Instance candidat settings ─────────────────────────────────────────────
 const api = axios.create({
   baseURL: `${BASE_URL}/emploi/candidat`,
   withCredentials: true,
 });
 
-api.interceptors.request.use((config) => {
+// ── Instance auth (pour changer le mot de passe) ───────────────────────────
+const authApi = axios.create({
+  baseURL: `${BASE_URL}/emploi/auth`,
+  withCredentials: true,
+});
+
+function attachToken(config: any) {
   if (typeof window !== 'undefined') {
     const token = localStorage.getItem('emploi_token');
     if (token) config.headers.Authorization = `Bearer ${token}`;
   }
   return config;
-});
-
-// ─── Fetch all settings ───────────────────────────────────────────────────────
-export async function fetchSettings(): Promise<CandidatSettings> {
-  const { data } = await api.get<CandidatSettings>('/settings');
-  return data;
 }
 
-// ─── Email ────────────────────────────────────────────────────────────────────
+api.interceptors.request.use(attachToken);
+authApi.interceptors.request.use(attachToken);
+
+// ─── Fetch all settings ──────────────────────────────────────────────────────
+export async function fetchSettings(): Promise<CandidatSettings> {
+  const { data } = await api.get<{ success: boolean; data: CandidatSettings }>('/settings');
+  return data.data;
+}
+
+// ─── Email ───────────────────────────────────────────────────────────────────
+// Route backend : PATCH /api/emploi/candidat/settings/email
 export async function updateEmail(email: string, currentPassword: string): Promise<void> {
   await api.patch('/settings/email', { email, currentPassword });
 }
 
-// ─── Password ─────────────────────────────────────────────────────────────────
+// ─── Password ────────────────────────────────────────────────────────────────
+// Route backend : PATCH /api/emploi/auth/password  ← correction ici
 export async function changePassword(payload: ChangePasswordPayload): Promise<void> {
-  await api.patch('/settings/password', payload);
+  await authApi.patch('/password', {
+    currentPassword: payload.currentPassword,
+    newPassword:     payload.newPassword,
+  });
 }
 
-// ─── 2FA ──────────────────────────────────────────────────────────────────────
+// ─── 2FA ─────────────────────────────────────────────────────────────────────
+// Route backend : PATCH /api/emploi/candidat/settings/2fa
 export async function toggleTwoFactor(enabled: boolean): Promise<void> {
   await api.patch('/settings/2fa', { enabled });
 }
 
-// ─── Privacy ──────────────────────────────────────────────────────────────────
+// ─── Privacy ─────────────────────────────────────────────────────────────────
+// Route backend : PATCH /api/emploi/candidat/settings/privacy
 export async function updatePrivacy(payload: Partial<PrivacySettings>): Promise<void> {
   await api.patch('/settings/privacy', payload);
 }
 
-// ─── Notifications ────────────────────────────────────────────────────────────
+// ─── Notifications ───────────────────────────────────────────────────────────
+// Route backend : PATCH /api/emploi/candidat/settings/notifications
 export async function updateNotifications(payload: Partial<NotificationPrefs>): Promise<void> {
   await api.patch('/settings/notifications', payload);
 }
 
-// ─── LinkedIn ─────────────────────────────────────────────────────────────────
+// ─── LinkedIn ────────────────────────────────────────────────────────────────
+// Route backend : POST /api/emploi/candidat/settings/linkedin/link
 export async function linkLinkedIn(): Promise<{ authUrl: string }> {
-  const { data } = await api.post<{ authUrl: string }>('/settings/linkedin/link');
-  return data;
+  const { data } = await api.post<{ success: boolean; data: { authUrl: string } }>(
+    '/settings/linkedin/link'
+  );
+  return data.data ?? (data as unknown as { authUrl: string });
 }
 
 export async function unlinkLinkedIn(): Promise<void> {
@@ -63,17 +85,116 @@ export async function unlinkLinkedIn(): Promise<void> {
 }
 
 // ─── Danger zone ─────────────────────────────────────────────────────────────
+// Route backend : PATCH /api/emploi/candidat/settings/pause
 export async function pauseAccount(): Promise<void> {
   await api.patch('/settings/pause');
 }
 
+// Route backend : GET /api/emploi/candidat/settings/export
 export async function exportData(): Promise<Blob> {
   const { data } = await api.get('/settings/export', { responseType: 'blob' });
   return data;
 }
 
+// Route backend : DELETE /api/emploi/candidat/settings/account
 export async function deleteAccount(password: string): Promise<void> {
   await api.delete('/settings/account', { data: { password } });
 }
 
 export default api;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// // src/services/parametres.service.ts
+// import axios from 'axios';
+// import type {
+//   CandidatSettings,
+//   ChangePasswordPayload,
+//   PrivacySettings,
+//   NotificationPrefs,
+// } from '../types/parametres.types';
+
+// const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:5000/api';
+
+// const api = axios.create({
+//   baseURL: `${BASE_URL}/emploi/candidat`,
+//   withCredentials: true,
+// });
+
+// api.interceptors.request.use((config) => {
+//   if (typeof window !== 'undefined') {
+//     const token = localStorage.getItem('emploi_token');
+//     if (token) config.headers.Authorization = `Bearer ${token}`;
+//   }
+//   return config;
+// });
+
+// // ─── Fetch all settings ───────────────────────────────────────────────────────
+// export async function fetchSettings(): Promise<CandidatSettings> {
+//   const { data } = await api.get<{ success: boolean; data: CandidatSettings }>('/settings');
+//   return data.data;
+// }
+
+// // ─── Email ────────────────────────────────────────────────────────────────────
+// export async function updateEmail(email: string, currentPassword: string): Promise<void> {
+//   await api.patch('/settings/email', { email, currentPassword });
+// }
+
+// // ─── Password ─────────────────────────────────────────────────────────────────
+// export async function changePassword(payload: ChangePasswordPayload): Promise<void> {
+//   await api.patch('/settings/password', payload);
+// }
+
+// // ─── 2FA ──────────────────────────────────────────────────────────────────────
+// export async function toggleTwoFactor(enabled: boolean): Promise<void> {
+//   await api.patch('/settings/2fa', { enabled });
+// }
+
+// // ─── Privacy ──────────────────────────────────────────────────────────────────
+// export async function updatePrivacy(payload: Partial<PrivacySettings>): Promise<void> {
+//   await api.patch('/settings/privacy', payload);
+// }
+
+// // ─── Notifications ────────────────────────────────────────────────────────────
+// export async function updateNotifications(payload: Partial<NotificationPrefs>): Promise<void> {
+//   await api.patch('/settings/notifications', payload);
+// }
+
+// // ─── LinkedIn ─────────────────────────────────────────────────────────────────
+// export async function linkLinkedIn(): Promise<{ authUrl: string }> {
+//   const { data } = await api.post<{ authUrl: string }>('/settings/linkedin/link');
+//   return data;
+// }
+
+// export async function unlinkLinkedIn(): Promise<void> {
+//   await api.delete('/settings/linkedin');
+// }
+
+// // ─── Danger zone ─────────────────────────────────────────────────────────────
+// export async function pauseAccount(): Promise<void> {
+//   await api.patch('/settings/pause');
+// }
+
+// export async function exportData(): Promise<Blob> {
+//   const { data } = await api.get('/settings/export', { responseType: 'blob' });
+//   return data;
+// }
+
+// export async function deleteAccount(password: string): Promise<void> {
+//   await api.delete('/settings/account', { data: { password } });
+// }
+
+// export default api;
