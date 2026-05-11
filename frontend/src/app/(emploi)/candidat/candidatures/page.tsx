@@ -1,3 +1,4 @@
+// src/app/(emploi)/candidat/candidatures/page.tsx
 'use client';
 
 import { useState, useMemo } from 'react';

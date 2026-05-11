@@ -77,7 +77,16 @@ export default function CandidatDashboardPage() {
 
   if (!data) return null;
 
-  const { profile, stats, recentApplications, suggestions, notifications } = data;
+  const {
+    profile,
+    stats            = { applicationsCount: 0, profileViews: 0, savedJobsCount: 0, activeAlertsCount: 0 },
+    recentApplications = [],
+    suggestions        = [],
+    notifications      = [],
+  } = data;
+
+  // Guard supplémentaire si profile lui-même est undefined
+  if (!profile) return null;
 
   return (
     <div className="p-6 max-w-6xl mx-auto space-y-6">

@@ -77,7 +77,7 @@ export default function IdentiteSection({ profil, onChange }: IdentiteProps) {
               <img src={avatarPreview} alt="avatar" className="w-full h-full object-cover" />
             ) : (
               <div className="w-full h-full flex items-center justify-center text-gray-400 text-3xl font-bold">
-                {profil.firstName[0]}{profil.lastName[0]}
+                {profil.firstName?.[0] ?? '?'}{profil.lastName?.[0] ?? ''}
               </div>
             )}
             <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">

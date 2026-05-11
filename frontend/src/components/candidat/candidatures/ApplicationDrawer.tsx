@@ -151,7 +151,7 @@ export default function ApplicationDrawer({ application, onClose, onWithdrawn }:
                 <div>
                   {application.timeline.map((event, i) => (
                     <TimelineItem
-                      key={event.id}
+                      key={`${event.status}-${event.date}-${i}`}
                       event={event}
                       isLast={i === application.timeline.length - 1}
                     />

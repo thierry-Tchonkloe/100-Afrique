@@ -1,3 +1,4 @@
+// src/services/candidatures.service.ts
 import axios from 'axios';
 
 // ─── Re-exported Types (fixes "has no exported member" errors) ────────────────
@@ -91,8 +92,8 @@ api.interceptors.request.use((config) => {
 // ─── Exported functions ───────────────────────────────────────────────────────
 
 export async function fetchApplications(): Promise<ApplicationsResponse> {
-  const { data } = await api.get<ApplicationsResponse>('/applications');
-  return data;
+  const { data } = await api.get<{ success: boolean; data: ApplicationsResponse }>('/applications');
+  return data.data;
 }
 
 export async function fetchApplicationById(id: string): Promise<Application> {
