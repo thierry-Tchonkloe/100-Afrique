@@ -1,5 +1,5 @@
+// src/components/candidat/CandidatHeader.tsx
 'use client';
-// src/components/emploi/CandidatHeader.tsx
 
 import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
@@ -7,14 +7,7 @@ import { Bell, ChevronLeft, Menu, User, LogOut, Settings, CheckCheck } from 'luc
 import type { CandidatProfile, CandidatNotification } from '@/types/emploi.types';
 import { markAllNotificationsRead, markNotificationRead } from '@/services/emploi.service';
 
-// ── Notification type icon colors ─────────────────────────────────────────────
-const NOTIF_COLORS: Record<string, string> = {
-  new_offer:            'bg-[#FFF3EC] text-[#E8622A]',
-  profile_viewed:       'bg-blue-50 text-blue-500',
-  application_accepted: 'bg-green-50 text-green-500',
-  application_refused:  'bg-red-50 text-red-500',
-};
-
+// ── Helpers ───────────────────────────────────────────────────────────────────
 function timeAgo(iso: string): string {
   const diff = Date.now() - new Date(iso).getTime();
   const m = Math.floor(diff / 60000);
@@ -24,33 +17,58 @@ function timeAgo(iso: string): string {
   return `il y a ${Math.floor(h / 24)}j`;
 }
 
+// Couleurs par type de notification
+const NOTIF_COLORS: Record<string, string> = {
+  new_offer:            'bg-[#FFF3EC] text-[#E8622A]',
+  profile_viewed:       'bg-blue-50 text-blue-500',
+  application_accepted: 'bg-green-50 text-green-500',
+  application_refused:  'bg-red-50 text-red-500',
+};
+
+// Icônes SVG inline pour éviter les imports Lucide dans les petits éléments
+function NotifIcon({ type }: { type: string }) {
+  if (type === 'profile_viewed')       return <span className="text-sm">👁️</span>;
+  if (type === 'application_accepted') return <span className="text-sm">✅</span>;
+  if (type === 'application_refused')  return <span className="text-sm">❌</span>;
+  return <Bell size={13} />;
+}
+
+// ── Hook : fermer en cliquant hors du panel ────────────────────────────────────
+// FIX TS2345 : HTMLElement | null accepte HTMLDivElement | null
+function useClickOutside(ref: React.RefObject<HTMLElement | null>, onClose: () => void) {
+  useEffect(() => {
+    function handler(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) onClose();
+    }
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [ref, onClose]);
+}
+
 // ── Notification Panel ────────────────────────────────────────────────────────
-interface NotifPanelProps {
+function NotificationPanel({
+  notifications,
+  onRead,
+  onReadAll,
+  onClose,
+}: {
   notifications: CandidatNotification[];
   onRead: (id: string) => void;
   onReadAll: () => void;
   onClose: () => void;
-}
-
-function NotificationPanel({ notifications, onRead, onReadAll, onClose }: NotifPanelProps) {
+}) {
   const ref = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    function handleClick(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node)) onClose();
-    }
-    document.addEventListener('mousedown', handleClick);
-    return () => document.removeEventListener('mousedown', handleClick);
-  }, [onClose]);
+  useClickOutside(ref, onClose);
 
   const unread = notifications.filter((n) => !n.read).length;
 
   return (
     <div
       ref={ref}
-      className="absolute right-0 top-full mt-2 w-80 bg-white rounded-2xl shadow-xl border border-gray-100 z-50 overflow-hidden"
+      className="absolute right-0 top-full mt-2 w-80 bg-white rounded-2xl shadow-xl
+                 border border-gray-100 z-50 overflow-hidden"
     >
-      {/* Header */}
+      {/* En-tête */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
         <div className="flex items-center gap-2">
           <span className="font-semibold text-gray-800 text-sm">Notifications</span>
@@ -70,7 +88,7 @@ function NotificationPanel({ notifications, onRead, onReadAll, onClose }: NotifP
         )}
       </div>
 
-      {/* List */}
+      {/* Liste */}
       <div className="max-h-80 overflow-y-auto divide-y divide-gray-50">
         {notifications.length === 0 ? (
           <p className="text-sm text-gray-400 text-center py-8">Aucune notification</p>
@@ -86,13 +104,13 @@ function NotificationPanel({ notifications, onRead, onReadAll, onClose }: NotifP
               <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5 ${
                 NOTIF_COLORS[n.type] ?? 'bg-gray-100 text-gray-500'
               }`}>
-                <Bell size={13} />
+                <NotifIcon type={n.type} />
               </div>
               <div className="min-w-0 flex-1">
                 <p className={`text-xs leading-tight ${!n.read ? 'font-semibold text-gray-800' : 'text-gray-600'}`}>
                   {n.title}
                 </p>
-                <p className="text-xs text-gray-400 mt-0.5 truncate">{n.description}</p>
+                <p className="text-xs text-gray-400 mt-0.5 line-clamp-2">{n.description}</p>
                 <p className="text-[10px] text-gray-300 mt-0.5">{timeAgo(n.createdAt)}</p>
               </div>
               {!n.read && (
@@ -103,7 +121,7 @@ function NotificationPanel({ notifications, onRead, onReadAll, onClose }: NotifP
         )}
       </div>
 
-      {/* Footer */}
+      {/* Pied de page */}
       <div className="px-4 py-2.5 border-t border-gray-100">
         <Link
           href="/candidat/notifications"
@@ -118,69 +136,67 @@ function NotificationPanel({ notifications, onRead, onReadAll, onClose }: NotifP
 }
 
 // ── Profile Dropdown ──────────────────────────────────────────────────────────
-interface ProfileDropdownProps {
+function ProfileDropdown({
+  profile,
+  onClose,
+}: {
   profile: CandidatProfile;
   onClose: () => void;
-}
-
-function ProfileDropdown({ profile, onClose }: ProfileDropdownProps) {
+}) {
   const ref = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    function handleClick(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node)) onClose();
-    }
-    document.addEventListener('mousedown', handleClick);
-    return () => document.removeEventListener('mousedown', handleClick);
-  }, [onClose]);
+  useClickOutside(ref, onClose);
 
   function handleLogout() {
     if (typeof window !== 'undefined') {
       localStorage.removeItem('emploi_token');
+      localStorage.removeItem('emploi_user');
       window.location.href = '/emploi';
     }
   }
 
+  // Initiales pour l'avatar placeholder
+  const initials = [profile.firstName?.[0], profile.lastName?.[0]]
+    .filter(Boolean)
+    .join('')
+    .toUpperCase() || '?';
+
   return (
     <div
       ref={ref}
-      className="absolute right-0 top-full mt-2 w-52 bg-white rounded-2xl shadow-xl border border-gray-100 z-50 overflow-hidden"
+      className="absolute right-0 top-full mt-2 w-56 bg-white rounded-2xl shadow-xl
+                 border border-gray-100 z-50 overflow-hidden"
     >
-      {/* Identity */}
-      <div className="px-4 py-3 border-b border-gray-100">
-        <p className="text-sm font-semibold text-gray-800">
-          {profile.firstName} {profile.lastName ?? ''}
-        </p>
-        <p className="text-xs text-gray-400 truncate">{profile.email ?? 'Candidat'}</p>
+      {/* Identité */}
+      <div className="px-4 py-3 border-b border-gray-100 flex items-center gap-3">
+        <div className="w-9 h-9 rounded-full bg-[#E8622A] flex items-center justify-center flex-shrink-0 overflow-hidden">
+          {profile.avatar
+            ? <img src={profile.avatar} alt={profile.firstName} className="w-full h-full object-cover" />
+            : <span className="text-white text-xs font-bold">{initials}</span>}
+        </div>
+        <div className="min-w-0">
+          <p className="text-sm font-semibold text-gray-800 truncate">
+            {profile.firstName} {profile.lastName ?? ''}
+          </p>
+          <p className="text-xs text-gray-400 truncate">{profile.email ?? ''}</p>
+        </div>
       </div>
 
       {/* Actions */}
       <div className="py-1">
-        <Link
-          href="/candidat/profil"
-          onClick={onClose}
-          className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition"
-        >
-          <User size={15} className="text-gray-400" />
-          Mon Profil
+        <Link href="/candidat/profil" onClick={onClose}
+          className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition">
+          <User size={15} className="text-gray-400" /> Mon Profil
         </Link>
-        <Link
-          href="/candidat/parametres"
-          onClick={onClose}
-          className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition"
-        >
-          <Settings size={15} className="text-gray-400" />
-          Paramètres
+        <Link href="/candidat/parametres" onClick={onClose}
+          className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition">
+          <Settings size={15} className="text-gray-400" /> Paramètres
         </Link>
       </div>
 
       <div className="border-t border-gray-100 py-1">
-        <button
-          onClick={handleLogout}
-          className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 transition"
-        >
-          <LogOut size={15} />
-          Déconnexion
+        <button onClick={handleLogout}
+          className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 transition">
+          <LogOut size={15} /> Déconnexion
         </button>
       </div>
     </div>
@@ -188,7 +204,6 @@ function ProfileDropdown({ profile, onClose }: ProfileDropdownProps) {
 }
 
 // ── Main Header ───────────────────────────────────────────────────────────────
-
 interface CandidatHeaderProps {
   profile?: CandidatProfile;
   notifications?: CandidatNotification[];
@@ -202,34 +217,45 @@ export default function CandidatHeader({
   onMenuClick,
   onNotificationsChange,
 }: CandidatHeaderProps) {
-  const [showNotifs, setShowNotifs]   = useState(false);
-  const [showProfile, setShowProfile] = useState(false);
+  const [showNotifs,   setShowNotifs]   = useState(false);
+  const [showProfile,  setShowProfile]  = useState(false);
 
   const unread = notifications.filter((n) => !n.read).length;
 
+  // Marquer une notification comme lue (API + state local)
   async function handleRead(id: string) {
-    try { await markNotificationRead(id); } catch {}
+    try { await markNotificationRead(id); } catch { /* non-bloquant */ }
     onNotificationsChange?.(
-      notifications.map((n) => n.id === id ? { ...n, read: true } : n)
+      notifications.map((n) => n.id === id ? { ...n, read: true } : n),
     );
   }
 
+  // Marquer toutes comme lues
   async function handleReadAll() {
-    try { await markAllNotificationsRead(); } catch {}
+    try { await markAllNotificationsRead(); } catch { /* non-bloquant */ }
     onNotificationsChange?.(notifications.map((n) => ({ ...n, read: true })));
   }
 
+  // Initiales pour l'avatar placeholder dans le header
+  const initials = profile
+    ? [profile.firstName?.[0], profile.lastName?.[0]].filter(Boolean).join('').toUpperCase()
+    : '?';
+
   return (
     <header className="sticky top-0 z-20 bg-white border-b border-gray-200 h-14 flex items-center px-4 gap-4">
-      {/* Mobile hamburger */}
-      <button onClick={onMenuClick} className="lg:hidden p-1.5 rounded-md hover:bg-gray-100">
+
+      {/* Hamburger mobile */}
+      <button
+        onClick={onMenuClick}
+        className="lg:hidden p-1.5 rounded-md hover:bg-gray-100 transition"
+      >
         <Menu size={20} className="text-gray-600" />
       </button>
 
-      {/* Back link */}
+      {/* Lien retour */}
       <Link
         href="/"
-        className="hidden lg:flex items-center gap-1.5 text-xs text-gray-500 hover:text-gray-800 transition-colors"
+        className="hidden lg:flex items-center gap-1.5 text-xs text-gray-500 hover:text-gray-800 transition"
       >
         <ChevronLeft size={14} />
         Retour au Mag | 100% Afrique
@@ -237,16 +263,21 @@ export default function CandidatHeader({
 
       <div className="flex-1" />
 
-      {/* Notifications */}
+      {/* ── Cloche de notifications ─────────────────────────────────────── */}
       <div className="relative">
         <button
           onClick={() => { setShowNotifs((v) => !v); setShowProfile(false); }}
-          className="relative p-2 rounded-full hover:bg-gray-100 transition-colors"
+          className="relative p-2 rounded-full hover:bg-gray-100 transition"
+          aria-label="Notifications"
         >
           <Bell size={18} className="text-gray-600" />
+          {/* Badge rouge dynamique */}
           {unread > 0 && (
-            <span className="absolute top-1 right-1 w-4 h-4 bg-red-500 rounded-full text-white
-                             text-[9px] font-bold flex items-center justify-center leading-none">
+            <span
+              className="absolute top-1 right-1 min-w-[16px] h-4 bg-red-500 rounded-full
+                         text-white text-[9px] font-bold flex items-center justify-center
+                         leading-none px-0.5 border border-white"
+            >
               {unread > 9 ? '9+' : unread}
             </span>
           )}
@@ -262,21 +293,24 @@ export default function CandidatHeader({
         )}
       </div>
 
-      {/* Mini profile */}
+      {/* ── Avatar + prénom ─────────────────────────────────────────────── */}
       <div className="relative">
         <button
           onClick={() => { setShowProfile((v) => !v); setShowNotifs(false); }}
           className="flex items-center gap-2 cursor-pointer group"
+          aria-label="Profil"
         >
-          <div className="w-8 h-8 rounded-full bg-[#E8622A] flex items-center justify-center overflow-hidden">
-            {profile?.avatar ? (
-              <img src={profile.avatar} alt={profile.firstName} className="w-full h-full object-cover" />
-            ) : (
-              <User size={16} className="text-white" />
-            )}
+          {/* Avatar : photo réelle ou initiales */}
+          <div className="w-8 h-8 rounded-full bg-[#E8622A] flex items-center justify-center overflow-hidden flex-shrink-0">
+            {profile?.avatar
+              ? <img src={profile.avatar} alt={profile.firstName} className="w-full h-full object-cover" />
+              : profile
+                ? <span className="text-white text-xs font-bold">{initials}</span>
+                : <User size={16} className="text-white" />}
           </div>
-          <span className="text-sm font-medium text-gray-700 hidden sm:block">
-            {profile?.firstName ?? 'Candidat'}
+          {/* Prénom dynamique */}
+          <span className="text-sm font-medium text-gray-700 hidden sm:block group-hover:text-gray-900 transition">
+            {profile?.firstName ?? '…'}
           </span>
         </button>
 
@@ -290,6 +324,315 @@ export default function CandidatHeader({
     </header>
   );
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// 'use client';
+// // src/components/emploi/CandidatHeader.tsx
+
+// import { useState, useRef, useEffect } from 'react';
+// import Link from 'next/link';
+// import { Bell, ChevronLeft, Menu, User, LogOut, Settings, CheckCheck } from 'lucide-react';
+// import type { CandidatProfile, CandidatNotification } from '@/types/emploi.types';
+// import { markAllNotificationsRead, markNotificationRead } from '@/services/emploi.service';
+
+// // ── Notification type icon colors ─────────────────────────────────────────────
+// const NOTIF_COLORS: Record<string, string> = {
+//   new_offer:            'bg-[#FFF3EC] text-[#E8622A]',
+//   profile_viewed:       'bg-blue-50 text-blue-500',
+//   application_accepted: 'bg-green-50 text-green-500',
+//   application_refused:  'bg-red-50 text-red-500',
+// };
+
+// function timeAgo(iso: string): string {
+//   const diff = Date.now() - new Date(iso).getTime();
+//   const m = Math.floor(diff / 60000);
+//   if (m < 60) return `il y a ${m}min`;
+//   const h = Math.floor(m / 60);
+//   if (h < 24) return `il y a ${h}h`;
+//   return `il y a ${Math.floor(h / 24)}j`;
+// }
+
+// // ── Notification Panel ────────────────────────────────────────────────────────
+// interface NotifPanelProps {
+//   notifications: CandidatNotification[];
+//   onRead: (id: string) => void;
+//   onReadAll: () => void;
+//   onClose: () => void;
+// }
+
+// function NotificationPanel({ notifications, onRead, onReadAll, onClose }: NotifPanelProps) {
+//   const ref = useRef<HTMLDivElement>(null);
+
+//   useEffect(() => {
+//     function handleClick(e: MouseEvent) {
+//       if (ref.current && !ref.current.contains(e.target as Node)) onClose();
+//     }
+//     document.addEventListener('mousedown', handleClick);
+//     return () => document.removeEventListener('mousedown', handleClick);
+//   }, [onClose]);
+
+//   const unread = notifications.filter((n) => !n.read).length;
+
+//   return (
+//     <div
+//       ref={ref}
+//       className="absolute right-0 top-full mt-2 w-80 bg-white rounded-2xl shadow-xl border border-gray-100 z-50 overflow-hidden"
+//     >
+//       {/* Header */}
+//       <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
+//         <div className="flex items-center gap-2">
+//           <span className="font-semibold text-gray-800 text-sm">Notifications</span>
+//           {unread > 0 && (
+//             <span className="bg-[#E8622A] text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">
+//               {unread}
+//             </span>
+//           )}
+//         </div>
+//         {unread > 0 && (
+//           <button
+//             onClick={onReadAll}
+//             className="flex items-center gap-1 text-xs text-[#E8622A] font-medium hover:underline"
+//           >
+//             <CheckCheck size={12} /> Tout lire
+//           </button>
+//         )}
+//       </div>
+
+//       {/* List */}
+//       <div className="max-h-80 overflow-y-auto divide-y divide-gray-50">
+//         {notifications.length === 0 ? (
+//           <p className="text-sm text-gray-400 text-center py-8">Aucune notification</p>
+//         ) : (
+//           notifications.map((n) => (
+//             <button
+//               key={n.id}
+//               onClick={() => { onRead(n.id); onClose(); }}
+//               className={`w-full flex items-start gap-3 px-4 py-3 hover:bg-gray-50 transition text-left ${
+//                 !n.read ? 'bg-orange-50/30' : ''
+//               }`}
+//             >
+//               <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5 ${
+//                 NOTIF_COLORS[n.type] ?? 'bg-gray-100 text-gray-500'
+//               }`}>
+//                 <Bell size={13} />
+//               </div>
+//               <div className="min-w-0 flex-1">
+//                 <p className={`text-xs leading-tight ${!n.read ? 'font-semibold text-gray-800' : 'text-gray-600'}`}>
+//                   {n.title}
+//                 </p>
+//                 <p className="text-xs text-gray-400 mt-0.5 truncate">{n.description}</p>
+//                 <p className="text-[10px] text-gray-300 mt-0.5">{timeAgo(n.createdAt)}</p>
+//               </div>
+//               {!n.read && (
+//                 <span className="w-2 h-2 bg-[#E8622A] rounded-full flex-shrink-0 mt-1.5" />
+//               )}
+//             </button>
+//           ))
+//         )}
+//       </div>
+
+//       {/* Footer */}
+//       <div className="px-4 py-2.5 border-t border-gray-100">
+//         <Link
+//           href="/candidat/notifications"
+//           onClick={onClose}
+//           className="text-xs text-[#E8622A] font-medium hover:underline"
+//         >
+//           Voir toutes les notifications →
+//         </Link>
+//       </div>
+//     </div>
+//   );
+// }
+
+// // ── Profile Dropdown ──────────────────────────────────────────────────────────
+// interface ProfileDropdownProps {
+//   profile: CandidatProfile;
+//   onClose: () => void;
+// }
+
+// function ProfileDropdown({ profile, onClose }: ProfileDropdownProps) {
+//   const ref = useRef<HTMLDivElement>(null);
+
+//   useEffect(() => {
+//     function handleClick(e: MouseEvent) {
+//       if (ref.current && !ref.current.contains(e.target as Node)) onClose();
+//     }
+//     document.addEventListener('mousedown', handleClick);
+//     return () => document.removeEventListener('mousedown', handleClick);
+//   }, [onClose]);
+
+//   function handleLogout() {
+//     if (typeof window !== 'undefined') {
+//       localStorage.removeItem('emploi_token');
+//       window.location.href = '/emploi';
+//     }
+//   }
+
+//   return (
+//     <div
+//       ref={ref}
+//       className="absolute right-0 top-full mt-2 w-52 bg-white rounded-2xl shadow-xl border border-gray-100 z-50 overflow-hidden"
+//     >
+//       {/* Identity */}
+//       <div className="px-4 py-3 border-b border-gray-100">
+//         <p className="text-sm font-semibold text-gray-800">
+//           {profile.firstName} {profile.lastName ?? ''}
+//         </p>
+//         <p className="text-xs text-gray-400 truncate">{profile.email ?? 'Candidat'}</p>
+//       </div>
+
+//       {/* Actions */}
+//       <div className="py-1">
+//         <Link
+//           href="/candidat/profil"
+//           onClick={onClose}
+//           className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition"
+//         >
+//           <User size={15} className="text-gray-400" />
+//           Mon Profil
+//         </Link>
+//         <Link
+//           href="/candidat/parametres"
+//           onClick={onClose}
+//           className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition"
+//         >
+//           <Settings size={15} className="text-gray-400" />
+//           Paramètres
+//         </Link>
+//       </div>
+
+//       <div className="border-t border-gray-100 py-1">
+//         <button
+//           onClick={handleLogout}
+//           className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 transition"
+//         >
+//           <LogOut size={15} />
+//           Déconnexion
+//         </button>
+//       </div>
+//     </div>
+//   );
+// }
+
+// // ── Main Header ───────────────────────────────────────────────────────────────
+
+// interface CandidatHeaderProps {
+//   profile?: CandidatProfile;
+//   notifications?: CandidatNotification[];
+//   onMenuClick: () => void;
+//   onNotificationsChange?: (notifs: CandidatNotification[]) => void;
+// }
+
+// export default function CandidatHeader({
+//   profile,
+//   notifications = [],
+//   onMenuClick,
+//   onNotificationsChange,
+// }: CandidatHeaderProps) {
+//   const [showNotifs, setShowNotifs]   = useState(false);
+//   const [showProfile, setShowProfile] = useState(false);
+
+//   const unread = notifications.filter((n) => !n.read).length;
+
+//   async function handleRead(id: string) {
+//     try { await markNotificationRead(id); } catch {}
+//     onNotificationsChange?.(
+//       notifications.map((n) => n.id === id ? { ...n, read: true } : n)
+//     );
+//   }
+
+//   async function handleReadAll() {
+//     try { await markAllNotificationsRead(); } catch {}
+//     onNotificationsChange?.(notifications.map((n) => ({ ...n, read: true })));
+//   }
+
+//   return (
+//     <header className="sticky top-0 z-20 bg-white border-b border-gray-200 h-14 flex items-center px-4 gap-4">
+//       {/* Mobile hamburger */}
+//       <button onClick={onMenuClick} className="lg:hidden p-1.5 rounded-md hover:bg-gray-100">
+//         <Menu size={20} className="text-gray-600" />
+//       </button>
+
+//       {/* Back link */}
+//       <Link
+//         href="/"
+//         className="hidden lg:flex items-center gap-1.5 text-xs text-gray-500 hover:text-gray-800 transition-colors"
+//       >
+//         <ChevronLeft size={14} />
+//         Retour au Mag | 100% Afrique
+//       </Link>
+
+//       <div className="flex-1" />
+
+//       {/* Notifications */}
+//       <div className="relative">
+//         <button
+//           onClick={() => { setShowNotifs((v) => !v); setShowProfile(false); }}
+//           className="relative p-2 rounded-full hover:bg-gray-100 transition-colors"
+//         >
+//           <Bell size={18} className="text-gray-600" />
+//           {unread > 0 && (
+//             <span className="absolute top-1 right-1 w-4 h-4 bg-red-500 rounded-full text-white
+//                              text-[9px] font-bold flex items-center justify-center leading-none">
+//               {unread > 9 ? '9+' : unread}
+//             </span>
+//           )}
+//         </button>
+
+//         {showNotifs && (
+//           <NotificationPanel
+//             notifications={notifications}
+//             onRead={handleRead}
+//             onReadAll={handleReadAll}
+//             onClose={() => setShowNotifs(false)}
+//           />
+//         )}
+//       </div>
+
+//       {/* Mini profile */}
+//       <div className="relative">
+//         <button
+//           onClick={() => { setShowProfile((v) => !v); setShowNotifs(false); }}
+//           className="flex items-center gap-2 cursor-pointer group"
+//         >
+//           <div className="w-8 h-8 rounded-full bg-[#E8622A] flex items-center justify-center overflow-hidden">
+//             {profile?.avatar ? (
+//               <img src={profile.avatar} alt={profile.firstName} className="w-full h-full object-cover" />
+//             ) : (
+//               <User size={16} className="text-white" />
+//             )}
+//           </div>
+//           <span className="text-sm font-medium text-gray-700 hidden sm:block">
+//             {profile?.firstName ?? 'Candidat'}
+//           </span>
+//         </button>
+
+//         {showProfile && profile && (
+//           <ProfileDropdown
+//             profile={profile}
+//             onClose={() => setShowProfile(false)}
+//           />
+//         )}
+//       </div>
+//     </header>
+//   );
+// }
 
 
 

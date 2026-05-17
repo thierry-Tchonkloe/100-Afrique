@@ -1,3 +1,4 @@
+// src/hooks/useCandidaturesRec.ts
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
@@ -104,14 +105,14 @@ const MOCK: CandidaturesRecResponse = {
 };
 
 interface UseCandidaturesRecReturn {
-  data: CandidaturesRecResponse | null;
+  data: CandidaturesRecResponse;
   loading: boolean;
-  setData: React.Dispatch<React.SetStateAction<CandidaturesRecResponse | null>>;
+  setData: React.Dispatch<React.SetStateAction<CandidaturesRecResponse>>;
   refetch: () => void;
 }
 
 export function useCandidaturesRec(): UseCandidaturesRecReturn {
-  const [data, setData]       = useState<CandidaturesRecResponse | null>(null);
+  const [data, setData] = useState<CandidaturesRecResponse>(MOCK);
   const [loading, setLoading] = useState(true);
 
   const load = useCallback(async () => {
