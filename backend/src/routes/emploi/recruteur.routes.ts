@@ -39,6 +39,8 @@ import {
   toggleStar,
 } from '../../controllers/emploi/candidatures-rec.controller';
 
+import { proxyCandidatCv } from '../../controllers/emploi/cv-proxy.controller';
+
 const router = Router();
 
 // Toutes les routes recruteur nécessitent auth + rôle RECRUITER
@@ -135,5 +137,8 @@ router.patch('/candidatures/:id/notes', saveNotes);
 
 // POST  /api/emploi/recruteur/candidatures/:id/message
 router.post('/candidatures/:id/message', sendMessage);
+
+// Téléchargement du CV via proxy (contourne CORS Cloudinary) ──────────
+router.get('/candidatures/:id/cv', proxyCandidatCv);
 
 export default router;

@@ -1,3 +1,4 @@
+// src/components/recruteur/candidatures/CandidateDetailPanel.tsx
 'use client';
 
 import { useState, useCallback } from 'react';

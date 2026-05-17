@@ -280,37 +280,100 @@ export async function getApplications(req: EmploiRequest, res: Response): Promis
   } catch { res.status(500).json({ success: false, message: 'Erreur serveur' }); }
 }
 
+// Extrait à remplacer dans src/controllers/emploi/candidat.controller.ts
+// Fonction applyToJob uniquement — le reste du fichier est inchangé
+
 export async function applyToJob(req: EmploiRequest, res: Response): Promise<void> {
   try {
     const uid = req.emploiUser!.id;
     const { jobId } = req.body;
-    const offre = await prisma.offre.findUnique({ where: { id: Number(jobId) } });
-    if (!offre) { res.status(404).json({ success: false, message: 'Offre introuvable' }); return; }
-    const existing = await prisma.application.findUnique({ where: { userId_offreId: { userId: uid, offreId: offre.id } } });
-    if (existing) { res.status(409).json({ success: false, message: 'Déjà postulé' }); return; }
 
+    const offre = await prisma.offre.findUnique({ where: { id: Number(jobId) } });
+    if (!offre) {
+      res.status(404).json({ success: false, message: 'Offre introuvable' });
+      return;
+    }
+
+    const existing = await prisma.application.findUnique({
+      where: { userId_offreId: { userId: uid, offreId: offre.id } },
+    });
+    if (existing) {
+      res.status(409).json({ success: false, message: 'Déjà postulé' });
+      return;
+    }
+
+    // ── FIX: isRead et isFavorite explicitement à false à la création
     const app = await prisma.application.create({
       data: {
-        userId: uid, offreId: offre.id, etablissementId: offre.etablissementId,
+        userId: uid,
+        offreId: offre.id,
+        etablissementId: offre.etablissementId, // CRITIQUE : lien recruteur → candidature
         status: 'SENT',
-        timeline: [{ status: 'sent', date: new Date().toISOString(), note: 'Candidature envoyée' }],
+        isRead: false,     // ← le recruteur n'a pas encore consulté
+        isFavorite: false,
+        timeline: [
+          { status: 'sent', date: new Date().toISOString(), note: 'Candidature envoyée' },
+        ],
       },
     });
-    // Notify recruiter
-    const recruteurs = await prisma.recruteurEtablissement.findMany({ where: { etablissementId: offre.etablissementId }, select: { userId: true } });
+
+    // Notifier les recruteurs de l'établissement
+    const recruteurs = await prisma.recruteurEtablissement.findMany({
+      where: { etablissementId: offre.etablissementId },
+      select: { userId: true },
+    });
+
     if (recruteurs.length) {
       await prisma.emploiNotification.createMany({
         data: recruteurs.map((r) => ({
-          userId: r.userId, type: 'NEW_APPLICATION' as any,
+          userId: r.userId,
+          type: 'NEW_APPLICATION' as any,
           title: 'Nouvelle candidature',
           description: `${req.emploiUser!.firstName} ${req.emploiUser!.lastName} a postulé pour ${offre.title}`,
           relatedId: String(app.id),
         })),
       });
     }
-    res.status(201).json({ success: true, data: { message: 'Candidature envoyée', id: String(app.id) } });
-  } catch { res.status(500).json({ success: false, message: 'Erreur serveur' }); }
+
+    res.status(201).json({
+      success: true,
+      data: { message: 'Candidature envoyée', id: String(app.id) },
+    });
+  } catch {
+    res.status(500).json({ success: false, message: 'Erreur serveur' });
+  }
 }
+// export async function applyToJob(req: EmploiRequest, res: Response): Promise<void> {
+//   try {
+//     const uid = req.emploiUser!.id;
+//     const { jobId } = req.body;
+//     const offre = await prisma.offre.findUnique({ where: { id: Number(jobId) } });
+//     if (!offre) { res.status(404).json({ success: false, message: 'Offre introuvable' }); return; }
+//     const existing = await prisma.application.findUnique({ where: { userId_offreId: { userId: uid, offreId: offre.id } } });
+//     if (existing) { res.status(409).json({ success: false, message: 'Déjà postulé' }); return; }
+
+//     const app = await prisma.application.create({
+//       data: {
+//         userId: uid, offreId: offre.id, etablissementId: offre.etablissementId,
+//         status: 'SENT',
+//         timeline: [{ status: 'sent', date: new Date().toISOString(), note: 'Candidature envoyée' }],
+//       },
+//     });
+//     // Notify recruiter
+//     const recruteurs = await prisma.recruteurEtablissement.findMany({ where: { etablissementId: offre.etablissementId }, select: { userId: true } });
+//     if (recruteurs.length) {
+//       await prisma.emploiNotification.createMany({
+//         data: recruteurs.map((r) => ({
+//           userId: r.userId, type: 'NEW_APPLICATION' as any,
+//           title: 'Nouvelle candidature',
+//           description: `${req.emploiUser!.firstName} ${req.emploiUser!.lastName} a postulé pour ${offre.title}`,
+//           relatedId: String(app.id),
+//         })),
+//       });
+//     }
+//     res.status(201).json({ success: true, data: { message: 'Candidature envoyée', id: String(app.id) } });
+//   } catch { res.status(500).json({ success: false, message: 'Erreur serveur' }); }
+// }
 
 export async function withdrawApplication(req: EmploiRequest, res: Response): Promise<void> {
   try {
