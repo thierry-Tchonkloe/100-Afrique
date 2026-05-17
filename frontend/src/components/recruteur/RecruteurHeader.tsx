@@ -1,5 +1,5 @@
-'use client';
 // src/components/recruteur/RecruteurHeader.tsx
+'use client';
 // FIX: Le bouton "+ Publier une offre" ouvre la modale via RecruteurContext
 // au lieu de naviguer vers /recruteur/offres/nouvelle (qui n'existe pas).
 // Le sélecteur d'entreprise et l'identité sont entièrement dynamiques.
@@ -35,7 +35,7 @@ function CompanySwitcher({ profile, onSwitch }: {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
-  const activeEtab = profile.etablissements.find((e) => e.id === profile.activeEtablissementId);
+  const activeEtab = profile.etablissements?.find((e) => e.id === profile.activeEtablissementId);
 
   useEffect(() => {
     function handleClick(e: MouseEvent) {
@@ -45,7 +45,7 @@ function CompanySwitcher({ profile, onSwitch }: {
     return () => document.removeEventListener('mousedown', handleClick);
   }, []);
 
-  if (profile.etablissements.length === 0) return null;
+  if (!profile.etablissements?.length) return null;
 
   return (
     <div ref={ref} className="relative">
@@ -107,8 +107,8 @@ export default function RecruteurHeader({
   const [publishing,       setPublishing]       = useState(false);
   const [toast,            setToast]            = useState('');
 
-  const activeEtab = profile?.etablissements.find(
-    (e) => e.id === profile.activeEtablissementId
+  const activeEtab = profile?.etablissements?.find(
+    (e) => e.id === profile?.activeEtablissementId
   );
 
   async function handlePublish(form: OffreFormData) {

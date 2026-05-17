@@ -1,5 +1,8 @@
 // src/hooks/useCandidatDashboard.ts
+// FIX : expose setData dans le retour du hook pour que le layout puisse mettre
+// à jour les notifications localement (marquer lu) sans re-fetch complet.
 'use client';
+
 import { useState, useEffect, useCallback } from 'react';
 import { fetchCandidatDashboard } from '@/services/emploi.service';
 import type { DashboardData } from '@/types/emploi.types';
@@ -29,21 +32,102 @@ const MOCK: DashboardData = {
   ],
 };
 
-export function useCandidatDashboard() {
-  const [data, setData]       = useState<DashboardData>(MOCK); // ← pas null
+interface UseCandidatDashboardReturn {
+  data: DashboardData | null;
+  loading: boolean;
+  error: string | null;
+  // FIX : expose setData pour les mises à jour locales (ex: marquer notif lue)
+  setData: React.Dispatch<React.SetStateAction<DashboardData | null>>;
+  refetch: () => void;
+}
+
+export function useCandidatDashboard(): UseCandidatDashboardReturn {
+  const [data,    setData]    = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError]     = useState<string | null>(null);
+  const [error,   setError]   = useState<string | null>(null);
 
   const load = useCallback(async () => {
-    setLoading(true); setError(null);
-    try   { setData(await fetchCandidatDashboard()); }
-    catch { setData(MOCK); }
-    finally { setLoading(false); }
+    setLoading(true);
+    setError(null);
+    try {
+      const result = await fetchCandidatDashboard();
+      setData(result);
+    } catch {
+      setData(MOCK);
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
   useEffect(() => { load(); }, [load]);
-  return { data, loading, error, refetch: load };
+
+  return { data, loading, error, setData, refetch: load };
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// // src/hooks/useCandidatDashboard.ts
+// 'use client';
+// import { useState, useEffect, useCallback } from 'react';
+// import { fetchCandidatDashboard } from '@/services/emploi.service';
+// import type { DashboardData } from '@/types/emploi.types';
+
+// const MOCK: DashboardData = {
+//   profile: {
+//     id: 'cand-001', firstName: 'Marie', lastName: 'Dubois',
+//     email: 'marie.dubois@email.com', avatar: undefined,
+//     title: 'Réceptionniste', sector: 'Hôtellerie', profileStrength: 65,
+//     profileStrengthMessage: "Ajoutez vos expériences pour attirer 3x plus de recruteurs",
+//   },
+//   stats: { applicationsCount: 12, profileViews: 47, savedJobsCount: 8, activeAlertsCount: 3 },
+//   recentApplications: [
+//     { id: 'a1', jobTitle: 'Réceptionniste',   companyName: 'Hôtel des Alpes',       sector: 'hotel',      appliedAt: new Date(Date.now() - 2 * 86400000).toISOString(), status: 'in_progress' },
+//     { id: 'a2', jobTitle: 'Serveur/Serveuse',  companyName: 'Restaurant Le Panorama', sector: 'restaurant', appliedAt: new Date(Date.now() - 4 * 86400000).toISOString(), status: 'accepted'    },
+//     { id: 'a3', jobTitle: 'Concierge',         companyName: 'Grand Hôtel Palace',    sector: 'hotel',      appliedAt: new Date(Date.now() - 7 * 86400000).toISOString(), status: 'refused'     },
+//   ],
+//   suggestions: [
+//     { id: 'j1', title: 'Réceptionniste de nuit', companyName: 'Hôtel Mercure',  location: 'Paris 15ème', contractType: 'CDI', publishedAt: new Date(Date.now() - 7200000).toISOString(),   sector: 'hotel' },
+//     { id: 'j2', title: "Agent d'accueil",         companyName: 'Resort Spa',     location: 'Cannes',      contractType: 'CDD', publishedAt: new Date(Date.now() - 14400000).toISOString(),  sector: 'hotel' },
+//     { id: 'j3', title: 'Gouvernante',             companyName: 'Château Hôtel',  location: 'Lyon',        contractType: 'CDI', publishedAt: new Date(Date.now() - 21600000).toISOString(),  sector: 'hotel' },
+//   ],
+//   notifications: [
+//     { id: 'n1', type: 'new_offer',           title: 'Nouvelle offre correspondante', description: 'Alerte "Réceptionniste Paris" - il y a 1h', createdAt: new Date(Date.now() - 3600000).toISOString(),   read: false },
+//     { id: 'n2', type: 'profile_viewed',      title: 'Profil consulté',              description: 'Un recruteur a vu votre profil - il y a 3h',   createdAt: new Date(Date.now() - 10800000).toISOString(),  read: false },
+//     { id: 'n3', type: 'application_accepted', title: 'Candidature acceptée',        description: 'Restaurant Le Panorama - hier',                 createdAt: new Date(Date.now() - 86400000).toISOString(),  read: true  },
+//   ],
+// };
+
+// export function useCandidatDashboard() {
+//   const [data, setData]       = useState<DashboardData>(MOCK); // ← pas null
+//   const [loading, setLoading] = useState(true);
+//   const [error, setError]     = useState<string | null>(null);
+
+//   const load = useCallback(async () => {
+//     setLoading(true); setError(null);
+//     try   { setData(await fetchCandidatDashboard()); }
+//     catch { setData(MOCK); }
+//     finally { setLoading(false); }
+//   }, []);
+
+//   useEffect(() => { load(); }, [load]);
+//   return { data, loading, error, refetch: load };
+// }
 
 
 

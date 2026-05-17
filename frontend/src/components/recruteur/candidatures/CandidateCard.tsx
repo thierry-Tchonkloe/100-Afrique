@@ -1,3 +1,4 @@
+// src/components/recruteur/candidatures/CandidateCard.tsx
 'use client';
 
 import type { CandidatureRec } from '@/types/candidatures-rec.types';
