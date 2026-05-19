@@ -1,0 +1,130 @@
+// src/services/emploi-public.service.ts
+import axios from 'axios';
+
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:5000/api';
+
+const api = axios.create({ baseURL: `${BASE_URL}/emploi` });
+
+// ── Types ─────────────────────────────────────────────────────────────────────
+
+export interface PublicOffre {
+  id: string;
+  title: string;
+  companyName: string;
+  sector: string;
+  contractType: string;
+  location: string;
+  salaryMin?: number;
+  salaryMax?: number;
+  remote?: string;
+  isPremium: boolean;
+  publishedAt: string;
+}
+
+export interface PublicOffresResponse {
+  total: number;
+  page: number;
+  limit: number;
+  offres: PublicOffre[];
+}
+
+export interface PublicVitrine {
+  id: string;
+  etablissementId: string;
+  logoUrl?: string;
+  bannerUrl?: string;
+  slogan?: string;
+  sector?: string;
+  location?: string;
+  completionScore: number;
+  views: number;
+}
+
+export interface PublicEtablissement {
+  id: string;
+  name: string;
+  logo?: string;
+  sector: string;
+  city: string;
+  offresCount: number;
+  vitrine?: PublicVitrine;
+}
+
+export interface SearchParams {
+  search?: string;
+  location?: string;
+  contractType?: string;
+  sector?: string;
+  page?: number;
+  limit?: number;
+}
+
+// ── API calls ─────────────────────────────────────────────────────────────────
+
+export async function fetchPublicJobs(params: SearchParams = {}): Promise<PublicOffresResponse> {
+  const { data } = await api.get<{ success: boolean; data: PublicOffresResponse }>('/jobs', {
+    params: {
+      ...params,
+      limit: params.limit ?? 8,
+    },
+  });
+  return data.data;
+}
+
+export async function fetchPublicJob(id: string) {
+  const { data } = await api.get(`/jobs/${id}`);
+  return data.data;
+}
+
+// Récupère les établissements avec vitrines (pour la section "entreprises qui recrutent")
+// On utilise les offres publiques et on groupe par entreprise
+export async function fetchFeaturedCompanies(): Promise<PublicEtablissement[]> {
+  try {
+    const { data } = await api.get<{ success: boolean; data: PublicOffresResponse }>('/jobs', {
+      params: { limit: 50 },
+    });
+    const offres = data.data?.offres ?? [];
+
+    // Grouper par entreprise
+    const map = new Map<string, PublicEtablissement>();
+    for (const o of offres) {
+      const key = o.companyName;
+      if (!map.has(key)) {
+        map.set(key, {
+          id:          o.id,
+          name:        o.companyName,
+          sector:      o.sector,
+          city:        o.location.split(' ')[0],
+          offresCount: 0,
+          logo:        undefined,
+        });
+      }
+      map.get(key)!.offresCount++;
+    }
+
+    return [...map.values()].slice(0, 6);
+  } catch {
+    // Fallback avec données illustratives si l'API échoue
+    return MOCK_COMPANIES;
+  }
+}
+
+// ── Mocks (fallback si API non disponible) ────────────────────────────────────
+
+export const MOCK_OFFRES: PublicOffre[] = [
+  { id: '1', title: 'Réceptionniste de Nuit',  companyName: 'Luxury Hotels Group',  sector: 'hotel',    contractType: 'CDI',            location: 'Paris 8ème',  isPremium: true,  publishedAt: new Date(Date.now() - 2  * 3600000).toISOString() },
+  { id: '2', title: 'Revenue Manager',          companyName: 'TravelTech Solutions', sector: 'tech',     contractType: 'CDI',            location: 'Lyon',        isPremium: false, publishedAt: new Date(Date.now() - 5  * 3600000).toISOString() },
+  { id: '3', title: 'Chef de Partie',           companyName: 'Gastronomie & Co',     sector: 'restaurant',contractType: 'CDD Saisonnier', location: 'Cannes',      isPremium: false, publishedAt: new Date(Date.now() - 24 * 3600000).toISOString() },
+  { id: '4', title: "Agent d'Escale",           companyName: 'Sky Airlines',         sector: 'transport', contractType: 'CDI',            location: 'Roissy CDG',  isPremium: false, publishedAt: new Date(Date.now() - 24 * 3600000).toISOString() },
+  { id: '5', title: 'Event Manager',            companyName: 'Events International', sector: 'events',   contractType: 'CDI',            location: 'Bordeaux',    isPremium: false, publishedAt: new Date(Date.now() - 48 * 3600000).toISOString() },
+  { id: '6', title: 'Conseiller Voyage Luxe',   companyName: 'Voyages Prestige',     sector: 'travel',   contractType: 'CDI',            location: 'Marseille',   isPremium: false, publishedAt: new Date(Date.now() - 72 * 3600000).toISOString() },
+];
+
+export const MOCK_COMPANIES: PublicEtablissement[] = [
+  { id: '1', name: 'Luxury Hotels Group',  sector: 'hotel',     city: 'Paris',    offresCount: 12 },
+  { id: '2', name: 'Voyages Prestige',     sector: 'travel',    city: 'Paris',    offresCount: 8  },
+  { id: '3', name: 'Gastronomie & Co',     sector: 'restaurant',city: 'Cannes',   offresCount: 15 },
+  { id: '4', name: 'Events International', sector: 'events',    city: 'Bordeaux', offresCount: 6  },
+  { id: '5', name: 'TravelTech Solutions', sector: 'tech',      city: 'Lyon',     offresCount: 10 },
+  { id: '6', name: 'Sky Airlines',         sector: 'transport', city: 'Roissy',   offresCount: 9  },
+];
