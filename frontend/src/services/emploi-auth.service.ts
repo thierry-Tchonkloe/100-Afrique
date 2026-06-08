@@ -41,12 +41,15 @@ export async function registerEmploi(payload: {
 export function saveAuthToken(token: string): void {
   if (typeof window !== 'undefined') {
     localStorage.setItem('emploi_token', token);
+    document.cookie = `emploi_token=${token}; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Lax`;
   }
 }
 
 export function saveAuthUser(user: AuthUser): void {
   if (typeof window !== 'undefined') {
     localStorage.setItem('emploi_user', JSON.stringify(user));
+    // Nécessaire pour que le middleware puisse lire le rôle côté serveur
+    document.cookie = `emploi_role=${user.role}; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Lax`;
   }
 }
 
@@ -69,5 +72,7 @@ export function clearAuth(): void {
   if (typeof window !== 'undefined') {
     localStorage.removeItem('emploi_token');
     localStorage.removeItem('emploi_user');
+    document.cookie = 'emploi_token=; path=/; max-age=0';
+    document.cookie = 'emploi_role=;  path=/; max-age=0';
   }
 }
