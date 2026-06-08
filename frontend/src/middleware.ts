@@ -1,74 +1,57 @@
-// import { NextRequest, NextResponse } from 'next/server';
-
-// const PROTECTED_ROUTES = ['/admin'];
-// const AUTH_ROUTES = ['/login', '/register'];
-
-// export function middleware(request: NextRequest) {
-//   const { pathname } = request.nextUrl;
-
-//   // Get token from cookies (set server-side) or check for token header
-//   const token =
-//     request.cookies.get('itn_auth_token')?.value ||
-//     request.headers.get('authorization')?.replace('Bearer ', '');
-
-//   const isProtected = PROTECTED_ROUTES.some((route) => pathname.startsWith(route));
-//   const isAuthRoute = AUTH_ROUTES.some((route) => pathname.startsWith(route));
-
-//   // Redirect unauthenticated users away from protected routes
-//   if (isProtected && !token) {
-//     const loginUrl = new URL('/login', request.url);
-//     loginUrl.searchParams.set('from', pathname);
-//     return NextResponse.redirect(loginUrl);
-//   }
-
-//   // Redirect authenticated users away from auth routes
-//   if (isAuthRoute && token) {
-//     return NextResponse.redirect(new URL('/admin/dashboard', request.url));
-//   }
-
-//   // Security headers
-//   const response = NextResponse.next();
-//   response.headers.set('X-Frame-Options', 'DENY');
-//   response.headers.set('X-Content-Type-Options', 'nosniff');
-//   response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
-//   response.headers.set(
-//     'Permissions-Policy',
-//     'camera=(), microphone=(), geolocation=()'
-//   );
-
-//   return response;
-// }
-
-// export const config = {
-//   matcher: ['/((?!api|_next/static|_next/image|favicon.ico|.*\\.png$).*)'],
-// };
-
-
-
+// src/middleware.ts
 import { NextRequest, NextResponse } from 'next/server';
 
-const PROTECTED_ROUTES = ['/admin'];
-const AUTH_ROUTES = ['/login', '/register'];
+// ── Routes protégées ──────────────────────────────────────────────────────────
+
+const ADMIN_PROTECTED   = ['/admin'];
+const ADMIN_AUTH_ROUTES = ['/login', '/register'];
+
+const EMPLOI_PROTECTED  = ['/candidat', '/recruteur'];
+const EMPLOI_AUTH_ROUTE = '/emploi/auth';
+
+// ── Middleware ────────────────────────────────────────────────────────────────
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  const token =
+  // ── 1. Univers Admin ────────────────────────────────────────────────────────
+  const adminToken =
     request.cookies.get('itn_auth_token')?.value ||
     request.headers.get('authorization')?.replace('Bearer ', '');
 
-  // Redirections
-  if (PROTECTED_ROUTES.some(r => pathname.startsWith(r)) && !token) {
+  if (ADMIN_PROTECTED.some(r => pathname.startsWith(r)) && !adminToken) {
     return NextResponse.redirect(new URL('/login', request.url));
   }
-  if (AUTH_ROUTES.some(r => pathname.startsWith(r)) && token) {
+  if (ADMIN_AUTH_ROUTES.some(r => pathname.startsWith(r)) && adminToken) {
     return NextResponse.redirect(new URL('/admin/dashboard', request.url));
+  }
+
+  // ── 2. Univers Emploi ───────────────────────────────────────────────────────
+  const emploiToken = request.cookies.get('emploi_token')?.value;
+
+  if (EMPLOI_PROTECTED.some(r => pathname.startsWith(r)) && !emploiToken) {
+    const loginUrl = new URL(EMPLOI_AUTH_ROUTE, request.url);
+    loginUrl.searchParams.set('redirect', pathname); // restaurer la destination après login
+    return NextResponse.redirect(loginUrl);
+  }
+  if (pathname.startsWith(EMPLOI_AUTH_ROUTE) && emploiToken) {
+    // Déjà connecté → renvoyer vers le bon dashboard selon le cookie de rôle
+    const role = request.cookies.get('emploi_role')?.value;
+    const dest = role === 'RECRUITER' ? '/recruteur/dashboard' : '/candidat/dashboard';
+    return NextResponse.redirect(new URL(dest, request.url));
   }
 
   return NextResponse.next();
 }
 
-// Matcher uniquement pour admin et auth
+// ── Matcher ───────────────────────────────────────────────────────────────────
 export const config = {
-  matcher: ['/admin/:path*', '/login', '/register'],
+  matcher: [
+    '/admin/:path*',
+    '/login',
+    '/register',
+    '/candidat/:path*',
+    '/recruteur/:path*',
+    '/emploi/auth',
+  ],
 };
