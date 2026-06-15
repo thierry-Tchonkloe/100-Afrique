@@ -1,18 +1,69 @@
-/* src/app/(front-office)/globals.css */
 @import "tailwindcss";
 
-/* Configuration des couleurs personnalisées iTourisme */
 @theme {
+  --font-sans:    var(--font-gotham), 'Helvetica Neue', Arial, sans-serif;
+  --font-display: var(--font-coda), Georgia, serif;
+
+  /* ── Vert Émeraude — nouveau dominant (header, footer, sections) ── */
+  --color-it-emerald:       #2A7F5F;
+  --color-it-emerald-light: #D4EDE5;
+  --color-it-emerald-dark:  #1A5C43;  /* ← fond header/footer/sections */
+
+  /* ── Or Doux — accents, hovers, icônes ── */
+  --color-it-gold:       #C8A84B;
+  --color-it-gold-light: #F4EDD4;
+  --color-it-gold-dark:  #9A7C2E;
+
+  /* ── Terre Cuite — CTA, boutons principaux ── */
+  --color-it-terracotta:       #B85C38;
+  --color-it-terracotta-light: #F2D9CE;
+  --color-it-terracotta-dark:  #8A3E22;
+
+  /* ── Bleu Nuit — texte courant sur fond blanc uniquement ── */
+  --color-it-blue: #001A4D;
+
+  /* ── Neutres ── */
+  --color-it-gray-light: #F0F2F5;
+}
+
+:root {
+  --swiper-theme-color:                        #B85C38;
+  --swiper-pagination-bullet-inactive-color:   #ffffff;
+  --swiper-pagination-bullet-inactive-opacity: 0.4;
+}
+
+body {
+  @apply bg-white text-it-blue antialiased;
+  font-family: var(--font-sans);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* src/app/(front-office)/globals.css */
+/* @import "tailwindcss"; */
+
+/* Configuration des couleurs personnalisées iTourisme */
+/* @theme {
   --color-it-blue: #001A4D;
   --color-it-orange: #FF9900;
   --color-it-gray-light: #F0F2F5;
-  
+   */
   /* Ajout des polices si vous en utilisez des spécifiques */
-  --font-sans: 'Inter', ui-sans-serif, system-ui;
-}
+  /* --font-sans: 'Inter', ui-sans-serif, system-ui;
+} */
 
 /* Styles globaux pour Swiper (pagination orange) */
-:root {
+/* :root {
   --swiper-theme-color: #FF9900;
   --swiper-pagination-bullet-inactive-color: #ffffff;
   --swiper-pagination-bullet-inactive-opacity: 0.4;
@@ -20,4 +71,4 @@
 
 body {
   @apply bg-white text-it-blue antialiased;
-}
+} */

@@ -1,3 +1,4 @@
+// src/components/partners/PartnerLogos.tsx
 "use client";
 
 import React from 'react';
@@ -63,7 +64,7 @@ const PartnerLogos = ({ partners }: PartnerLogosProps) => {
                   />
                 </div>
               ) : (
-                <span className="text-[10px] font-bold text-slate-400 text-center uppercase tracking-widest group-hover:text-[#1D3A8A] transition-colors leading-relaxed">
+                <span className="text-[10px] font-bold text-slate-400 text-center uppercase tracking-widest group-hover:text-it-emerald-dark transition-colors leading-relaxed">
                   {partner.name}
                 </span>
               )}
