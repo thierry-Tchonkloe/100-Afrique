@@ -1,8 +1,9 @@
+// src/components/home/NewsSection.tsx
 "use client";
 
 import React, { useEffect, useState, useRef } from 'react';
 import Link from 'next/link';
-import { Loader2, Clock, ArrowRight, ExternalLink } from 'lucide-react';
+import { Clock, ArrowRight, Loader2 } from 'lucide-react';
 import api from '@/lib/api';
 import MagazineImage from '@/components/shared/MagazineImage';
 
@@ -16,155 +17,103 @@ interface Magazine {
   publishedAt: string;
 }
 
-// ─── Hook reveal on scroll ────────────────────────────────────────────────────
-
-function useReveal(threshold = 0.12) {
-  const ref = useRef<HTMLDivElement>(null);
-  const [visible, setVisible] = useState(false);
-
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const obs = new IntersectionObserver(
-      ([entry]) => { if (entry.isIntersecting) { setVisible(true); obs.disconnect(); } },
-      { threshold }
-    );
-    obs.observe(el);
-    return () => obs.disconnect();
-  }, [threshold]);
-
-  return { ref, visible };
+function formatDate(iso: string, monthStyle: 'long' | 'short' = 'long') {
+  return new Date(iso).toLocaleDateString('fr-FR', { day: 'numeric', month: monthStyle, year: 'numeric' });
 }
 
-// ─── Carte article featured (grande) ─────────────────────────────────────────
+// ─── Carte article featured (assombrissement type NewsHero) ─────────────────
 
-function FeaturedCard({ magazine, delay = 0 }: { magazine: Magazine; delay?: number }) {
-  const { ref, visible } = useReveal();
+function FeaturedCard({ magazine, visible }: { magazine: Magazine; visible: boolean }) {
   return (
-    <div
-      ref={ref}
-      className="transition-all duration-700"
+    <Link
+      href={`/magazine/${magazine.slug}`}
+      className="group block relative overflow-hidden rounded-2xl"
       style={{
-        transitionDelay: `${delay}ms`,
-        opacity: visible ? 1 : 0,
-        transform: visible ? 'translateY(0)' : 'translateY(32px)',
-      }}
-    >
-      <Link href={`/magazine/${magazine.slug}`} className="group block relative overflow-hidden rounded-2xl" style={{ aspectRatio: '4/5' }}>
-        {/* Image */}
-        <MagazineImage
-          src={magazine.coverImage}
-          alt={magazine.title}
-          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-        />
-        {/* Gradient */}
-        <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(10,35,20,0.95) 0%, rgba(10,35,20,0.4) 50%, transparent 100%)' }} />
-
-        {/* Badge source */}
-        <span
-          className="absolute top-4 left-4 px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-wider text-white"
-          style={{ background: '#B85C38' }}
-        >
-          {magazine.source}
-        </span>
-
-        {/* Contenu bas */}
-        <div className="absolute bottom-0 left-0 right-0 p-6">
-          <p className="text-[#C8A84B] text-[11px] font-bold uppercase tracking-[0.2em] mb-2 flex items-center gap-1.5">
-            <Clock size={11} />
-            {new Date(magazine.publishedAt).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}
-          </p>
-          <h3 className="text-white font-black text-xl leading-snug line-clamp-3 mb-4 group-hover:text-[#C8A84B] transition-colors">
-            {magazine.title}
-          </h3>
-          <span className="inline-flex items-center gap-1.5 text-white/70 text-xs font-semibold uppercase tracking-widest group-hover:text-white transition-colors">
-            Lire <ArrowRight size={12} className="group-hover:translate-x-1 transition-transform" />
-          </span>
-        </div>
-      </Link>
-    </div>
-  );
-}
-
-// ─── Carte article secondaire (petite) ───────────────────────────────────────
-
-function SecondaryCard({ magazine, delay = 0 }: { magazine: Magazine; delay?: number }) {
-  const { ref, visible } = useReveal();
-  return (
-    <div
-      ref={ref}
-      className="transition-all duration-700"
-      style={{
-        transitionDelay: `${delay}ms`,
-        opacity: visible ? 1 : 0,
-        transform: visible ? 'translateX(0)' : 'translateX(24px)',
-      }}
-    >
-      <Link
-        href={`/magazine/${magazine.slug}`}
-        className="group flex gap-4 items-start p-4 rounded-2xl hover:bg-[#F0FAF5] transition-colors"
-      >
-        {/* Miniature */}
-        <div className="w-20 h-20 sm:w-24 sm:h-24 shrink-0 rounded-xl overflow-hidden">
-          <MagazineImage
-            src={magazine.coverImage}
-            alt={magazine.title}
-            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-          />
-        </div>
-
-        {/* Texte */}
-        <div className="flex-1 min-w-0">
-          <span className="text-[10px] font-bold uppercase tracking-widest" style={{ color: '#B85C38' }}>
-            {magazine.source}
-          </span>
-          <h4 className="font-bold text-sm leading-snug text-gray-900 line-clamp-2 mt-0.5 group-hover:text-[#1A5C43] transition-colors">
-            {magazine.title}
-          </h4>
-          <p className="text-[11px] text-gray-400 mt-2 flex items-center gap-1">
-            <Clock size={10} />
-            {new Date(magazine.publishedAt).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })}
-          </p>
-        </div>
-      </Link>
-    </div>
-  );
-}
-
-// ─── Carte article bas de page (grille 3 colonnes) ───────────────────────────
-
-function BottomCard({ magazine, delay = 0 }: { magazine: Magazine; delay?: number }) {
-  const { ref, visible } = useReveal();
-  return (
-    <div
-      ref={ref}
-      className="transition-all duration-700"
-      style={{
-        transitionDelay: `${delay}ms`,
+        aspectRatio: '16/11',
+        transition: 'opacity 0.7s, transform 0.7s',
         opacity: visible ? 1 : 0,
         transform: visible ? 'translateY(0)' : 'translateY(24px)',
       }}
     >
-      <Link href={`/magazine/${magazine.slug}`} className="group block">
-        <div className="aspect-[16/9] rounded-xl overflow-hidden mb-4">
-          <MagazineImage
-            src={magazine.coverImage}
-            alt={magazine.title}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-          />
-        </div>
-        <span className="text-[10px] font-bold uppercase tracking-widest" style={{ color: '#B85C38' }}>
+      <MagazineImage
+        src={magazine.coverImage}
+        alt={magazine.title}
+        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+      />
+
+      <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(10,35,20,0.97) 0%, rgba(10,35,20,0.4) 50%, transparent 100%)' }} />
+      <div className="absolute inset-0" style={{ background: 'linear-gradient(to right, rgba(10,35,20,0.3) 0%, transparent 60%)' }} />
+
+      <div className="absolute top-4 left-4 flex items-center gap-2">
+        <span
+          className="px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-[0.15em] text-white"
+          style={{ background: '#B85C38' }}
+        >
+          À la une
+        </span>
+        <span
+          className="px-3 py-1.5 rounded-full text-[10px] font-semibold uppercase tracking-wider text-white/90"
+          style={{ background: 'rgba(255,255,255,0.12)', border: '1px solid rgba(255,255,255,0.2)' }}
+        >
           {magazine.source}
         </span>
-        <h4 className="font-bold text-base leading-snug mt-1 line-clamp-2 text-gray-900 group-hover:text-[#1A5C43] transition-colors">
+      </div>
+
+      <div className="absolute bottom-0 left-0 right-0 p-5">
+        <p className="text-[#C8A84B] text-[10px] font-bold uppercase tracking-[0.2em] mb-2 flex items-center gap-1.5">
+          <Clock size={10} />
+          {formatDate(magazine.publishedAt)}
+        </p>
+        <h3 className="text-white font-black text-base md:text-lg leading-snug line-clamp-2 group-hover:text-[#C8A84B] transition-colors" style={{ letterSpacing: '-0.01em' }}>
+          {magazine.title}
+        </h3>
+      </div>
+    </Link>
+  );
+}
+
+// ─── Carte article secondaire — image assombrie, type SideCard de NewsHero ──
+
+function SecondaryCard({ magazine, delay = 0, visible }: { magazine: Magazine; delay?: number; visible: boolean }) {
+  return (
+    <Link
+      href={`/magazine/${magazine.slug}`}
+      className="group block relative overflow-hidden rounded-2xl"
+      style={{
+        aspectRatio: '16/10',
+        transition: `opacity 0.6s ${delay}ms, transform 0.6s ${delay}ms`,
+        opacity: visible ? 1 : 0,
+        transform: visible ? 'translateX(0)' : 'translateX(24px)',
+      }}
+    >
+      {/* Image */}
+      <div className="absolute inset-0 overflow-hidden">
+        <MagazineImage
+          src={magazine.coverImage}
+          alt={magazine.title}
+          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+        />
+        <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(10,35,20,0.95) 0%, rgba(10,35,20,0.3) 60%, transparent 100%)' }} />
+      </div>
+
+      {/* Badge source */}
+      <span
+        className="absolute top-3 left-3 px-2.5 py-1 rounded-full text-[9px] font-bold uppercase tracking-wider text-white"
+        style={{ background: 'rgba(42,127,95,0.9)' }}
+      >
+        {magazine.source}
+      </span>
+
+      {/* Contenu bas */}
+      <div className="absolute bottom-0 left-0 right-0 p-3.5">
+        <p className="text-[#C8A84B] text-[10px] font-bold uppercase tracking-wider mb-1">
+          {formatDate(magazine.publishedAt, 'short')}
+        </p>
+        <h4 className="text-white font-bold text-sm leading-snug line-clamp-2 group-hover:text-[#C8A84B] transition-colors">
           {magazine.title}
         </h4>
-        <p className="text-[11px] text-gray-400 mt-2 flex items-center gap-1">
-          <Clock size={10} />
-          {new Date(magazine.publishedAt).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })}
-        </p>
-      </Link>
-    </div>
+      </div>
+    </Link>
   );
 }
 
@@ -173,14 +122,29 @@ function BottomCard({ magazine, delay = 0 }: { magazine: Magazine; delay?: numbe
 const NewsSection = () => {
   const [magazines, setMagazines] = useState<Magazine[]>([]);
   const [loading, setLoading] = useState(true);
-  const { ref: headingRef, visible: headingVisible } = useReveal(0.3);
+  const [visible, setVisible] = useState(false);
+  const sectionRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    api.get('/magazines/rss', { params: { pageSize: 7, page: 1 } })
-      .then((res) => setMagazines(res.data?.data?.magazines ?? []))
+    let cancelled = false;
+    api.get('/magazines/rss', { params: { pageSize: 5, page: 1 } })
+      .then((res) => { if (!cancelled) setMagazines(res.data?.data?.magazines ?? []); })
       .catch(() => {})
-      .finally(() => setLoading(false));
+      .finally(() => { if (!cancelled) setLoading(false); });
+    return () => { cancelled = true; };
   }, []);
+
+  useEffect(() => {
+    if (loading) return;
+    const el = sectionRef.current;
+    if (!el) return;
+    const obs = new IntersectionObserver(
+      ([entry]) => { if (entry.isIntersecting) { setVisible(true); obs.disconnect(); } },
+      { threshold: 0.15 }
+    );
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, [loading]);
 
   if (loading) {
     return (
@@ -192,20 +156,19 @@ const NewsSection = () => {
   }
   if (!magazines.length) return null;
 
-  const [featured, ...rest] = magazines;
+  const featured = magazines[0];
+  const secondary = magazines.slice(1, 5);
 
   return (
-    <section className="py-20 md:py-28 bg-white overflow-hidden">
+    <section ref={sectionRef} className="py-20 md:py-28 bg-white overflow-hidden">
       <div className="max-w-[1300px] mx-auto px-6">
 
         {/* Heading */}
         <div
-          ref={headingRef}
-          className="flex items-end justify-between mb-14 transition-all duration-700"
-          style={{ opacity: headingVisible ? 1 : 0, transform: headingVisible ? 'none' : 'translateY(20px)' }}
+          className="flex items-end justify-between mb-10 transition-all duration-700"
+          style={{ opacity: visible ? 1 : 0, transform: visible ? 'none' : 'translateY(20px)' }}
         >
           <div>
-            {/* Eyebrow */}
             <p className="text-xs font-bold uppercase tracking-[0.25em] mb-3" style={{ color: '#B85C38' }}>
               — Actualités
             </p>
@@ -226,28 +189,16 @@ const NewsSection = () => {
           </Link>
         </div>
 
-        {/* Layout éditorial — featured + sidebar */}
-        <div className="grid grid-cols-1 lg:grid-cols-[1fr_380px] xl:grid-cols-[1fr_420px] gap-8 mb-16">
+        {/* Featured + grille de cartes secondaires en image */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <FeaturedCard magazine={featured} visible={visible} />
 
-          {/* Featured */}
-          {featured && <FeaturedCard magazine={featured} delay={0} />}
-
-          {/* Sidebar articles secondaires */}
-          <div className="flex flex-col divide-y divide-gray-100">
-            {rest.slice(0, 4).map((mag, i) => (
-              <SecondaryCard key={mag.id} magazine={mag} delay={i * 80 + 100} />
+          <div className="grid grid-cols-2 gap-4">
+            {secondary.map((mag, i) => (
+              <SecondaryCard key={mag.id} magazine={mag} delay={i * 100 + 150} visible={visible} />
             ))}
           </div>
         </div>
-
-        {/* Grille bas — 3 articles */}
-        {rest.length > 4 && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {rest.slice(4, 7).map((mag, i) => (
-              <BottomCard key={mag.id} magazine={mag} delay={i * 100} />
-            ))}
-          </div>
-        )}
 
         {/* CTA mobile */}
         <div className="mt-12 flex justify-center md:hidden">

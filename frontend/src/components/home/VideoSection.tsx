@@ -1,3 +1,4 @@
+// src/components/home/VideoSection.tsx
 "use client";
 
 import React, { useEffect, useState, useRef } from 'react';
@@ -15,29 +16,15 @@ interface VideoArticle {
   category: { id: number; name: string; slug: string };
 }
 
-// ─── Hook reveal ─────────────────────────────────────────────────────────────
-
-function useReveal() {
-  const ref = useRef<HTMLDivElement>(null);
-  const [visible, setVisible] = useState(false);
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const obs = new IntersectionObserver(
-      ([e]) => { if (e.isIntersecting) { setVisible(true); obs.disconnect(); } },
-      { threshold: 0.1 }
-    );
-    obs.observe(el);
-    return () => obs.disconnect();
-  }, []);
-  return { ref, visible };
+function formatDate(iso: string, monthStyle: 'long' | 'short' = 'long') {
+  return new Date(iso).toLocaleDateString('fr-FR', { day: 'numeric', month: monthStyle, year: 'numeric' });
 }
 
 // ─── Bouton Play ──────────────────────────────────────────────────────────────
 
 function PlayButton({ size = 'lg' }: { size?: 'lg' | 'sm' }) {
-  const dim = size === 'lg' ? 80 : 44;
-  const iconSize = size === 'lg' ? 32 : 18;
+  const dim = size === 'lg' ? 76 : 36;
+  const iconSize = size === 'lg' ? 30 : 14;
   return (
     <div
       className="flex items-center justify-center rounded-full transition-transform duration-300 group-hover:scale-110"
@@ -53,107 +40,113 @@ function PlayButton({ size = 'lg' }: { size?: 'lg' | 'sm' }) {
   );
 }
 
-// ─── Carte vidéo principale ───────────────────────────────────────────────────
+// ─── Carte vidéo principale (assombrissement type NewsHero) ─────────────────
 
-function MainVideoCard({ video }: { video: VideoArticle }) {
-  const { ref, visible } = useReveal();
+function MainVideoCard({ video, visible }: { video: VideoArticle; visible: boolean }) {
   return (
-    <div
-      ref={ref}
-      className="lg:col-span-2 transition-all duration-700"
-      style={{ opacity: visible ? 1 : 0, transform: visible ? 'none' : 'translateY(32px)' }}
+    <Link
+      href={`/videos/${video.slug}`}
+      className="group block relative overflow-hidden rounded-2xl"
+      style={{
+        aspectRatio: '16/11',
+        transition: 'opacity 0.7s, transform 0.7s',
+        opacity: visible ? 1 : 0,
+        transform: visible ? 'translateY(0)' : 'translateY(24px)',
+      }}
     >
-      <Link
-        href={`/videos/${video.slug}`}
-        className="group relative block overflow-hidden rounded-2xl"
-        style={{ aspectRatio: '16/10' }}
-      >
-        <img
-          src={video.coverImage || '/images/placeholder.jpg'}
-          alt={video.title}
-          className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-        />
+      <img
+        src={video.coverImage || '/images/placeholder.jpg'}
+        alt={video.title}
+        className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+      />
 
-        {/* Overlay layers */}
-        <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(10,35,20,0.95) 0%, rgba(10,35,20,0.3) 50%, transparent 100%)' }} />
-        <div className="absolute inset-0" style={{ background: 'radial-gradient(circle at center, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.3) 100%)' }} />
+      <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(10,35,20,0.97) 0%, rgba(10,35,20,0.4) 50%, transparent 100%)' }} />
+      <div className="absolute inset-0" style={{ background: 'linear-gradient(to right, rgba(10,35,20,0.3) 0%, transparent 60%)' }} />
 
-        {/* Badge catégorie */}
+      <div className="absolute top-4 left-4 flex items-center gap-2">
         <span
-          className="absolute top-5 left-5 px-3 py-1.5 rounded-full text-[11px] font-bold uppercase tracking-wider text-white"
+          className="px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-[0.15em] text-white"
           style={{ background: '#B85C38' }}
         >
           {video.category?.name ?? 'Vidéo'}
         </span>
-
-        {/* Play button centré */}
-        <div className="absolute inset-0 flex items-center justify-center">
-          <div className="relative">
-            {/* Pulse ring */}
-            <div
-              className="absolute inset-0 rounded-full opacity-30 group-hover:opacity-0 transition-opacity"
-              style={{ background: 'rgba(184,92,56,0.4)', transform: 'scale(1.5)', animation: 'pulse 2s ease-in-out infinite' }}
-            />
-            <PlayButton size="lg" />
-          </div>
-        </div>
-
-        {/* Info bas */}
-        <div className="absolute bottom-0 left-0 right-0 p-8">
-          <h3 className="text-white font-black text-xl md:text-2xl leading-snug line-clamp-2 mb-2 group-hover:text-[#C8A84B] transition-colors">
-            {video.title}
-          </h3>
-          <p className="text-white/60 text-sm">
-            {new Date(video.createdAt).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}
-          </p>
-        </div>
-
-        {/* Badge durée / type */}
-        <span className="absolute bottom-5 right-5 text-[10px] font-bold uppercase tracking-widest text-white/70 bg-black/40 px-2 py-1 rounded backdrop-blur-sm">
-          ▶ VIDÉO
+        <span
+          className="px-3 py-1.5 rounded-full text-[10px] font-semibold uppercase tracking-wider text-white/90"
+          style={{ background: 'rgba(255,255,255,0.12)', border: '1px solid rgba(255,255,255,0.2)' }}
+        >
+          ▶ Vidéo
         </span>
-      </Link>
-    </div>
+      </div>
+
+      <div className="absolute inset-0 flex items-center justify-center">
+        <div className="relative">
+          <div
+            className="absolute inset-0 rounded-full opacity-30 group-hover:opacity-0 transition-opacity"
+            style={{ background: 'rgba(184,92,56,0.4)', transform: 'scale(1.5)', animation: 'pulse 2s ease-in-out infinite' }}
+          />
+          <PlayButton size="lg" />
+        </div>
+      </div>
+
+      <div className="absolute bottom-0 left-0 right-0 p-5">
+        <p className="text-[#C8A84B] text-[10px] font-bold uppercase tracking-[0.2em] mb-2">
+          {formatDate(video.createdAt)}
+        </p>
+        <h3 className="text-white font-black text-base md:text-lg leading-snug line-clamp-2 group-hover:text-[#C8A84B] transition-colors" style={{ letterSpacing: '-0.01em' }}>
+          {video.title}
+        </h3>
+      </div>
+    </Link>
   );
 }
 
-// ─── Carte vidéo secondaire ───────────────────────────────────────────────────
+// ─── Carte vidéo secondaire — image assombrie, type SideCard de NewsHero ────
 
-function SideVideoCard({ video, delay = 0 }: { video: VideoArticle; delay?: number }) {
-  const { ref, visible } = useReveal();
+function SideVideoCard({ video, delay = 0, visible }: { video: VideoArticle; delay?: number; visible: boolean }) {
   return (
-    <div
-      ref={ref}
-      className="transition-all duration-700"
-      style={{ transitionDelay: `${delay}ms`, opacity: visible ? 1 : 0, transform: visible ? 'none' : 'translateX(20px)' }}
+    <Link
+      href={`/videos/${video.slug}`}
+      className="group block relative overflow-hidden rounded-2xl"
+      style={{
+        aspectRatio: '16/10',
+        transition: `opacity 0.6s ${delay}ms, transform 0.6s ${delay}ms`,
+        opacity: visible ? 1 : 0,
+        transform: visible ? 'translateX(0)' : 'translateX(24px)',
+      }}
     >
-      <Link href={`/videos/${video.slug}`} className="group flex gap-4 items-center p-3 rounded-2xl hover:bg-[#F0FAF5] transition-colors">
-        {/* Miniature */}
-        <div className="relative w-28 h-20 shrink-0 rounded-xl overflow-hidden bg-gray-900">
-          <img
-            src={video.coverImage || '/images/placeholder.jpg'}
-            alt={video.title}
-            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500 opacity-80"
-          />
-          <div className="absolute inset-0 flex items-center justify-center">
-            <PlayButton size="sm" />
-          </div>
-        </div>
+      {/* Image */}
+      <div className="absolute inset-0 overflow-hidden bg-gray-900">
+        <img
+          src={video.coverImage || '/images/placeholder.jpg'}
+          alt={video.title}
+          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+        />
+        <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(10,35,20,0.95) 0%, rgba(10,35,20,0.3) 60%, transparent 100%)' }} />
+      </div>
 
-        {/* Texte */}
-        <div className="flex-1 min-w-0">
-          <span className="text-[10px] font-bold uppercase tracking-widest" style={{ color: '#B85C38' }}>
-            {video.category?.name}
-          </span>
-          <h4 className="font-bold text-sm text-gray-900 line-clamp-2 mt-0.5 group-hover:text-[#1A5C43] transition-colors leading-snug">
-            {video.title}
-          </h4>
-          <p className="text-[11px] text-gray-400 mt-1.5">
-            {new Date(video.createdAt).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })}
-          </p>
-        </div>
-      </Link>
-    </div>
+      {/* Badge catégorie */}
+      <span
+        className="absolute top-3 left-3 px-2.5 py-1 rounded-full text-[9px] font-bold uppercase tracking-wider text-white"
+        style={{ background: 'rgba(42,127,95,0.9)' }}
+      >
+        {video.category?.name ?? 'Vidéo'}
+      </span>
+
+      {/* Play button centré, plus petit */}
+      <div className="absolute inset-0 flex items-center justify-center">
+        <PlayButton size="sm" />
+      </div>
+
+      {/* Contenu bas */}
+      <div className="absolute bottom-0 left-0 right-0 p-3.5">
+        <p className="text-[#C8A84B] text-[10px] font-bold uppercase tracking-wider mb-1">
+          {formatDate(video.createdAt, 'short')}
+        </p>
+        <h4 className="text-white font-bold text-sm leading-snug line-clamp-2 group-hover:text-[#C8A84B] transition-colors">
+          {video.title}
+        </h4>
+      </div>
+    </Link>
   );
 }
 
@@ -162,14 +155,29 @@ function SideVideoCard({ video, delay = 0 }: { video: VideoArticle; delay?: numb
 const VideoSection = () => {
   const [videos, setVideos] = useState<VideoArticle[]>([]);
   const [loading, setLoading] = useState(true);
-  const { ref: headingRef, visible: headingVisible } = useReveal();
+  const [visible, setVisible] = useState(false);
+  const sectionRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    let cancelled = false;
     api.get('/mag/articles', { params: { pageSize: 4, page: 1, status: 'PUBLISHED', type: 'VIDEO' } })
-      .then((res) => setVideos(res.data.data ?? []))
+      .then((res) => { if (!cancelled) setVideos(res.data.data ?? []); })
       .catch(() => {})
-      .finally(() => setLoading(false));
+      .finally(() => { if (!cancelled) setLoading(false); });
+    return () => { cancelled = true; };
   }, []);
+
+  useEffect(() => {
+    if (loading) return;
+    const el = sectionRef.current;
+    if (!el) return;
+    const obs = new IntersectionObserver(
+      ([entry]) => { if (entry.isIntersecting) { setVisible(true); obs.disconnect(); } },
+      { threshold: 0.15 }
+    );
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, [loading]);
 
   if (loading) {
     return (
@@ -182,17 +190,16 @@ const VideoSection = () => {
   if (!videos.length) return null;
 
   const main = videos[0];
-  const sides = videos.slice(1, 4);
+  const sides = videos.slice(1, 5);
 
   return (
-    <section className="py-20 md:py-28 overflow-hidden" style={{ background: '#F7F9F8' }}>
+    <section ref={sectionRef} className="py-20 md:py-28 overflow-hidden" style={{ background: '#F7F9F8' }}>
       <div className="max-w-[1300px] mx-auto px-6">
 
         {/* Heading */}
         <div
-          ref={headingRef}
-          className="flex items-end justify-between mb-14 transition-all duration-700"
-          style={{ opacity: headingVisible ? 1 : 0, transform: headingVisible ? 'none' : 'translateY(20px)' }}
+          className="flex items-end justify-between mb-10 transition-all duration-700"
+          style={{ opacity: visible ? 1 : 0, transform: visible ? 'none' : 'translateY(20px)' }}
         >
           <div>
             <p className="text-xs font-bold uppercase tracking-[0.25em] mb-3" style={{ color: '#B85C38' }}>
@@ -215,20 +222,19 @@ const VideoSection = () => {
           </Link>
         </div>
 
-        {/* Layout vidéo */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-10">
-          <MainVideoCard video={main} />
+        {/* Vidéo principale + grille de cartes secondaires en image */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <MainVideoCard video={main} visible={visible} />
 
-          {/* Sidebar vidéos */}
-          <div className="flex flex-col justify-between gap-2">
+          <div className="grid grid-cols-2 gap-4">
             {sides.map((video, i) => (
-              <SideVideoCard key={video.id} video={video} delay={i * 80 + 100} />
+              <SideVideoCard key={video.id} video={video} delay={i * 100 + 150} visible={visible} />
             ))}
           </div>
         </div>
 
         {/* CTA mobile */}
-        <div className="flex justify-center md:hidden">
+        <div className="mt-12 flex justify-center md:hidden">
           <Link
             href="/videos"
             className="inline-flex items-center gap-2 font-bold text-sm px-8 py-3.5 rounded-full text-white"
