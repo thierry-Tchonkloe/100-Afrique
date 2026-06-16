@@ -1,3 +1,4 @@
+// src/components/home/HeroSlider.tsx
 "use client";
 
 import React, { useEffect, useState, useRef, useCallback } from 'react';
@@ -15,6 +16,9 @@ interface Magazine {
   publishedAt: string;
   category?: { id: number; name: string; slug: string };
 }
+
+const DELAY = 6000;
+const TICK = 50;
 
 // ─── Skeleton loader ─────────────────────────────────────────────────────────
 
@@ -35,19 +39,10 @@ function HeroSkeleton() {
 interface SlideProps {
   magazine: Magazine;
   active: boolean;
-  direction: 'next' | 'prev' | null;
-  index: number;
 }
 
-function Slide({ magazine, active, direction, index }: SlideProps) {
+function Slide({ magazine, active }: SlideProps) {
   const [imageLoaded, setImageLoaded] = useState(false);
-
-  const enterClass = active
-    ? direction === 'next'
-      ? 'translate-x-0 opacity-100'
-      : 'translate-x-0 opacity-100'
-    : '';
-  const exitClass = !active ? 'opacity-0 scale-105' : 'opacity-100 scale-100';
 
   return (
     <div
@@ -157,73 +152,86 @@ const HeroSlider = () => {
   const [magazines, setMagazines] = useState<Magazine[]>([]);
   const [loading, setLoading] = useState(true);
   const [current, setCurrent] = useState(0);
-  const [direction, setDirection] = useState<'next' | 'prev' | null>(null);
   const [progress, setProgress] = useState(0);
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const progressRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const DELAY = 6000;
+  const [paused, setPaused] = useState(false);
+
+  // Refs pour les valeurs "vivantes" lues par l'interval sans recréer celui-ci
+  const countRef = useRef(0);
+  const pausedRef = useRef(false);
 
   useEffect(() => {
+    let cancelled = false;
     api.get('/magazines/rss', { params: { pageSize: 5, page: 1 } })
-      .then((res) => setMagazines(res.data?.data?.magazines ?? []))
+      .then((res) => {
+        if (cancelled) return;
+        setMagazines(res.data?.data?.magazines ?? []);
+      })
       .catch(() => {})
-      .finally(() => setLoading(false));
+      .finally(() => { if (!cancelled) setLoading(false); });
+    return () => { cancelled = true; };
   }, []);
 
-  const goTo = useCallback((idx: number, dir: 'next' | 'prev') => {
-    setDirection(dir);
-    setCurrent(idx);
-    setProgress(0);
-    if (intervalRef.current) clearInterval(intervalRef.current);
-    if (progressRef.current) clearInterval(progressRef.current);
-    startAutoplay();
-  }, []); // eslint-disable-line
-
-  const next = useCallback(() => {
-    if (!magazines.length) return;
-    goTo((current + 1) % magazines.length, 'next');
-  }, [current, magazines.length, goTo]);
-
-  const prev = useCallback(() => {
-    if (!magazines.length) return;
-    goTo((current - 1 + magazines.length) % magazines.length, 'prev');
-  }, [current, magazines.length, goTo]);
-
-  const startAutoplay = useCallback(() => {
-    setProgress(0);
-    const tick = 50;
-    progressRef.current = setInterval(() => {
-      setProgress((p) => Math.min(p + (tick / DELAY) * 100, 100));
-    }, tick);
-    intervalRef.current = setInterval(() => {
-      setCurrent((c) => (c + 1) % magazines.length);
-      setProgress(0);
-    }, DELAY);
+  // Garde-fou : si la liste change de taille, on recadre l'index courant
+  useEffect(() => {
+    if (magazines.length === 0) return;
+    setCurrent((c) => ((c % magazines.length) + magazines.length) % magazines.length);
   }, [magazines.length]);
 
+  useEffect(() => { pausedRef.current = paused; }, [paused]);
+
+  // ─── Unique boucle d'autoplay : un seul setInterval, jamais dupliqué ──────
   useEffect(() => {
-    if (magazines.length > 1) startAutoplay();
-    return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current);
-      if (progressRef.current) clearInterval(progressRef.current);
-    };
-  }, [magazines.length, startAutoplay]);
+    if (magazines.length <= 1) return;
+
+    countRef.current = 0;
+    setProgress(0);
+
+    const id = setInterval(() => {
+      if (pausedRef.current) return;
+      countRef.current += TICK;
+      const pct = Math.min((countRef.current / DELAY) * 100, 100);
+      setProgress(pct);
+
+      if (countRef.current >= DELAY) {
+        countRef.current = 0;
+        setProgress(0);
+        setCurrent((c) => (c + 1) % magazines.length);
+      }
+    }, TICK);
+
+    return () => clearInterval(id);
+  }, [magazines.length]);
+
+  const resetTimer = useCallback(() => {
+    countRef.current = 0;
+    setProgress(0);
+  }, []);
+
+  const goTo = useCallback((idx: number) => {
+    if (!magazines.length) return;
+    const safeIdx = ((idx % magazines.length) + magazines.length) % magazines.length;
+    setCurrent(safeIdx);
+    resetTimer();
+  }, [magazines.length, resetTimer]);
+
+  const next = useCallback(() => goTo(current + 1), [current, goTo]);
+  const prev = useCallback(() => goTo(current - 1), [current, goTo]);
 
   if (loading) return <HeroSkeleton />;
   if (!magazines.length) return null;
 
-  return (
-    <section className="relative w-full h-[100svh] min-h-[600px] max-h-[900px] overflow-hidden">
+  // Sécurité ultime : ne jamais indexer hors bornes même en cas de timing imprévu
+  const safeCurrent = ((current % magazines.length) + magazines.length) % magazines.length;
 
+  return (
+    <section
+      className="relative w-full h-[100svh] min-h-[600px] max-h-[900px] overflow-hidden"
+      onMouseEnter={() => setPaused(true)}
+      onMouseLeave={() => setPaused(false)}
+    >
       {/* Slides */}
       {magazines.map((mag, i) => (
-        <Slide
-          key={mag.id}
-          magazine={mag}
-          active={i === current}
-          direction={direction}
-          index={i}
-        />
+        <Slide key={mag.id} magazine={mag} active={i === safeCurrent} />
       ))}
 
       {/* Contrôles navigation */}
@@ -254,15 +262,15 @@ const HeroSlider = () => {
           {magazines.map((_, i) => (
             <button
               key={i}
-              onClick={() => goTo(i, i > current ? 'next' : 'prev')}
+              onClick={() => goTo(i)}
               aria-label={`Slide ${i + 1}`}
               className="relative h-1 rounded-full overflow-hidden transition-all duration-300"
               style={{
-                width: i === current ? 40 : 12,
+                width: i === safeCurrent ? 40 : 12,
                 background: 'rgba(255,255,255,0.3)',
               }}
             >
-              {i === current && (
+              {i === safeCurrent && (
                 <span
                   className="absolute inset-y-0 left-0 rounded-full"
                   style={{ background: '#C8A84B', width: `${progress}%`, transition: 'width 50ms linear' }}
@@ -275,7 +283,7 @@ const HeroSlider = () => {
 
       {/* Numéro slide en bas à droite */}
       <div className="absolute bottom-8 right-8 z-20 text-white/40 text-xs font-mono tracking-widest hidden md:block">
-        {String(current + 1).padStart(2, '0')} / {String(magazines.length).padStart(2, '0')}
+        {String(safeCurrent + 1).padStart(2, '0')} / {String(magazines.length).padStart(2, '0')}
       </div>
 
       {/* Scroll indicator */}

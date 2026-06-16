@@ -1,9 +1,9 @@
 // src/components/news/LatestNews.tsx
 "use client";
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import Link from 'next/link';
-import { Play, Handshake, Loader2, ExternalLink, Calendar, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Play, Handshake, Loader2, ExternalLink, ChevronLeft, ChevronRight, Clock, ArrowRight, BookOpen, Newspaper, Filter } from 'lucide-react';
 import api from '@/lib/api';
 import { AdvertisingBanner } from '@/components/AdvertisingBanner';
 import MagazineImage from '@/components/shared/MagazineImage';
@@ -39,363 +39,839 @@ interface PaginationMeta {
 
 const PAGE_SIZE = 9;
 
-const LatestNews = ({ searchFilters }: { searchFilters?: any }) => {
-  const [magazines, setMagazines]     = useState<Magazine[]>([]);
-  const [analyses, setAnalyses]       = useState<SidebarArticle[]>([]);
-  const [interview, setInterview]     = useState<SidebarArticle | null>(null);
-  const [meta, setMeta]               = useState<PaginationMeta | null>(null);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [loading, setLoading]         = useState(true);
-  const [pageLoading, setPageLoading] = useState(false);
+// ─── Hook reveal ─────────────────────────────────────────────────────────────
+
+function useReveal(threshold = 0.08) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [visible, setVisible] = useState(false);
 
   useEffect(() => {
-    const fetchMagazines = async () => {
-      currentPage === 1 ? setLoading(true) : setPageLoading(true);
-      try {
-        const res = await api.get('/magazines/rss', {
-          params: {
-            pageSize: PAGE_SIZE,
-            page: currentPage,
-            ...(searchFilters?.query   && { search:  searchFilters.query }),
-            ...(searchFilters?.region  && { region:  searchFilters.region }),
-            ...(searchFilters?.country && { country: searchFilters.country }),
-            ...(searchFilters?.topic   && { topic:   searchFilters.topic }),
-          },
-        });
-        setMagazines(res.data?.data?.magazines ?? []);
-        setMeta(res.data?.data?.pagination ?? null);
-      } catch (error) {
-        console.error('Erreur chargement magazines:', error);
-      } finally {
-        setLoading(false);
-        setPageLoading(false);
-      }
-    };
-    fetchMagazines();
-  }, [currentPage, searchFilters]);
+    const el = ref.current;
+    if (!el) return;
 
-  useEffect(() => { setCurrentPage(1); }, [searchFilters]);
+    // Fallback : déjà dans le viewport au montage
+    const rect = el.getBoundingClientRect();
+    if (rect.top < window.innerHeight && rect.bottom > 0) {
+      setVisible(true);
+      return;
+    }
 
-  useEffect(() => {
-    const fetchSidebar = async () => {
-      try {
-        const [resAnalyses, resInterview] = await Promise.all([
-          api.get('/mag/articles', {
-            params: { type: 'ARTICLE', categorySlug: 'analyses', pageSize: 4, status: 'PUBLISHED' },
-          }),
-          api.get('/mag/articles', {
-            params: { type: 'ARTICLE', categorySlug: 'interviews', pageSize: 1, status: 'PUBLISHED' },
-          }),
-        ]);
-        setAnalyses(resAnalyses.data.data ?? []);
-        setInterview(resInterview.data.data?.[0] ?? null);
-      } catch (error) {
-        console.error('Erreur sidebar:', error);
-      }
-    };
-    fetchSidebar();
-  }, []);
+    const obs = new IntersectionObserver(
+      ([e]) => {
+        if (e.isIntersecting) {
+          setVisible(true);
+          obs.disconnect();
+        }
+      },
+      { threshold }
+    );
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, [threshold]);
 
-  const totalPages = meta?.totalPages ?? 1;
+  return { ref, visible };
+}
 
-  const handlePageChange = (page: number) => {
-    if (page < 1 || page > totalPages) return;
-    setCurrentPage(page);
-    document.getElementById('magazines-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  };
+// ─── Heading ──────────────────────────────────────────────────────────────────
 
-  const getPageNumbers = (): (number | '...')[] => {
+function SectionHeading({
+  headingRef,
+  headingVisible,
+  total,
+}: {
+  headingRef: React.RefObject<HTMLDivElement | null>; // ← fix TypeScript
+  headingVisible: boolean;
+  total: number | null;
+}) {
+  return (
+    <div
+      ref={headingRef}
+      className="flex items-start justify-between gap-6 flex-wrap pb-7 mb-10 border-b border-gray-100 transition-all duration-700"
+      style={{ opacity: headingVisible ? 1 : 0, transform: headingVisible ? 'none' : 'translateY(20px)' }}
+    >
+      <div className="flex items-center gap-4">
+        <div
+          className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0"
+          style={{ background: '#0D2B1A' }}
+        >
+          <Newspaper size={22} style={{ color: '#C8A84B' }} />
+        </div>
+        <div>
+          <p className="text-[11px] font-bold uppercase tracking-[0.2em] mb-1.5" style={{ color: '#B85C38' }}>
+            — Explorer par source
+          </p>
+          <h2 className="text-2xl md:text-3xl font-black leading-tight" style={{ color: '#0D1A10', letterSpacing: '-0.02em' }}>
+            Toutes les <span style={{ color: '#1A5C43' }}>Actualités</span>
+          </h2>
+        </div>
+      </div>
+
+      {total !== null && (
+        <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gray-50">
+          <Filter size={15} className="text-gray-400" />
+          <span className="text-sm text-gray-500">
+            {total} article{total > 1 ? 's' : ''} indexé{total > 1 ? 's' : ''}
+          </span>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── Carte magazine ───────────────────────────────────────────────────────────
+
+function MagazineCard({ mag, delay = 0 }: { mag: Magazine; delay?: number }) {
+  const { ref, visible } = useReveal();
+  return (
+    <div
+      ref={ref}
+      className="transition-all duration-600"
+      style={{
+        transitionDelay: `${delay}ms`,
+        opacity: visible ? 1 : 0,
+        transform: visible ? 'translateY(0)' : 'translateY(20px)',
+      }}
+    >
+      <Link
+        href={`/magazine/${mag.slug}`}
+        className="group block relative overflow-hidden rounded-2xl h-full active:scale-[0.98] transition-transform duration-150"
+        style={{ aspectRatio: '3/4' }}
+      >
+        {/* Image */}
+        <div className="absolute inset-0">
+          <MagazineImage
+            src={mag.coverImage}
+            alt={mag.title}
+            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+          />
+          <div
+            className="absolute inset-0"
+            style={{
+              background:
+                'linear-gradient(to top, rgba(10,35,20,0.97) 0%, rgba(10,35,20,0.55) 45%, rgba(0,0,0,0.08) 100%)',
+            }}
+          />
+        </div>
+
+        {/* Badge source */}
+        <span
+          className="absolute top-3 left-3 px-2.5 py-1 rounded-full text-[9px] font-bold uppercase tracking-wider text-white backdrop-blur-sm"
+          style={{ background: 'rgba(26,92,67,0.9)' }}
+        >
+          {mag.source}
+        </span>
+
+        {/* Contenu bas */}
+        <div className="absolute bottom-0 left-0 right-0 p-4">
+          <p className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider mb-1.5" style={{ color: '#C8A84B' }}>
+            <Clock size={9} />
+            {new Date(mag.publishedAt).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })}
+          </p>
+          <h3 className="font-bold text-[13px] sm:text-[14px] leading-snug line-clamp-2 text-white mb-3 group-hover:text-[#C8A84B] transition-colors">
+            {mag.title}
+          </h3>
+          <div className="border-t pt-2.5" style={{ borderColor: 'rgba(255,255,255,0.12)' }}>
+            <span className="flex items-center gap-1 text-[10px] font-bold" style={{ color: '#B85C38' }}>
+              Lire <ExternalLink size={9} />
+            </span>
+          </div>
+        </div>
+      </Link>
+    </div>
+  );
+}
+
+// ─── Pagination ───────────────────────────────────────────────────────────────
+
+function Pagination({
+  currentPage,
+  totalPages,
+  total,
+  onPageChange,
+}: {
+  currentPage: number;
+  totalPages: number;
+  total: number;
+  onPageChange: (p: number) => void;
+}) {
+  const getPages = (): (number | '...')[] => {
     if (totalPages <= 5) return Array.from({ length: totalPages }, (_, i) => i + 1);
     const pages: (number | '...')[] = [1];
-    if (currentPage > 3)              pages.push('...');
-    for (let i = Math.max(2, currentPage - 1); i <= Math.min(totalPages - 1, currentPage + 1); i++) {
-      pages.push(i);
-    }
+    if (currentPage > 3) pages.push('...');
+    for (let i = Math.max(2, currentPage - 1); i <= Math.min(totalPages - 1, currentPage + 1); i++) pages.push(i);
     if (currentPage < totalPages - 2) pages.push('...');
     pages.push(totalPages);
     return pages;
   };
 
-  if (loading) {
-    return (
-      <div className="py-20 flex justify-center">
-        {/* Loader — émeraude foncé */}
-        <Loader2 className="animate-spin" size={40} style={{ color: '#1A5C43' }} />
-      </div>
-    );
-  }
-
-  // ── Blocs sidebar ─────────────────────────────────────────────────────────
-  const SidebarInterview = () => interview ? (
-    <div className="border-b border-gray-100 pb-6 sm:pb-8">
-      <div className="relative aspect-video rounded-lg overflow-hidden mb-4">
-        <MagazineImage
-          src={interview.coverImage}
-          alt={interview.title}
-          className="object-cover w-full h-full"
-        />
-        <div className="absolute inset-0 bg-black/10 flex items-center justify-center">
-          {/* Icône play — or doux */}
-          <Play size={32} style={{ color: '#C8A84B', fill: '#C8A84B' }} />
-        </div>
-      </div>
-      <h4
-        className="font-serif font-bold text-sm uppercase mb-2 tracking-wide"
-        style={{ color: '#001A4D' }}
-      >
-        L&apos;interview à ne pas manquer
-      </h4>
-      <p className="text-sm text-gray-500 mb-3 line-clamp-2">{interview.title}</p>
-      <Link
-        href={`/actualites/${interview.slug}`}
-        className="font-bold text-[11px] uppercase flex items-center gap-2"
-        style={{ color: '#C8A84B' }}
-      >
-        <div
-          className="w-5 h-5 rounded-full flex items-center justify-center"
-          style={{ border: '1px solid #C8A84B' }}
+  return (
+    <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-10 pt-6 border-t border-gray-100">
+      <p className="text-xs text-gray-400 order-2 sm:order-1">
+        Page {currentPage} sur {totalPages} — {total} résultat{total > 1 ? 's' : ''}
+      </p>
+      <div className="flex items-center gap-1.5 order-1 sm:order-2 flex-wrap justify-center">
+        <button
+          onClick={() => onPageChange(currentPage - 1)}
+          disabled={currentPage === 1}
+          className="w-9 h-9 flex items-center justify-center rounded-xl border border-gray-200 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
         >
-          <Play size={8} fill="currentColor" />
+          <ChevronLeft size={15} />
+        </button>
+        {getPages().map((page, idx) =>
+          page === '...' ? (
+            <span key={`dots-${idx}`} className="px-1 text-gray-400 text-sm select-none">…</span>
+          ) : (
+            <button
+              key={page}
+              onClick={() => onPageChange(page as number)}
+              className="w-9 h-9 rounded-xl text-sm font-bold transition-all border"
+              style={currentPage === page
+                ? { background: '#1A5C43', color: '#fff', borderColor: '#1A5C43', boxShadow: '0 2px 8px rgba(26,92,67,0.3)' }
+                : { background: '#fff', color: '#6B7280', borderColor: '#E5E7EB' }}
+            >
+              {page}
+            </button>
+          )
+        )}
+        <button
+          onClick={() => onPageChange(currentPage + 1)}
+          disabled={currentPage === totalPages}
+          className="w-9 h-9 flex items-center justify-center rounded-xl border border-gray-200 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+        >
+          <ChevronRight size={15} />
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ─── Sidebar blocs ────────────────────────────────────────────────────────────
+
+function SidebarInterview({ interview }: { interview: SidebarArticle | null }) {
+  if (!interview) return null;
+  return (
+    <div className="pb-8 border-b border-gray-100">
+      <p className="text-[10px] font-bold uppercase tracking-[0.2em] mb-3" style={{ color: '#B85C38' }}>
+        — Interview
+      </p>
+      <Link href={`/actualites/${interview.slug}`} className="group block">
+        <div className="relative aspect-video rounded-xl overflow-hidden mb-4">
+          <MagazineImage src={interview.coverImage} alt={interview.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+          <div className="absolute inset-0 flex items-center justify-center" style={{ background: 'rgba(10,35,20,0.35)' }}>
+            <div className="w-12 h-12 rounded-full flex items-center justify-center" style={{ background: '#B85C38', boxShadow: '0 4px 16px rgba(184,92,56,0.4)' }}>
+              <Play size={18} fill="white" className="text-white ml-0.5" />
+            </div>
+          </div>
         </div>
-        Lire l&apos;interview
+        <h4 className="font-bold text-sm leading-snug text-gray-900 line-clamp-2 group-hover:text-[#1A5C43] transition-colors mb-2">
+          {interview.title}
+        </h4>
+        <span className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider" style={{ color: '#C8A84B' }}>
+          <BookOpen size={11} /> Lire l&apos;interview
+        </span>
       </Link>
     </div>
-  ) : null;
+  );
+}
 
-  const SidebarAnalyses = () => analyses.length > 0 ? (
-    <div>
-      <div className="mb-4 sm:mb-6">
-        <h4
-          className="font-serif font-bold text-sm uppercase tracking-widest"
-          style={{ color: '#001A4D' }}
-        >
-          Décryptage et Analyse
-        </h4>
-        {/* Barre accent — or doux */}
-        <div className="w-12 h-1 mt-2" style={{ background: '#C8A84B' }} />
-      </div>
-      <ul className="space-y-4 sm:space-y-6">
+function SidebarAnalyses({ analyses }: { analyses: SidebarArticle[] }) {
+  if (!analyses.length) return null;
+  return (
+    <div className="pb-8 border-b border-gray-100">
+      <p className="text-[10px] font-bold uppercase tracking-[0.2em] mb-1" style={{ color: '#B85C38' }}>
+        — Décryptage
+      </p>
+      <h4 className="font-black text-base text-gray-900 mb-5">Analyses</h4>
+      <ul className="space-y-5">
         {analyses.map((item) => (
           <li key={item.id}>
             <Link href={`/actualites/${item.slug}`} className="group block">
-              <p
-                className="text-[14px] font-bold leading-tight mb-1 transition-colors"
-                style={{ color: '#333333' }}
-                onMouseEnter={e => (e.currentTarget.style.color = '#C8A84B')}
-                onMouseLeave={e => (e.currentTarget.style.color = '#333333')}
-              >
+              <p className="text-[13px] font-bold leading-snug text-gray-800 line-clamp-2 group-hover:text-[#1A5C43] transition-colors mb-1">
                 {item.title}
               </p>
-              <p className="text-[10px] text-gray-400 font-bold uppercase tracking-tighter">
+              <p className="text-[10px] text-gray-400 font-medium flex items-center gap-1">
+                <Clock size={9} />
                 {new Date(item.createdAt).toLocaleDateString('fr-FR')}
-                {item.readingTime ? ` • ${item.readingTime} min` : ''}
+                {item.readingTime ? ` · ${item.readingTime} min` : ''}
               </p>
             </Link>
           </li>
         ))}
       </ul>
     </div>
-  ) : null;
+  );
+}
 
-  const SidebarCTA = () => (
-    /* Fond — émeraude foncé */
-    <div className="p-6 sm:p-10 text-center rounded-lg shadow-xl" style={{ background: '#1A5C43' }}>
-      <div className="flex justify-center mb-4">
-        {/* Icône — or doux */}
-        <Handshake size={40} style={{ color: '#C8A84B' }} />
+function SidebarCTA() {
+  return (
+    <div className="rounded-2xl p-7 text-center relative overflow-hidden" style={{ background: '#0D2B1A' }}>
+      <div className="absolute inset-0 opacity-[0.06]" style={{ backgroundImage: 'radial-gradient(circle at 1px 1px, #C8A84B 1px, transparent 0)', backgroundSize: '16px 16px' }} />
+      <div className="relative z-10">
+        <div className="w-12 h-12 rounded-2xl flex items-center justify-center mx-auto mb-4" style={{ background: '#1A5C43' }}>
+          <Handshake size={22} style={{ color: '#C8A84B' }} />
+        </div>
+        <h4 className="text-white font-black text-base mb-2 leading-tight">
+          Vous êtes professionnel ?
+        </h4>
+        <p className="text-white/50 text-xs mb-6 leading-relaxed">
+          Découvrez nos solutions de visibilité et nos partenariats média
+        </p>
+        <Link
+          href="/partenaires"
+          className="block font-bold text-xs uppercase tracking-widest py-3 px-5 rounded-full text-white transition-all"
+          style={{ background: '#B85C38' }}
+          onMouseEnter={e => (e.currentTarget.style.background = '#8A3E22')}
+          onMouseLeave={e => (e.currentTarget.style.background = '#B85C38')}
+        >
+          Nos Partenariats →
+        </Link>
       </div>
-      <h4 className="text-white font-serif font-bold uppercase text-base sm:text-lg mb-3 sm:mb-4">
-        Vous êtes un professionnel ?
-      </h4>
-      <p className="text-white/70 text-xs mb-6 sm:mb-8 leading-relaxed">
-        Découvrez nos solutions de visibilité et nos partenariats média
-      </p>
-      <Link
-        href="/partenaires"
-        className="block font-bold text-[11px] uppercase py-3 sm:py-4 rounded-md transition-all text-white"
-        style={{ background: '#B85C38' }}
-        onMouseEnter={e => {
-          e.currentTarget.style.background = '#ffffff';
-          e.currentTarget.style.color = '#1A5C43';
-        }}
-        onMouseLeave={e => {
-          e.currentTarget.style.background = '#B85C38';
-          e.currentTarget.style.color = '#ffffff';
-        }}
-      >
-        Découvrez nos Partenariats
-      </Link>
     </div>
   );
+}
+
+// ─── Composant principal ──────────────────────────────────────────────────────
+
+const LatestNews = ({ searchFilters }: { searchFilters?: any }) => {
+  const [magazines, setMagazines] = useState<Magazine[]>([]);
+  const [analyses, setAnalyses] = useState<SidebarArticle[]>([]);
+  const [interview, setInterview] = useState<SidebarArticle | null>(null);
+  const [meta, setMeta] = useState<PaginationMeta | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [loading, setLoading] = useState(true);
+  const [pageLoading, setPageLoading] = useState(false);
+
+  // ← threshold abaissé à 0.01 + fallback viewport dans useReveal
+  const { ref: headingRef, visible: headingVisible } = useReveal(0.01);
+
+  useEffect(() => {
+    currentPage === 1 ? setLoading(true) : setPageLoading(true);
+    api.get('/magazines/rss', {
+      params: {
+        pageSize: PAGE_SIZE, page: currentPage,
+        ...(searchFilters?.query && { search: searchFilters.query }),
+        ...(searchFilters?.region && { region: searchFilters.region }),
+        ...(searchFilters?.country && { country: searchFilters.country }),
+        ...(searchFilters?.topic && { topic: searchFilters.topic }),
+      },
+    })
+      .then((res) => { setMagazines(res.data?.data?.magazines ?? []); setMeta(res.data?.data?.pagination ?? null); })
+      .catch(() => {})
+      .finally(() => { setLoading(false); setPageLoading(false); });
+  }, [currentPage, searchFilters]);
+
+  useEffect(() => { setCurrentPage(1); }, [searchFilters]);
+
+  useEffect(() => {
+    Promise.all([
+      api.get('/mag/articles', { params: { type: 'ARTICLE', categorySlug: 'analyses', pageSize: 4, status: 'PUBLISHED' } }),
+      api.get('/mag/articles', { params: { type: 'ARTICLE', categorySlug: 'interviews', pageSize: 1, status: 'PUBLISHED' } }),
+    ])
+      .then(([resA, resI]) => { setAnalyses(resA.data.data ?? []); setInterview(resI.data.data?.[0] ?? null); })
+      .catch(() => {});
+  }, []);
+
+  const handlePageChange = (page: number) => {
+    if (page < 1 || page > (meta?.totalPages ?? 1)) return;
+    setCurrentPage(page);
+    document.getElementById('magazines-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+
+  if (loading) {
+    return (
+      <div className="py-24 flex flex-col items-center justify-center gap-4">
+        <Loader2 size={36} className="animate-spin" style={{ color: '#1A5C43' }} />
+        <p className="text-xs uppercase tracking-widest font-semibold text-gray-400 animate-pulse">Chargement…</p>
+      </div>
+    );
+  }
 
   return (
-    <section id="magazines-section" className="max-w-[1400px] mx-auto px-4 sm:px-6 py-10 sm:py-16 bg-white">
+    <section id="magazines-section" className="max-w-[1300px] mx-auto px-4 sm:px-6 py-16 md:py-24">
 
-      <div className="text-center mb-8 sm:mb-16">
-        <h2
-          className="text-xl sm:text-2xl md:text-3xl font-serif font-bold uppercase tracking-widest"
-          style={{ color: '#001A4D' }}
-        >
-          Actualités — Explorer par source
-        </h2>
-      </div>
+      {/* Heading */}
+      <SectionHeading headingRef={headingRef} headingVisible={headingVisible} total={meta?.total ?? null} />
 
-      {/* ── MOBILE : sidebar avant le flux ─────────────────────────────── */}
-      <div className="lg:hidden space-y-6 mb-10">
-        <div className="w-full flex items-center justify-center border border-gray-100 rounded-lg overflow-hidden" style={{ background: '#F0F2F5' }}>
-          <AdvertisingBanner zoneSlug="skyscraper-sidebar" showDots={true} className="w-full" />
+      {/* ── Mobile sidebar ── */}
+      <div className="lg:hidden space-y-6 mb-12">
+        <div className="rounded-2xl overflow-hidden border border-gray-100">
+          <AdvertisingBanner zoneSlug="skyscraper-sidebar" showDots className="w-full" />
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-          <div className="bg-gray-50 rounded-xl p-4"><SidebarInterview /></div>
-          <div className="bg-gray-50 rounded-xl p-4"><SidebarAnalyses /></div>
+          <div className="bg-gray-50 rounded-2xl p-5"><SidebarInterview interview={interview} /></div>
+          <div className="bg-gray-50 rounded-2xl p-5"><SidebarAnalyses analyses={analyses} /></div>
         </div>
         <SidebarCTA />
       </div>
 
-      {/* ── LAYOUT PRINCIPAL ─────────────────────────────────────────────── */}
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-10">
+      {/* ── Layout 3/4 + 1/4 ── */}
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-12">
 
-        {/* Flux magazines (3/4) */}
+        {/* Flux magazines */}
         <div className="lg:col-span-3">
-          <div className={`relative transition-opacity duration-200 ${pageLoading ? 'opacity-40 pointer-events-none' : 'opacity-100'}`}>
+          <div className={`relative transition-opacity duration-200 ${pageLoading ? 'opacity-40 pointer-events-none' : ''}`}>
             {pageLoading && (
               <div className="absolute inset-0 flex items-center justify-center z-10">
-                <Loader2 className="animate-spin" size={32} style={{ color: '#1A5C43' }} />
+                <Loader2 size={28} className="animate-spin" style={{ color: '#1A5C43' }} />
               </div>
             )}
 
-            {magazines.length === 0 ? (
-              <div className="py-20 text-center text-gray-400">
-                {searchFilters?.query || searchFilters?.region || searchFilters?.country || searchFilters?.topic
-                  ? 'Aucune actualité ne correspond à vos critères de recherche.'
-                  : 'Aucune actualité disponible pour le moment.'}
+            {!magazines.length ? (
+              <div className="py-20 text-center">
+                <p className="text-gray-400 text-sm">
+                  {searchFilters?.query || searchFilters?.region || searchFilters?.country || searchFilters?.topic
+                    ? 'Aucune actualité ne correspond à vos critères.'
+                    : 'Aucune actualité disponible pour le moment.'}
+                </p>
               </div>
             ) : (
-              <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 sm:gap-6">
-                {magazines.map((mag) => (
-                  <Link
-                    href={`/magazine/${mag.slug}`}
-                    key={mag.id}
-                    className="group flex flex-col bg-white rounded-xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-100 active:scale-[0.98]"
-                  >
-                    <div className="relative aspect-[3/4] overflow-hidden bg-gray-100">
-                      <MagazineImage
-                        src={mag.coverImage}
-                        alt={mag.title}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                      />
-                      <div className="absolute top-2.5 left-2.5">
-                        {/* Badge source — émeraude */}
-                        <span
-                          className="text-white text-[9px] sm:text-[10px] font-bold px-2 py-0.5 rounded-full backdrop-blur-sm"
-                          style={{ background: 'rgba(42,127,95,0.9)' }}
-                        >
-                          {mag.source}
-                        </span>
-                      </div>
-                    </div>
-
-                    <div className="p-3 sm:p-4 flex flex-col flex-1">
-                      <h3
-                        className="font-bold text-[12px] sm:text-[14px] leading-snug mb-2 line-clamp-2 flex-1 transition-colors"
-                        style={{ color: '#001A4D' }}
-                        onMouseEnter={e => (e.currentTarget.style.color = '#C8A84B')}
-                        onMouseLeave={e => (e.currentTarget.style.color = '#001A4D')}
-                      >
-                        {mag.title}
-                      </h3>
-                      {mag.excerpt && (
-                        <p className="hidden sm:block text-gray-500 text-[12px] line-clamp-2 mb-3 leading-relaxed">
-                          {mag.excerpt}
-                        </p>
-                      )}
-                      <div className="flex items-center justify-between mt-auto pt-2 border-t border-gray-50">
-                        <div className="flex items-center gap-1 text-[10px] sm:text-[11px] text-gray-400">
-                          <Calendar size={10} />
-                          <span className="hidden xs:inline">
-                            {new Date(mag.publishedAt).toLocaleDateString('fr-FR', {
-                              day: 'numeric', month: 'short', year: 'numeric',
-                            })}
-                          </span>
-                          <span className="xs:hidden">
-                            {new Date(mag.publishedAt).toLocaleDateString('fr-FR', {
-                              month: 'short', year: 'numeric',
-                            })}
-                          </span>
-                        </div>
-                        {/* Lien "Lire" — terre cuite */}
-                        <span
-                          className="flex items-center gap-1 text-[10px] sm:text-[11px] font-bold"
-                          style={{ color: '#B85C38' }}
-                        >
-                          Lire <ExternalLink size={9} />
-                        </span>
-                      </div>
-                    </div>
-                  </Link>
+              <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
+                {magazines.map((mag, i) => (
+                  <MagazineCard key={mag.id} mag={mag} delay={i * 40} />
                 ))}
               </div>
             )}
           </div>
 
-          {/* Pagination */}
-          {totalPages > 1 && (
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-8 sm:mt-10 pt-6 border-t border-gray-100">
-              <p className="text-xs text-gray-400 order-2 sm:order-1">
-                Page {currentPage} sur {totalPages} — {meta?.total ?? 0} magazine{(meta?.total ?? 0) > 1 ? 's' : ''}
-              </p>
-              <div className="flex items-center gap-1 order-1 sm:order-2 flex-wrap justify-center">
-                <button
-                  onClick={() => handlePageChange(currentPage - 1)}
-                  disabled={currentPage === 1}
-                  className="p-2 rounded-lg border border-gray-200 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-                >
-                  <ChevronLeft size={15} />
-                </button>
-                {getPageNumbers().map((page, idx) =>
-                  page === '...' ? (
-                    <span key={`dots-${idx}`} className="px-1.5 text-gray-400 text-sm select-none">…</span>
-                  ) : (
-                    <button
-                      key={page}
-                      onClick={() => handlePageChange(page as number)}
-                      className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg text-xs sm:text-sm font-bold transition-colors border border-gray-200 text-gray-600 hover:bg-gray-50"
-                      style={currentPage === page
-                        ? { background: '#1A5C43', color: '#ffffff', border: 'none', boxShadow: '0 2px 8px rgba(26,92,67,0.3)' }
-                        : {}}
-                    >
-                      {page}
-                    </button>
-                  )
-                )}
-                <button
-                  onClick={() => handlePageChange(currentPage + 1)}
-                  disabled={currentPage === totalPages}
-                  className="p-2 rounded-lg border border-gray-200 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-                >
-                  <ChevronRight size={15} />
-                </button>
-              </div>
-            </div>
+          {(meta?.totalPages ?? 1) > 1 && (
+            <Pagination
+              currentPage={currentPage}
+              totalPages={meta?.totalPages ?? 1}
+              total={meta?.total ?? 0}
+              onPageChange={handlePageChange}
+            />
           )}
         </div>
 
-        {/* SIDEBAR desktop (1/4) */}
-        <div className="hidden lg:flex flex-col space-y-12">
-          <div className="w-full h-[500px] flex items-center justify-between border-b border-gray-200" style={{ background: '#F0F2F5' }}>
-            <AdvertisingBanner zoneSlug="skyscraper-sidebar" showDots={true} className="w-full h-[500px] gap-3 flex" />
+        {/* Sidebar desktop */}
+        <aside className="hidden lg:flex flex-col gap-8">
+          <div className="rounded-2xl overflow-hidden border border-gray-100">
+            <AdvertisingBanner zoneSlug="skyscraper-sidebar" showDots className="w-full" />
           </div>
-          <SidebarInterview />
-          <SidebarAnalyses />
+          <SidebarInterview interview={interview} />
+          <SidebarAnalyses analyses={analyses} />
           <SidebarCTA />
-        </div>
-
+        </aside>
       </div>
     </section>
   );
 };
 
 export default LatestNews;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// // src/components/news/LatestNews.tsx
+// "use client";
+
+// import React, { useEffect, useState } from 'react';
+// import Link from 'next/link';
+// import { Play, Handshake, Loader2, ExternalLink, Calendar, ChevronLeft, ChevronRight } from 'lucide-react';
+// import api from '@/lib/api';
+// import { AdvertisingBanner } from '@/components/AdvertisingBanner';
+// import MagazineImage from '@/components/shared/MagazineImage';
+
+// interface Magazine {
+//   id: number;
+//   title: string;
+//   slug: string;
+//   excerpt?: string | null;
+//   coverImage: string | null;
+//   source: string;
+//   publishedAt: string;
+// }
+
+// interface SidebarArticle {
+//   id: string;
+//   slug: string;
+//   title: string;
+//   coverImage: string;
+//   excerpt: string;
+//   createdAt: string;
+//   category?: { name: string };
+//   author?: { name: string };
+//   readingTime?: string;
+// }
+
+// interface PaginationMeta {
+//   total: number;
+//   page: number;
+//   pageSize: number;
+//   totalPages: number;
+// }
+
+// const PAGE_SIZE = 9;
+
+// const LatestNews = ({ searchFilters }: { searchFilters?: any }) => {
+//   const [magazines, setMagazines]     = useState<Magazine[]>([]);
+//   const [analyses, setAnalyses]       = useState<SidebarArticle[]>([]);
+//   const [interview, setInterview]     = useState<SidebarArticle | null>(null);
+//   const [meta, setMeta]               = useState<PaginationMeta | null>(null);
+//   const [currentPage, setCurrentPage] = useState(1);
+//   const [loading, setLoading]         = useState(true);
+//   const [pageLoading, setPageLoading] = useState(false);
+
+//   useEffect(() => {
+//     const fetchMagazines = async () => {
+//       currentPage === 1 ? setLoading(true) : setPageLoading(true);
+//       try {
+//         const res = await api.get('/magazines/rss', {
+//           params: {
+//             pageSize: PAGE_SIZE,
+//             page: currentPage,
+//             ...(searchFilters?.query   && { search:  searchFilters.query }),
+//             ...(searchFilters?.region  && { region:  searchFilters.region }),
+//             ...(searchFilters?.country && { country: searchFilters.country }),
+//             ...(searchFilters?.topic   && { topic:   searchFilters.topic }),
+//           },
+//         });
+//         setMagazines(res.data?.data?.magazines ?? []);
+//         setMeta(res.data?.data?.pagination ?? null);
+//       } catch (error) {
+//         console.error('Erreur chargement magazines:', error);
+//       } finally {
+//         setLoading(false);
+//         setPageLoading(false);
+//       }
+//     };
+//     fetchMagazines();
+//   }, [currentPage, searchFilters]);
+
+//   useEffect(() => { setCurrentPage(1); }, [searchFilters]);
+
+//   useEffect(() => {
+//     const fetchSidebar = async () => {
+//       try {
+//         const [resAnalyses, resInterview] = await Promise.all([
+//           api.get('/mag/articles', {
+//             params: { type: 'ARTICLE', categorySlug: 'analyses', pageSize: 4, status: 'PUBLISHED' },
+//           }),
+//           api.get('/mag/articles', {
+//             params: { type: 'ARTICLE', categorySlug: 'interviews', pageSize: 1, status: 'PUBLISHED' },
+//           }),
+//         ]);
+//         setAnalyses(resAnalyses.data.data ?? []);
+//         setInterview(resInterview.data.data?.[0] ?? null);
+//       } catch (error) {
+//         console.error('Erreur sidebar:', error);
+//       }
+//     };
+//     fetchSidebar();
+//   }, []);
+
+//   const totalPages = meta?.totalPages ?? 1;
+
+//   const handlePageChange = (page: number) => {
+//     if (page < 1 || page > totalPages) return;
+//     setCurrentPage(page);
+//     document.getElementById('magazines-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+//   };
+
+//   const getPageNumbers = (): (number | '...')[] => {
+//     if (totalPages <= 5) return Array.from({ length: totalPages }, (_, i) => i + 1);
+//     const pages: (number | '...')[] = [1];
+//     if (currentPage > 3)              pages.push('...');
+//     for (let i = Math.max(2, currentPage - 1); i <= Math.min(totalPages - 1, currentPage + 1); i++) {
+//       pages.push(i);
+//     }
+//     if (currentPage < totalPages - 2) pages.push('...');
+//     pages.push(totalPages);
+//     return pages;
+//   };
+
+//   if (loading) {
+//     return (
+//       <div className="py-20 flex justify-center">
+//         {/* Loader — émeraude foncé */}
+//         <Loader2 className="animate-spin" size={40} style={{ color: '#1A5C43' }} />
+//       </div>
+//     );
+//   }
+
+//   // ── Blocs sidebar ─────────────────────────────────────────────────────────
+//   const SidebarInterview = () => interview ? (
+//     <div className="border-b border-gray-100 pb-6 sm:pb-8">
+//       <div className="relative aspect-video rounded-lg overflow-hidden mb-4">
+//         <MagazineImage
+//           src={interview.coverImage}
+//           alt={interview.title}
+//           className="object-cover w-full h-full"
+//         />
+//         <div className="absolute inset-0 bg-black/10 flex items-center justify-center">
+//           {/* Icône play — or doux */}
+//           <Play size={32} style={{ color: '#C8A84B', fill: '#C8A84B' }} />
+//         </div>
+//       </div>
+//       <h4
+//         className="font-serif font-bold text-sm uppercase mb-2 tracking-wide"
+//         style={{ color: '#001A4D' }}
+//       >
+//         L&apos;interview à ne pas manquer
+//       </h4>
+//       <p className="text-sm text-gray-500 mb-3 line-clamp-2">{interview.title}</p>
+//       <Link
+//         href={`/actualites/${interview.slug}`}
+//         className="font-bold text-[11px] uppercase flex items-center gap-2"
+//         style={{ color: '#C8A84B' }}
+//       >
+//         <div
+//           className="w-5 h-5 rounded-full flex items-center justify-center"
+//           style={{ border: '1px solid #C8A84B' }}
+//         >
+//           <Play size={8} fill="currentColor" />
+//         </div>
+//         Lire l&apos;interview
+//       </Link>
+//     </div>
+//   ) : null;
+
+//   const SidebarAnalyses = () => analyses.length > 0 ? (
+//     <div>
+//       <div className="mb-4 sm:mb-6">
+//         <h4
+//           className="font-serif font-bold text-sm uppercase tracking-widest"
+//           style={{ color: '#001A4D' }}
+//         >
+//           Décryptage et Analyse
+//         </h4>
+//         {/* Barre accent — or doux */}
+//         <div className="w-12 h-1 mt-2" style={{ background: '#C8A84B' }} />
+//       </div>
+//       <ul className="space-y-4 sm:space-y-6">
+//         {analyses.map((item) => (
+//           <li key={item.id}>
+//             <Link href={`/actualites/${item.slug}`} className="group block">
+//               <p
+//                 className="text-[14px] font-bold leading-tight mb-1 transition-colors"
+//                 style={{ color: '#333333' }}
+//                 onMouseEnter={e => (e.currentTarget.style.color = '#C8A84B')}
+//                 onMouseLeave={e => (e.currentTarget.style.color = '#333333')}
+//               >
+//                 {item.title}
+//               </p>
+//               <p className="text-[10px] text-gray-400 font-bold uppercase tracking-tighter">
+//                 {new Date(item.createdAt).toLocaleDateString('fr-FR')}
+//                 {item.readingTime ? ` • ${item.readingTime} min` : ''}
+//               </p>
+//             </Link>
+//           </li>
+//         ))}
+//       </ul>
+//     </div>
+//   ) : null;
+
+//   const SidebarCTA = () => (
+//     /* Fond — émeraude foncé */
+//     <div className="p-6 sm:p-10 text-center rounded-lg shadow-xl" style={{ background: '#1A5C43' }}>
+//       <div className="flex justify-center mb-4">
+//         {/* Icône — or doux */}
+//         <Handshake size={40} style={{ color: '#C8A84B' }} />
+//       </div>
+//       <h4 className="text-white font-serif font-bold uppercase text-base sm:text-lg mb-3 sm:mb-4">
+//         Vous êtes un professionnel ?
+//       </h4>
+//       <p className="text-white/70 text-xs mb-6 sm:mb-8 leading-relaxed">
+//         Découvrez nos solutions de visibilité et nos partenariats média
+//       </p>
+//       <Link
+//         href="/partenaires"
+//         className="block font-bold text-[11px] uppercase py-3 sm:py-4 rounded-md transition-all text-white"
+//         style={{ background: '#B85C38' }}
+//         onMouseEnter={e => {
+//           e.currentTarget.style.background = '#ffffff';
+//           e.currentTarget.style.color = '#1A5C43';
+//         }}
+//         onMouseLeave={e => {
+//           e.currentTarget.style.background = '#B85C38';
+//           e.currentTarget.style.color = '#ffffff';
+//         }}
+//       >
+//         Découvrez nos Partenariats
+//       </Link>
+//     </div>
+//   );
+
+//   return (
+//     <section id="magazines-section" className="max-w-[1400px] mx-auto px-4 sm:px-6 py-10 sm:py-16 bg-white">
+
+//       <div className="text-center mb-8 sm:mb-16">
+//         <h2
+//           className="text-xl sm:text-2xl md:text-3xl font-serif font-bold uppercase tracking-widest"
+//           style={{ color: '#001A4D' }}
+//         >
+//           Actualités — Explorer par source
+//         </h2>
+//       </div>
+
+//       {/* ── MOBILE : sidebar avant le flux ─────────────────────────────── */}
+//       <div className="lg:hidden space-y-6 mb-10">
+//         <div className="w-full flex items-center justify-center border border-gray-100 rounded-lg overflow-hidden" style={{ background: '#F0F2F5' }}>
+//           <AdvertisingBanner zoneSlug="skyscraper-sidebar" showDots={true} className="w-full" />
+//         </div>
+//         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+//           <div className="bg-gray-50 rounded-xl p-4"><SidebarInterview /></div>
+//           <div className="bg-gray-50 rounded-xl p-4"><SidebarAnalyses /></div>
+//         </div>
+//         <SidebarCTA />
+//       </div>
+
+//       {/* ── LAYOUT PRINCIPAL ─────────────────────────────────────────────── */}
+//       <div className="grid grid-cols-1 lg:grid-cols-4 gap-10">
+
+//         {/* Flux magazines (3/4) */}
+//         <div className="lg:col-span-3">
+//           <div className={`relative transition-opacity duration-200 ${pageLoading ? 'opacity-40 pointer-events-none' : 'opacity-100'}`}>
+//             {pageLoading && (
+//               <div className="absolute inset-0 flex items-center justify-center z-10">
+//                 <Loader2 className="animate-spin" size={32} style={{ color: '#1A5C43' }} />
+//               </div>
+//             )}
+
+//             {magazines.length === 0 ? (
+//               <div className="py-20 text-center text-gray-400">
+//                 {searchFilters?.query || searchFilters?.region || searchFilters?.country || searchFilters?.topic
+//                   ? 'Aucune actualité ne correspond à vos critères de recherche.'
+//                   : 'Aucune actualité disponible pour le moment.'}
+//               </div>
+//             ) : (
+//               <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 sm:gap-6">
+//                 {magazines.map((mag) => (
+//                   <Link
+//                     href={`/magazine/${mag.slug}`}
+//                     key={mag.id}
+//                     className="group flex flex-col bg-white rounded-xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-100 active:scale-[0.98]"
+//                   >
+//                     <div className="relative aspect-[3/4] overflow-hidden bg-gray-100">
+//                       <MagazineImage
+//                         src={mag.coverImage}
+//                         alt={mag.title}
+//                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+//                       />
+//                       <div className="absolute top-2.5 left-2.5">
+//                         {/* Badge source — émeraude */}
+//                         <span
+//                           className="text-white text-[9px] sm:text-[10px] font-bold px-2 py-0.5 rounded-full backdrop-blur-sm"
+//                           style={{ background: 'rgba(42,127,95,0.9)' }}
+//                         >
+//                           {mag.source}
+//                         </span>
+//                       </div>
+//                     </div>
+
+//                     <div className="p-3 sm:p-4 flex flex-col flex-1">
+//                       <h3
+//                         className="font-bold text-[12px] sm:text-[14px] leading-snug mb-2 line-clamp-2 flex-1 transition-colors"
+//                         style={{ color: '#001A4D' }}
+//                         onMouseEnter={e => (e.currentTarget.style.color = '#C8A84B')}
+//                         onMouseLeave={e => (e.currentTarget.style.color = '#001A4D')}
+//                       >
+//                         {mag.title}
+//                       </h3>
+//                       {mag.excerpt && (
+//                         <p className="hidden sm:block text-gray-500 text-[12px] line-clamp-2 mb-3 leading-relaxed">
+//                           {mag.excerpt}
+//                         </p>
+//                       )}
+//                       <div className="flex items-center justify-between mt-auto pt-2 border-t border-gray-50">
+//                         <div className="flex items-center gap-1 text-[10px] sm:text-[11px] text-gray-400">
+//                           <Calendar size={10} />
+//                           <span className="hidden xs:inline">
+//                             {new Date(mag.publishedAt).toLocaleDateString('fr-FR', {
+//                               day: 'numeric', month: 'short', year: 'numeric',
+//                             })}
+//                           </span>
+//                           <span className="xs:hidden">
+//                             {new Date(mag.publishedAt).toLocaleDateString('fr-FR', {
+//                               month: 'short', year: 'numeric',
+//                             })}
+//                           </span>
+//                         </div>
+//                         {/* Lien "Lire" — terre cuite */}
+//                         <span
+//                           className="flex items-center gap-1 text-[10px] sm:text-[11px] font-bold"
+//                           style={{ color: '#B85C38' }}
+//                         >
+//                           Lire <ExternalLink size={9} />
+//                         </span>
+//                       </div>
+//                     </div>
+//                   </Link>
+//                 ))}
+//               </div>
+//             )}
+//           </div>
+
+//           {/* Pagination */}
+//           {totalPages > 1 && (
+//             <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-8 sm:mt-10 pt-6 border-t border-gray-100">
+//               <p className="text-xs text-gray-400 order-2 sm:order-1">
+//                 Page {currentPage} sur {totalPages} — {meta?.total ?? 0} magazine{(meta?.total ?? 0) > 1 ? 's' : ''}
+//               </p>
+//               <div className="flex items-center gap-1 order-1 sm:order-2 flex-wrap justify-center">
+//                 <button
+//                   onClick={() => handlePageChange(currentPage - 1)}
+//                   disabled={currentPage === 1}
+//                   className="p-2 rounded-lg border border-gray-200 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+//                 >
+//                   <ChevronLeft size={15} />
+//                 </button>
+//                 {getPageNumbers().map((page, idx) =>
+//                   page === '...' ? (
+//                     <span key={`dots-${idx}`} className="px-1.5 text-gray-400 text-sm select-none">…</span>
+//                   ) : (
+//                     <button
+//                       key={page}
+//                       onClick={() => handlePageChange(page as number)}
+//                       className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg text-xs sm:text-sm font-bold transition-colors border border-gray-200 text-gray-600 hover:bg-gray-50"
+//                       style={currentPage === page
+//                         ? { background: '#1A5C43', color: '#ffffff', border: 'none', boxShadow: '0 2px 8px rgba(26,92,67,0.3)' }
+//                         : {}}
+//                     >
+//                       {page}
+//                     </button>
+//                   )
+//                 )}
+//                 <button
+//                   onClick={() => handlePageChange(currentPage + 1)}
+//                   disabled={currentPage === totalPages}
+//                   className="p-2 rounded-lg border border-gray-200 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+//                 >
+//                   <ChevronRight size={15} />
+//                 </button>
+//               </div>
+//             </div>
+//           )}
+//         </div>
+
+//         {/* SIDEBAR desktop (1/4) */}
+//         <div className="hidden lg:flex flex-col space-y-12">
+//           <div className="w-full h-[500px] flex items-center justify-between border-b border-gray-200" style={{ background: '#F0F2F5' }}>
+//             <AdvertisingBanner zoneSlug="skyscraper-sidebar" showDots={true} className="w-full h-[500px] gap-3 flex" />
+//           </div>
+//           <SidebarInterview />
+//           <SidebarAnalyses />
+//           <SidebarCTA />
+//         </div>
+
+//       </div>
+//     </section>
+//   );
+// };
+
+// export default LatestNews;
 
 
 
