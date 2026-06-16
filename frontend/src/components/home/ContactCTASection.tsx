@@ -1,4 +1,3 @@
-// src/components/home/ContactCTASection.tsx
 "use client";
 
 import React, { useState, useEffect, useRef } from 'react';
@@ -52,16 +51,6 @@ const STATS: StatItem[] = [
   { icon: <Globe size={20} />, value: 32, suffix: ' pays', label: 'Présence en Afrique' },
   { icon: <TrendingUp size={20} />, value: 98, suffix: '%', label: 'Satisfaction partenaires' },
   { icon: <Award size={20} />, value: 12, suffix: ' ans', label: 'D\'expertise média' },
-];
-
-// ─── Réseaux sociaux ──────────────────────────────────────────────────────────
-
-const SOCIALS = [
-  { icon: <Facebook size={18} />, color: '#1877F2', link: '#', name: 'Facebook' },
-  { icon: <Twitter size={18} />, color: '#1DA1F2', link: '#', name: 'Twitter' },
-  { icon: <Linkedin size={18} />, color: '#0A66C2', link: '#', name: 'LinkedIn' },
-  { icon: <Instagram size={18} />, color: '#E4405F', link: '#', name: 'Instagram' },
-  { icon: <Youtube size={18} />, color: '#FF0000', link: '#', name: 'YouTube' },
 ];
 
 // ─── Section principale ───────────────────────────────────────────────────────
@@ -158,24 +147,6 @@ const ContactCTASection = () => {
               <MessageCircle size={16} />
               WhatsApp
             </a>
-          </div>
-
-          {/* Réseaux sociaux */}
-          <p className="text-[10px] font-bold uppercase tracking-[0.3em] mb-5 text-white/30">
-            Suivez-nous
-          </p>
-          <div className="flex items-center gap-3">
-            {SOCIALS.map((s, i) => (
-              <a
-                key={i}
-                href={s.link}
-                title={s.name}
-                className="w-10 h-10 rounded-full flex items-center justify-center text-white transition-all hover:scale-110 active:scale-90"
-                style={{ background: s.color }}
-              >
-                {s.icon}
-              </a>
-            ))}
           </div>
         </div>
       </div>
