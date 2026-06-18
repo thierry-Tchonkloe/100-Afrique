@@ -1,9 +1,15 @@
+// src/components/shared/Header.tsx
 "use client";
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useReducer } from 'react';
 import Link from 'next/link';
-import { Search, Menu, X, ChevronDown, TrendingUp, MapPin, Briefcase, Film, Users, Star } from 'lucide-react';
-import NewsletterButton from '@/components/shared/Newsletterbutton';
+import {
+  Search, Menu, X, ChevronDown, TrendingUp, MapPin,
+  Star, ChevronRight, BookOpen, ExternalLink, ArrowRight, Clock,
+} from 'lucide-react';
+import { megaMenuData } from '@/constants/navigation';
+import { getToken } from '@/lib/auth';
+import MagazineImage from '@/components/shared/MagazineImage';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -20,35 +26,86 @@ interface NavItem {
   megaMenu?: MegaMenuItem[];
 }
 
-// ─── Données nav ──────────────────────────────────────────────────────────────
+interface Magazine {
+  id: number;
+  title: string;
+  slug: string;
+  coverImage: string | null;
+  source: string;
+  publishedAt: string;
+  excerpt?: string | null;
+}
+
+// ─── Cache ────────────────────────────────────────────────────────────────────
+
+const magazinesCache: Record<string, Magazine[]> = {};
+
+// ─── SubBar Reducer ───────────────────────────────────────────────────────────
+
+interface SubState {
+  magazinesMap:   Record<string, Magazine[]>;
+  loadingMagSlug: string | null;
+}
+
+type SubAction =
+  | { type: 'SET_LOADING_MAG'; payload: string | null }
+  | { type: 'SET_MAGAZINES';   slug: string; magazines: Magazine[] };
+
+function subReducer(state: SubState, action: SubAction): SubState {
+  switch (action.type) {
+    case 'SET_LOADING_MAG':
+      return { ...state, loadingMagSlug: action.payload };
+    case 'SET_MAGAZINES':
+      return {
+        ...state,
+        loadingMagSlug: null,
+        magazinesMap: { ...state.magazinesMap, [action.slug]: action.magazines },
+      };
+    default:
+      return state;
+  }
+}
+
+// ─── Nav items ────────────────────────────────────────────────────────────────
 
 const NAV_ITEMS: NavItem[] = [
   {
     href: '/actualites',
     label: 'Actualités',
     megaMenu: [
-      { label: 'Hôtellerie', href: '/actualites/hotellerie', icon: <Star size={16} />, description: 'Tendances hôtels & resorts' },
-      { label: 'Transport', href: '/actualites/transport', icon: <TrendingUp size={16} />, description: 'Aviation, train, maritime' },
-      { label: 'Restauration', href: '/actualites/restauration', icon: <Star size={16} />, description: 'Gastronomie africaine' },
+      { label: 'Hôtellerie',   href: '/actualites/hotellerie',   icon: <Star size={16} />,        description: 'Tendances hôtels & resorts' },
+      { label: 'Transport',    href: '/actualites/transport',    icon: <TrendingUp size={16} />,   description: 'Aviation, train, maritime'  },
+      { label: 'Restauration', href: '/actualites/restauration', icon: <Star size={16} />,        description: 'Gastronomie africaine'       },
     ],
   },
-  { href: '/evenements', label: 'Événements' },
+  { href: '/evenements',  label: 'Événements'  },
   { href: '/partenaires', label: 'Partenaires' },
   {
     href: '/destinations',
     label: 'Destinations',
     megaMenu: [
-      { label: 'Afrique de l\'Ouest', href: '/destinations/ouest', icon: <MapPin size={16} />, description: 'Sénégal, Côte d\'Ivoire…' },
-      { label: 'Afrique de l\'Est', href: '/destinations/est', icon: <MapPin size={16} />, description: 'Kenya, Tanzanie…' },
-      { label: 'Afrique du Nord', href: '/destinations/nord', icon: <MapPin size={16} />, description: 'Maroc, Tunisie…' },
+      { label: "Afrique de l'Ouest", href: '/destinations/ouest', icon: <MapPin size={16} />, description: "Sénégal, Côte d'Ivoire…" },
+      { label: "Afrique de l'Est",   href: '/destinations/est',   icon: <MapPin size={16} />, description: 'Kenya, Tanzanie…'        },
+      { label: "Afrique du Nord",    href: '/destinations/nord',  icon: <MapPin size={16} />, description: 'Maroc, Tunisie…'         },
     ],
   },
-  { href: '/videos', label: 'Vidéos' },
-  { href: '/offres', label: 'Nos offres' },
-  { href: '/contact', label: 'À propos & Contact' },
+  { href: '/videos',    label: 'Vidéos'    },
+  { href: '/offres',    label: 'Nos offres' },
+  { href: '/a-propos',  label: 'À propos'  },
+  { href: '/contact',   label: 'Contact'   },
 ];
 
-// ─── Composant MegaMenu ───────────────────────────────────────────────────────
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:5000/api';
+
+function getAuthHeaders(): HeadersInit {
+  const token = getToken();
+  return {
+    'Content-Type': 'application/json',
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+  };
+}
+
+// ─── Sous-composants ──────────────────────────────────────────────────────────
 
 function MegaMenuPanel({ items, visible }: { items: MegaMenuItem[]; visible: boolean }) {
   return (
@@ -65,19 +122,22 @@ function MegaMenuPanel({ items, visible }: { items: MegaMenuItem[]; visible: boo
           <Link
             key={item.href}
             href={item.href}
-            className="flex items-start gap-3 px-4 py-3 rounded-xl group hover:bg-[#F0FAF5] transition-colors"
+            className="flex items-start gap-3 px-4 py-3 rounded-xl group transition-colors"
+            style={{ color: 'inherit' }}
+            onMouseEnter={e => (e.currentTarget.style.backgroundColor = '#D4EDE5')}
+            onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'transparent')}
           >
             <span
               className="mt-0.5 w-8 h-8 flex items-center justify-center rounded-lg shrink-0 text-white"
-              style={{ background: '#1A5C43' }}
+              style={{ backgroundColor: '#1A5C43' }}
             >
               {item.icon}
             </span>
             <div>
-              <p className="font-semibold text-sm text-gray-900 group-hover:text-[#1A5C43] transition-colors">
+              <p className="font-semibold text-sm transition-colors" style={{ color: '#001A4D' }}>
                 {item.label}
               </p>
-              <p className="text-xs text-gray-500 mt-0.5">{item.description}</p>
+              <p className="text-xs mt-0.5" style={{ color: '#6b7280' }}>{item.description}</p>
             </div>
           </Link>
         ))}
@@ -86,17 +146,106 @@ function MegaMenuPanel({ items, visible }: { items: MegaMenuItem[]; visible: boo
   );
 }
 
-// ─── Composant principal Header ───────────────────────────────────────────────
+function MagazineMenuCard({ magazine }: { magazine: Magazine }) {
+  return (
+    <Link
+      href={`/magazine/${magazine.slug}`}
+      className="group/mag flex flex-col bg-white border border-gray-100 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all duration-200"
+    >
+      <div className="relative w-full aspect-video overflow-hidden bg-gray-100 shrink-0">
+        <MagazineImage
+          src={magazine.coverImage}
+          alt={magazine.title}
+          className="w-full h-full object-cover group-hover/mag:scale-105 transition-transform duration-500"
+        />
+        <div className="absolute top-2 left-2">
+          <span
+            className="text-white text-[9px] px-1.5 py-0.5 rounded-full font-semibold leading-none"
+            style={{ backgroundColor: 'rgba(0,26,77,0.8)', backdropFilter: 'blur(4px)' }}
+          >
+            {magazine.source}
+          </span>
+        </div>
+      </div>
+      <div className="p-2.5 flex flex-col gap-1">
+        <p className="font-bold text-[11px] leading-tight line-clamp-2" style={{ color: '#001A4D' }}>
+          {magazine.title}
+        </p>
+        <div className="flex items-center gap-1 text-[9px] mt-0.5" style={{ color: '#9ca3af' }}>
+          <Clock size={9} />
+          {new Date(magazine.publishedAt).toLocaleDateString('fr-FR', {
+            day: 'numeric', month: 'short', year: 'numeric',
+          })}
+        </div>
+        <span className="flex items-center gap-1 text-[9px] font-bold mt-1" style={{ color: '#C8A84B' }}>
+          Lire <ExternalLink size={9} />
+        </span>
+      </div>
+    </Link>
+  );
+}
+
+function MagazineMiniCard({ magazine }: { magazine: Magazine }) {
+  return (
+    <Link
+      href={`/magazine/${magazine.slug}`}
+      className="flex gap-2.5 items-start bg-white rounded-lg p-2 border border-gray-100 active:bg-gray-50 transition-colors"
+    >
+      <div className="w-12 h-12 rounded-md overflow-hidden shrink-0 bg-gray-100">
+        <MagazineImage
+          src={magazine.coverImage}
+          alt={magazine.title}
+          className="w-full h-full object-cover"
+        />
+      </div>
+      <div className="flex-1 min-w-0">
+        <span
+          className="inline-block text-white text-[8px] px-1.5 py-0.5 rounded-full font-semibold mb-1"
+          style={{ backgroundColor: '#001A4D' }}
+        >
+          {magazine.source}
+        </span>
+        <p className="font-bold text-[10.5px] leading-tight line-clamp-2" style={{ color: '#001A4D' }}>
+          {magazine.title}
+        </p>
+      </div>
+    </Link>
+  );
+}
+
+function MagazineSkeleton() {
+  return (
+    <div className="flex flex-col rounded-xl overflow-hidden border border-gray-100">
+      <div className="w-full aspect-video bg-gray-100 animate-pulse" />
+      <div className="p-2.5 space-y-1.5">
+        <div className="h-2.5 bg-gray-100 rounded animate-pulse" />
+        <div className="h-2.5 bg-gray-100 rounded animate-pulse w-2/3" />
+      </div>
+    </div>
+  );
+}
+
+// ─── Composant principal ──────────────────────────────────────────────────────
 
 const Header = () => {
-  const [isSearchOpen, setIsSearchOpen] = useState(false);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [activeMenu, setActiveMenu] = useState<string | null>(null);
-  const [scrolled, setScrolled] = useState(false);
-  const [searchValue, setSearchValue] = useState('');
-  const searchRef = useRef<HTMLInputElement>(null);
-  const menuTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Header state
+  const [isSearchOpen,    setIsSearchOpen]    = useState(false);
+  const [activeNavMenu,   setActiveNavMenu]   = useState<string | null>(null);
+  const [scrolled,        setScrolled]        = useState(false);
+  const [searchValue,     setSearchValue]     = useState('');
+  const searchRef    = useRef<HTMLInputElement>(null);
+  const navTimerRef  = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  // SubBar / Rubriques drawer state
+  const [isRubriquesOpen,        setIsRubriquesOpen]        = useState(false);
+  const [expandedCategory,       setExpandedCategory]       = useState<string | null>(null);
+  const [activeDesktopRubrique,  setActiveDesktopRubrique]  = useState<string | null>(null);
+
+  const [subState, subDispatch] = useReducer(subReducer, { magazinesMap: {}, loadingMagSlug: null });
+  const { magazinesMap, loadingMagSlug } = subState;
+  const abortRef = useRef<AbortController | null>(null);
+
+  // ── Scroll ──────────────────────────────────────────────────────────────────
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 10);
     window.addEventListener('scroll', onScroll, { passive: true });
@@ -107,232 +256,388 @@ const Header = () => {
     if (isSearchOpen) searchRef.current?.focus();
   }, [isSearchOpen]);
 
-  const handleMenuEnter = (label: string) => {
-    if (menuTimerRef.current) clearTimeout(menuTimerRef.current);
-    setActiveMenu(label);
+  // ── Fetch magazines ──────────────────────────────────────────────────────────
+  const fetchMagazines = (category: string) => {
+    const menuCategory = megaMenuData[category as keyof typeof megaMenuData];
+    if (!menuCategory) return;
+    const { slug } = menuCategory;
+
+    if (magazinesMap[slug] !== undefined || magazinesCache[slug] !== undefined) return;
+
+    abortRef.current?.abort();
+    const controller = new AbortController();
+    abortRef.current = controller;
+
+    subDispatch({ type: 'SET_LOADING_MAG', payload: slug });
+
+    fetch(
+      `${BASE_URL}/magazines/rss?category=${slug}&pageSize=3&page=1`,
+      { headers: getAuthHeaders(), signal: controller.signal }
+    )
+      .then(r => r.json())
+      .then(json => {
+        const data: Magazine[] = json?.data?.magazines ?? [];
+        magazinesCache[slug] = data;
+        subDispatch({ type: 'SET_MAGAZINES', slug, magazines: data });
+      })
+      .catch(err => {
+        if (err.name !== 'AbortError' && err.name !== 'CanceledError') {
+          subDispatch({ type: 'SET_MAGAZINES', slug, magazines: [] });
+        }
+      });
   };
 
-  const handleMenuLeave = () => {
-    menuTimerRef.current = setTimeout(() => setActiveMenu(null), 150);
+  // ── Helpers ──────────────────────────────────────────────────────────────────
+  const handleNavEnter = (label: string) => {
+    if (navTimerRef.current) clearTimeout(navTimerRef.current);
+    setActiveNavMenu(label);
+  };
+  const handleNavLeave = () => {
+    navTimerRef.current = setTimeout(() => setActiveNavMenu(null), 150);
   };
 
+  const activeSlug = activeDesktopRubrique
+    ? megaMenuData[activeDesktopRubrique as keyof typeof megaMenuData]?.slug ?? null
+    : null;
+  const categoryMagazines = activeSlug
+    ? (magazinesMap[activeSlug] ?? magazinesCache[activeSlug] ?? [])
+    : [];
+  const loadingMags = activeSlug !== null && loadingMagSlug === activeSlug;
+
+  const closeDrawer = () => {
+    setIsRubriquesOpen(false);
+    setExpandedCategory(null);
+    setActiveDesktopRubrique(null);
+  };
+
+  // ── Render ───────────────────────────────────────────────────────────────────
   return (
-    <nav
-      className={`
-        w-full fixed top-0 left-0 z-50
-        transition-all duration-300
-        ${scrolled ? 'shadow-xl' : ''}
-      `}
-    >
-      {/* Fond dégradé émeraude */}
-      <div
-        className="absolute inset-0"
-        style={{
-          background: scrolled
-            ? 'linear-gradient(to right, #fff 0%, #fff 13%, #1A5C43 22%, #1A5C43 100%)'
-            : 'linear-gradient(to right, #fff 0%, #fff 13%, #1A5C43 22%, #1A5C43 100%)',
-        }}
-      />
+    <>
+      <nav
+        className={`w-full fixed top-0 left-0 z-50 transition-all duration-300 ${scrolled ? 'shadow-xl' : ''}`}
+      >
+        {/* Barre d'accent terre cuite */}
+        <div className="absolute top-0 left-0 right-0 h-[3px]" style={{ backgroundColor: '#B85C38' }} />
 
-      {/* Barre d'accent terre cuite — 3px en haut */}
-      <div className="absolute top-0 left-0 right-0 h-[3px]" style={{ background: '#B85C38' }} />
+        {/* Fond émeraude */}
+        <div
+          className="absolute inset-0"
+          style={{
+            background: 'linear-gradient(to right, #fff 0%, #fff 13%, #1A5C43 22%, #1A5C43 100%)',
+          }}
+        />
 
-      <div className="px-4 sm:px-6 lg:px-8 pt-[3px] pb-0 relative z-10">
-        <div className="flex items-center justify-between h-[72px]">
+        <div className="px-4 sm:px-6 lg:px-8 pt-[3px] pb-0 relative z-10">
+          <div className="flex items-center justify-between h-[72px]">
 
-          {/* ── LOGO ── */}
-          <div className="flex items-center shrink-0">
-            <Link href="/" className="flex items-center group">
-              <div className="bg-white px-2 py-1.5 rounded-lg shadow-sm group-hover:shadow-md transition-shadow">
-                <img
-                  src="/logos/itourismenomade.png"
-                  alt="100% Afrique"
-                  className="h-11 sm:h-14 object-contain"
-                />
-              </div>
-            </Link>
-            {/* Tagline animée */}
-            <span
-              className="hidden md:block ml-3 text-[11px] font-semibold tracking-wide animate-pulse"
-              style={{ color: '#C8A84B' }}
-            >
-              La voix du tourisme en Afrique
-            </span>
-          </div>
-
-          {/* ── NAV DESKTOP ── */}
-          <div className="hidden xl:flex items-center gap-1">
-            {NAV_ITEMS.map((item) => (
-              <div
-                key={item.href}
-                className="relative"
-                onMouseEnter={() => item.megaMenu && handleMenuEnter(item.label)}
-                onMouseLeave={handleMenuLeave}
+            {/* ── LOGO ── */}
+            <div className="flex flex-col items-center shrink-0">
+              <Link href="/" className="flex items-center group">
+                <div className="bg-white px-2 py-1.5 rounded-lg shadow-sm group-hover:shadow-md transition-shadow">
+                  <img
+                    src="/logos/itourismenomade.png"
+                    alt="100% Afrique"
+                    className="h-11 sm:h-14 object-contain"
+                  />
+                </div>
+              </Link>
+              <span
+                className="hidden md:block ml-3 text-[11px] font-semibold tracking-wide animate-pulse"
+                style={{ color: '#C8A84B' }}
               >
-                <Link
-                  href={item.href}
-                  className={`
-                    flex items-center gap-1 px-3 py-2 rounded-lg text-[13px] font-semibold uppercase tracking-wide
-                    text-white transition-all duration-150
-                    hover:bg-white/10
-                    ${activeMenu === item.label ? 'bg-white/10' : ''}
-                  `}
-                >
-                  {item.label}
-                  {item.megaMenu && (
-                    <ChevronDown
-                      size={13}
-                      className={`transition-transform duration-200 ${activeMenu === item.label ? 'rotate-180' : ''}`}
-                    />
-                  )}
-                </Link>
+                La voix du tourisme en Afrique
+              </span>
+            </div>
 
-                {item.megaMenu && (
-                  <MegaMenuPanel
-                    items={item.megaMenu}
-                    visible={activeMenu === item.label}
+            {/* ── NAV DESKTOP ── */}
+            <div className="hidden xl:flex items-center gap-1">
+              {NAV_ITEMS.map((item) => (
+                <div
+                  key={item.href}
+                  className="relative"
+                  onMouseEnter={() => item.megaMenu && handleNavEnter(item.label)}
+                  onMouseLeave={handleNavLeave}
+                >
+                  <Link
+                    href={item.href}
+                    className={`
+                      flex items-center gap-1 px-3 py-2 rounded-lg text-[13px] font-semibold uppercase tracking-wide
+                      text-white transition-all duration-150 hover:bg-white/10
+                      ${activeNavMenu === item.label ? 'bg-white/10' : ''}
+                    `}
+                  >
+                    {item.label}
+                    {item.megaMenu && (
+                      <ChevronDown
+                        size={13}
+                        className={`transition-transform duration-200 ${activeNavMenu === item.label ? 'rotate-180' : ''}`}
+                      />
+                    )}
+                  </Link>
+                  {item.megaMenu && (
+                    <MegaMenuPanel items={item.megaMenu} visible={activeNavMenu === item.label} />
+                  )}
+                </div>
+              ))}
+            </div>
+
+            {/* ── ACTIONS DROITE ── */}
+            <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+
+              {/* Recherche */}
+              <div
+                className={`
+                  hidden sm:flex items-center rounded-full overflow-hidden
+                  transition-all duration-300 bg-white/10 hover:bg-white/15
+                  ${isSearchOpen ? 'w-52 ring-2 ring-white/30' : 'w-9'}
+                `}
+              >
+                <button
+                  onClick={() => setIsSearchOpen(v => !v)}
+                  className="flex items-center justify-center w-9 h-9 shrink-0"
+                >
+                  {isSearchOpen
+                    ? <X size={16} className="text-white" />
+                    : <Search size={16} className="text-white" />
+                  }
+                </button>
+                {isSearchOpen && (
+                  <input
+                    ref={searchRef}
+                    type="text"
+                    value={searchValue}
+                    onChange={e => setSearchValue(e.target.value)}
+                    placeholder="Rechercher…"
+                    className="flex-1 bg-transparent text-white text-sm placeholder-white/60 outline-none pr-3"
                   />
                 )}
               </div>
-            ))}
-          </div>
 
-          {/* ── ACTIONS DROITE ── */}
-          <div className="flex items-center gap-2 sm:gap-3 shrink-0">
-
-            {/* Recherche extensible */}
-            <div
-              className={`
-                hidden sm:flex items-center rounded-full overflow-hidden
-                transition-all duration-300 bg-white/10 hover:bg-white/15
-                ${isSearchOpen ? 'w-52 ring-2 ring-white/30' : 'w-9'}
-              `}
-            >
+              {/* ── BOUTON RUBRIQUES (ex-SubBar) ── */}
               <button
-                onClick={() => setIsSearchOpen((v) => !v)}
-                className="flex items-center justify-center w-9 h-9 shrink-0"
+                onClick={() => setIsRubriquesOpen(v => !v)}
+                className="flex items-center gap-2 px-3 py-2 rounded-full text-xs font-bold uppercase tracking-widest text-white transition-all"
+                style={{ backgroundColor: 'rgba(255,255,255,0.12)', border: '1px solid rgba(255,255,255,0.2)' }}
+                onMouseEnter={e => (e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.2)')}
+                onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.12)')}
+                aria-label="Explorer les rubriques"
               >
-                {isSearchOpen
-                  ? <X size={16} className="text-white" />
-                  : <Search size={16} className="text-white" />
-                }
+                <Menu size={15} />
+                <span className="hidden sm:inline">Rubriques</span>
               </button>
-              {isSearchOpen && (
-                <input
-                  ref={searchRef}
-                  type="text"
-                  value={searchValue}
-                  onChange={(e) => setSearchValue(e.target.value)}
-                  placeholder="Rechercher…"
-                  className="flex-1 bg-transparent text-white text-sm placeholder-white/60 outline-none pr-3"
-                />
-              )}
+
+              {/* CTA Emploi */}
+              <Link
+                href="/emploi"
+                className="relative overflow-hidden font-bold py-2 px-4 sm:px-5 rounded-full text-xs sm:text-sm uppercase tracking-widest text-white transition-all shadow-md hover:shadow-lg active:scale-95"
+                style={{ backgroundColor: '#B85C38' }}
+                onMouseEnter={e => (e.currentTarget.style.backgroundColor = '#8A3E22')}
+                onMouseLeave={e => (e.currentTarget.style.backgroundColor = '#B85C38')}
+              >
+                EMPLOI
+              </Link>
+
+              {/* Burger mobile */}
+              <button
+                onClick={() => setIsRubriquesOpen(!isRubriquesOpen)}
+                className="xl:hidden flex items-center justify-center w-9 h-9 rounded-lg text-white hover:bg-white/10 transition-colors"
+                aria-label={isRubriquesOpen ? 'Fermer le menu' : 'Ouvrir le menu'}
+              >
+                {isRubriquesOpen ? <X size={20} /> : <Menu size={20} />}
+              </button>
             </div>
 
-            {/* Newsletter */}
-            <div className="hidden sm:flex">
-              <NewsletterButton />
-            </div>
-
-            {/* CTA Emploi — pill terre cuite avec shimmer */}
-            <Link
-              href="/emploi"
-              className="
-                relative overflow-hidden font-bold py-2 px-4 sm:px-5 rounded-full
-                text-xs sm:text-sm uppercase tracking-widest text-white
-                transition-all shadow-md hover:shadow-lg active:scale-95
-              "
-              style={{ background: '#B85C38' }}
-            >
-              <span className="relative z-10">EMPLOI</span>
-              {/* Shimmer */}
-              <span
-                className="absolute inset-0 -translate-x-full hover:animate-[shimmer_0.6s_ease] bg-gradient-to-r from-transparent via-white/20 to-transparent"
-                style={{ animation: 'none' }}
-              />
-            </Link>
-
-            {/* Burger mobile */}
-            <button
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="xl:hidden flex items-center justify-center w-9 h-9 rounded-lg text-white hover:bg-white/10 transition-colors"
-              aria-label={isMobileMenuOpen ? 'Fermer le menu' : 'Ouvrir le menu'}
-            >
-              {isMobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
-            </button>
           </div>
         </div>
-      </div>
+      </nav>
 
-      {/* ── MENU MOBILE ── */}
+      {/* ── DRAWER OVERLAY ── */}
       <div
-        className={`
-          fixed inset-0 z-40 xl:hidden transition-opacity duration-300
-          ${isMobileMenuOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}
-        `}
-        onClick={() => setIsMobileMenuOpen(false)}
-        style={{ background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)' }}
+        className={`fixed inset-0 z-40 transition-opacity duration-300 ${isRubriquesOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
+        onClick={closeDrawer}
+        style={{ backgroundColor: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)' }}
       />
 
+      {/* ── DRAWER PANEL ── */}
       <div
-        className={`
-          fixed top-0 left-0 h-full w-[75vw] max-w-xs z-50 xl:hidden
-          flex flex-col
-          transition-transform duration-300 ease-out
-          ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}
-        `}
-        style={{ background: '#1A5C43' }}
+        className={`fixed top-0 left-0 h-full z-50 flex flex-col transition-transform duration-300 ease-out ${isRubriquesOpen ? 'translate-x-0' : '-translate-x-full'}`}
+        style={{ width: '75vw', maxWidth: '420px', backgroundColor: '#ffffff' }}
       >
-        {/* En-tête drawer */}
-        <div className="flex items-center justify-between p-5 border-b border-white/10">
+        {/* Header drawer */}
+        <div
+          className="flex items-center justify-between p-5 shrink-0"
+          style={{ backgroundColor: '#1A5C43', borderBottom: '1px solid rgba(255,255,255,0.1)' }}
+        >
           <div className="bg-white px-2 py-1 rounded-lg">
             <img src="/logos/itourismenomade.png" alt="100% Afrique" className="h-9 object-contain" />
           </div>
-          <button
-            onClick={() => setIsMobileMenuOpen(false)}
-            className="text-white/70 hover:text-white transition-colors p-1"
-          >
-            <X size={20} />
-          </button>
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-bold uppercase tracking-widest" style={{ color: '#C8A84B' }}>
+              Rubriques
+            </span>
+            <button onClick={closeDrawer} className="p-1 text-white/70 hover:text-white transition-colors">
+              <X size={20} />
+            </button>
+          </div>
         </div>
 
-        {/* Liens */}
-        <nav className="flex-1 overflow-y-auto p-4 space-y-1">
-          {NAV_ITEMS.map(({ href, label }) => (
-            <Link
-              key={href}
-              href={href}
-              onClick={() => setIsMobileMenuOpen(false)}
-              className="block px-4 py-3 rounded-xl font-semibold text-sm text-white/90 hover:text-white hover:bg-white/10 transition-colors uppercase tracking-wide"
-            >
-              {label}
-            </Link>
-          ))}
-        </nav>
+        {/* Nav links (mobile only) */}
+        <div className="xl:hidden border-b" style={{ borderColor: '#e5e7eb' }}>
+          <div className="p-3 grid grid-cols-2 gap-1">
+            {NAV_ITEMS.map(({ href, label }) => (
+              <Link
+                key={href}
+                href={href}
+                onClick={closeDrawer}
+                className="block px-3 py-2 rounded-lg font-semibold text-xs uppercase tracking-wide transition-colors"
+                style={{ color: '#001A4D' }}
+                onMouseEnter={e => (e.currentTarget.style.backgroundColor = '#D4EDE5')}
+                onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'transparent')}
+              >
+                {label}
+              </Link>
+            ))}
+          </div>
+        </div>
 
-        {/* CTA emploi mobile */}
-        <div className="p-4 border-t border-white/10">
+        {/* Catégories */}
+        <div className="overflow-y-auto flex-1">
+          {Object.entries(megaMenuData).map(([category, data]) => {
+            const isExpanded = expandedCategory === category;
+            const { slug }   = data;
+            const magazines  = magazinesMap[slug] ?? magazinesCache[slug] ?? [];
+            const isLoadingM = loadingMagSlug === slug;
+
+            return (
+              <div key={category} style={{ borderBottom: '1px solid #f3f4f6' }}>
+
+                {/* Ligne catégorie */}
+                <button
+                  className="w-full flex items-center justify-between px-5 py-4 text-left transition-colors"
+                  onMouseEnter={e => (e.currentTarget.style.backgroundColor = '#f9fafb')}
+                  onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'transparent')}
+                  onClick={() => {
+                    const next = isExpanded ? null : category;
+                    setExpandedCategory(next);
+                    setActiveDesktopRubrique(next);
+                    if (next) fetchMagazines(next);
+                  }}
+                >
+                  <span className="font-bold text-[12px] uppercase tracking-wider" style={{ color: '#001A4D' }}>
+                    {category}
+                  </span>
+                  <ChevronRight
+                    size={16}
+                    style={{ color: '#1A5C43', transition: 'transform 0.2s', transform: isExpanded ? 'rotate(90deg)' : 'rotate(0deg)' }}
+                  />
+                </button>
+
+                {/* Panneau expandé */}
+                {isExpanded && (
+                  <div className="px-5 pb-5 pt-1" style={{ backgroundColor: '#f8fafc' }}>
+
+                    {/* Colonnes de liens */}
+                    {data.columns.map((col, idx) => (
+                      <div key={idx} className="mb-4">
+                        <p className="font-extrabold text-[10px] uppercase tracking-tight mb-2" style={{ color: '#C8A84B' }}>
+                          {col.title}
+                        </p>
+                        <ul className="space-y-2">
+                          {col.links.map((link) => (
+                            <li key={link}>
+                              <a
+                                href="#"
+                                className="flex items-center gap-1.5 text-[12px] py-0.5 transition-colors"
+                                style={{ color: '#4b5563' }}
+                                onClick={closeDrawer}
+                                onMouseEnter={e => (e.currentTarget.style.color = '#001A4D')}
+                                onMouseLeave={e => (e.currentTarget.style.color = '#4b5563')}
+                              >
+                                <ArrowRight size={10} style={{ color: '#C8A84B', flexShrink: 0 }} />
+                                {link}
+                              </a>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    ))}
+
+                    <div style={{ borderTop: '1px solid #e5e7eb', margin: '12px 0' }} />
+
+                    {/* Actualités récentes */}
+                    <div className="flex items-center justify-between mb-3">
+                      <p className="font-extrabold text-[10px] uppercase tracking-tight flex items-center gap-1" style={{ color: '#C8A84B' }}>
+                        <BookOpen size={10} />
+                        Actualités Récentes
+                      </p>
+                      <Link
+                        href={`/secteurs/${slug}`}
+                        className="text-[9px] font-bold flex items-center gap-0.5 transition-colors"
+                        style={{ color: '#001A4D' }}
+                        onClick={closeDrawer}
+                        onMouseEnter={e => (e.currentTarget.style.color = '#C8A84B')}
+                        onMouseLeave={e => (e.currentTarget.style.color = '#001A4D')}
+                      >
+                        Voir tous <ChevronRight size={10} />
+                      </Link>
+                    </div>
+
+                    {isLoadingM ? (
+                      <div className="space-y-2">
+                        {[1, 2, 3].map(i => (
+                          <div key={i} className="flex gap-2.5 items-start bg-white rounded-lg p-2 border border-gray-100">
+                            <div className="w-12 h-12 rounded-md bg-gray-100 animate-pulse shrink-0" />
+                            <div className="flex-1 space-y-1.5 py-1">
+                              <div className="h-2.5 bg-gray-100 rounded animate-pulse" />
+                              <div className="h-2.5 bg-gray-100 rounded animate-pulse w-2/3" />
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : magazines.length === 0 ? (
+                      <p className="text-[11px] italic" style={{ color: '#9ca3af' }}>
+                        Aucune actualité disponible dans cette catégorie.
+                      </p>
+                    ) : (
+                      <div className="space-y-2">
+                        {magazines.slice(0, 4).map(mag => (
+                          <div key={mag.id} onClick={closeDrawer}>
+                            <MagazineMiniCard magazine={mag} />
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+
+        {/* CTA emploi bas du drawer */}
+        <div className="p-4 shrink-0" style={{ borderTop: '1px solid #e5e7eb' }}>
           <Link
             href="/emploi"
-            onClick={() => setIsMobileMenuOpen(false)}
-            className="block w-full text-center font-bold py-3 rounded-full text-sm uppercase tracking-widest text-white"
-            style={{ background: '#B85C38' }}
+            onClick={closeDrawer}
+            className="block w-full text-center font-bold py-3 rounded-full text-sm uppercase tracking-widest text-white transition-colors"
+            style={{ backgroundColor: '#B85C38' }}
+            onMouseEnter={e => (e.currentTarget.style.backgroundColor = '#8A3E22')}
+            onMouseLeave={e => (e.currentTarget.style.backgroundColor = '#B85C38')}
           >
-            EMPLOI
+            Espace EMPLOI
           </Link>
         </div>
       </div>
 
-      {/* Décalage du contenu sous le header fixe */}
       <style jsx global>{`
         body { padding-top: 75px; }
       `}</style>
-    </nav>
+    </>
   );
 };
 
 export default Header;
-
 
 
 

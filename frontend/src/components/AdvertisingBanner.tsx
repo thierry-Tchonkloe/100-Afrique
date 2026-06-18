@@ -1,3 +1,4 @@
+// src/components/AdvertisingBanner.tsx
 "use client";
 
 import { useAdvertising } from "@/hooks/useAdvertising.public";

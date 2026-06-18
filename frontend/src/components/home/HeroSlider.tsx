@@ -34,7 +34,6 @@ function HeroSkeleton() {
   );
 }
 
-// Col 1 & 5 — image + bandeau vert séparé en bas
 function ImageWithLabel({ magazine }: { magazine: Magazine }) {
   return (
     <div className="flex flex-col gap-3 h-full">
@@ -63,7 +62,6 @@ function ImageWithLabel({ magazine }: { magazine: Magazine }) {
   );
 }
 
-// Col 2 & 4 — image avec titre en overlay gradient
 function ImageWithOverlay({ magazine }: { magazine: Magazine }) {
   return (
     <Link
@@ -90,7 +88,9 @@ function ImageWithOverlay({ magazine }: { magazine: Magazine }) {
 const HeroSlider = () => {
   const [magazines, setMagazines] = useState<Magazine[]>([]);
   const [loading, setLoading] = useState(true);
+  const [visible, setVisible] = useState(false); // ← ICI, dans le composant
 
+  // Chargement des magazines
   useEffect(() => {
     let cancelled = false;
     api.get('/magazines/rss', { params: { pageSize: 5, page: 1 } })
@@ -102,6 +102,13 @@ const HeroSlider = () => {
       .finally(() => { if (!cancelled) setLoading(false); });
     return () => { cancelled = true; };
   }, []);
+
+  // Animation déclenchée après chargement
+  useEffect(() => {
+    if (loading) return;
+    const timer = setTimeout(() => setVisible(true), 100);
+    return () => clearTimeout(timer);
+  }, [loading]);
 
   if (loading) return <HeroSkeleton />;
   if (!magazines.length) return null;
@@ -117,7 +124,14 @@ const HeroSlider = () => {
       <div className="max-w-[1600px] mx-auto px-6 md:px-10">
 
         {/* ── Bandeau avatars ── */}
-        <div className="flex items-center justify-center gap-3 mb-5">
+        <div
+          className="flex items-center justify-center gap-3 mb-5"
+          style={{
+            transition: 'opacity 0.6s 0.05s, transform 0.6s 0.05s',
+            opacity: visible ? 1 : 0,
+            transform: visible ? 'translateY(0)' : 'translateY(16px)',
+          }}
+        >
           <div className="flex items-center -space-x-3">
             {AVATAR_URLS.map((src, i) => (
               <img
@@ -138,10 +152,17 @@ const HeroSlider = () => {
           <span className="text-sm text-gray-500">Plus de 45 000 + Professionnels du tourismes</span>
         </div>
 
-        {/* ── Bloc texte centré — laisse de l'espace sous le bouton avant la grille ── */}
-        <div className="text-center mb-12">
+        {/* ── Bloc texte centré ── */}
+        <div
+          className="text-center -mb-12"
+          style={{
+            transition: 'opacity 0.7s 0.15s, transform 0.7s 0.15s',
+            opacity: visible ? 1 : 0,
+            transform: visible ? 'translateY(0)' : 'translateY(28px)',
+          }}
+        >
           <h1
-            className="font-black leading-[1.05] mb-4 text-4xl md:text-5xl lg:text-6xl"
+            className="font-black leading-[1.05] mb-4 text-4xl w-xl md:text-5xl md:w-3xl lg:w-4xl mx-auto lg:text-6xl"
             style={{ color: '#0D1A10', letterSpacing: '-0.02em' }}
           >
             L&apos;Afrique qui voyage, investit et innove
@@ -161,27 +182,42 @@ const HeroSlider = () => {
           </Link>
         </div>
 
-        {/* ── Grille 5 colonnes avec hauteurs relatives ── */}
-        {/*
-          Hauteurs (alignées en bas) :
-          Col 1 & 5 : 100% (480px) — les plus grandes
-          Col 2 & 4 : 80%  (384px) — intermédiaires avec overlay
-          Col 3      : 50%  (240px) — petite image en bas
-        */}
+        {/* ── Grille 5 colonnes ── */}
         <div className="hidden md:grid grid-cols-5 gap-4 items-end" style={{ height: 480 }}>
 
-          {/* Col 1 — pleine hauteur + bandeau vert */}
-          <div className="h-full">
+          {/* Col 1 — pleine hauteur */}
+          <div
+            className="h-full"
+            style={{
+              transition: 'opacity 0.65s 0.2s, transform 0.65s 0.2s',
+              opacity: visible ? 1 : 0,
+              transform: visible ? 'translateY(0)' : 'translateY(32px)',
+            }}
+          >
             <ImageWithLabel magazine={colLeft} />
           </div>
 
-          {/* Col 2 — hauteur intermédiaire, overlay */}
-          <div style={{ height: '80%' }}>
+          {/* Col 2 — hauteur intermédiaire */}
+          <div
+            style={{
+              height: '80%',
+              transition: 'opacity 0.65s 0.3s, transform 0.65s 0.3s',
+              opacity: visible ? 1 : 0,
+              transform: visible ? 'translateY(0)' : 'translateY(32px)',
+            }}
+          >
             <ImageWithOverlay magazine={colLeftMid} />
           </div>
 
-          {/* Col 3 — petite image centrée en bas */}
-          <div style={{ height: '50%' }}>
+          {/* Col 3 — petite image */}
+          <div
+            style={{
+              height: '50%',
+              transition: 'opacity 0.65s 0.4s, transform 0.65s 0.4s',
+              opacity: visible ? 1 : 0,
+              transform: visible ? 'translateY(0)' : 'translateY(32px)',
+            }}
+          >
             <Link
               href={`/magazine/${colCenter.slug}`}
               className="group relative block overflow-hidden rounded-2xl h-full"
@@ -194,19 +230,40 @@ const HeroSlider = () => {
             </Link>
           </div>
 
-          {/* Col 4 — hauteur intermédiaire, overlay */}
-          <div style={{ height: '80%' }}>
+          {/* Col 4 — hauteur intermédiaire */}
+          <div
+            style={{
+              height: '80%',
+              transition: 'opacity 0.65s 0.3s, transform 0.65s 0.3s',
+              opacity: visible ? 1 : 0,
+              transform: visible ? 'translateY(0)' : 'translateY(32px)',
+            }}
+          >
             <ImageWithOverlay magazine={colRightMid} />
           </div>
 
-          {/* Col 5 — pleine hauteur + bandeau vert */}
-          <div className="h-full">
+          {/* Col 5 — pleine hauteur */}
+          <div
+            className="h-full"
+            style={{
+              transition: 'opacity 0.65s 0.2s, transform 0.65s 0.2s',
+              opacity: visible ? 1 : 0,
+              transform: visible ? 'translateY(0)' : 'translateY(32px)',
+            }}
+          >
             <ImageWithLabel magazine={colRight} />
           </div>
         </div>
 
         {/* ── Version mobile ── */}
-        <div className="grid grid-cols-2 gap-4 md:hidden mt-4">
+        <div
+          className="grid grid-cols-2 gap-4 md:hidden mt-4"
+          style={{
+            transition: 'opacity 0.65s 0.2s, transform 0.65s 0.2s',
+            opacity: visible ? 1 : 0,
+            transform: visible ? 'translateY(0)' : 'translateY(24px)',
+          }}
+        >
           <ImageWithLabel magazine={colLeft} />
           <ImageWithLabel magazine={colRight} />
         </div>
@@ -217,7 +274,6 @@ const HeroSlider = () => {
 };
 
 export default HeroSlider;
-
 
 
 

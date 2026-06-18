@@ -193,7 +193,7 @@ const VideoSection = () => {
   const sides = videos.slice(1, 5);
 
   return (
-    <section ref={sectionRef} className="py-20 md:py-28 overflow-hidden" style={{ background: '#F7F9F8' }}>
+    <section ref={sectionRef} className="py-20 md:py-18 overflow-hidden" style={{ background: '#F7F9F8' }}>
       <div className="max-w-[1300px] mx-auto px-6">
 
         {/* Heading */}
