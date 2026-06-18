@@ -4,6 +4,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { Facebook, Twitter, Linkedin, Youtube, Instagram, Mail, Phone, MapPin } from 'lucide-react';
+import NewsletterButton from '@/components/shared/Newsletterbutton';
 
 const SECTEURS = [
   { label: 'Hôtellerie',         slug: 'hotellerie'       },
@@ -59,6 +60,8 @@ const Footer = () => {
                 { href: '/destinations',label: 'Destinations Afrique & Monde' },
                 { href: '/videos',      label: 'Vidéos / Web TV'               },
                 { href: '/offres',      label: 'Nos offres'                    },
+                { href: '/a-propos',    label: 'À propos'                      },
+                { href: '/contact',     label: 'Contact'                       },
               ].map(({ href, label }) => (
                 <li key={href}>
                   <Link
@@ -133,6 +136,14 @@ const Footer = () => {
                 <span>contact@100-afrique.com</span>
               </li>
             </ul>
+
+            {/* Newsletter — déplacée depuis le Header */}
+            <div className="pt-2">
+              <p className="text-xs font-semibold uppercase tracking-wider mb-3" style={{ color: '#C8A84B' }}>
+                Restez informé
+              </p>
+              <NewsletterButton />
+            </div>
           </div>
 
         </div>

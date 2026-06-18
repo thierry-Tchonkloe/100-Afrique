@@ -5,6 +5,7 @@ import VideoSection from '@/components/home/VideoSection';
 import MagazineSection from '@/components/home/MagazineSection';
 import EventsDestinationsSection from '@/components/home/EventsDestinationsSection';
 import ContactCTASection from '@/components/home/ContactCTASection';
+import { AdvertisingBanner } from '@/components/AdvertisingBanner';
 
 import TopBar from '@/components/shared/TopBar';
 import Header from '@/components/shared/Header';
@@ -34,6 +35,12 @@ export default function HomePage() {
           <EventsDestinationsSection />
           <ContactCTASection />
         </div>
+
+        {/* Pub banner — déplacée ici */}
+        <div className="max-w-[1300px] mx-auto px-6 my-12 rounded-2xl overflow-hidden">
+          <AdvertisingBanner zoneSlug="leaderboards-footer" showDots className="" />
+        </div>
+
         <ChatWidget />
         <LanguageSwitcher />
       </main>

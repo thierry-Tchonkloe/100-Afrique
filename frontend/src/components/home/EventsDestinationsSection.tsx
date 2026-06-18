@@ -1,11 +1,10 @@
 // src/components/home/EventsDestinationsSection.tsx
 "use client";
 
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useCallback  } from 'react';
 import Link from 'next/link';
 import { ArrowRight, Loader2, Calendar, Globe, MapPin, Clock } from 'lucide-react';
 import api from '@/lib/api';
-import { AdvertisingBanner } from "@/components/AdvertisingBanner";
 
 interface Salon {
   id: number;
@@ -31,10 +30,14 @@ interface DestinationArticle {
 // ─── Hook reveal ─────────────────────────────────────────────────────────────
 
 function useReveal(threshold = 0.1) {
-  const ref = useRef<HTMLDivElement>(null);
+  const [el, setEl] = useState<HTMLDivElement | null>(null);
   const [visible, setVisible] = useState(false);
+
+  const ref = useCallback((node: HTMLDivElement | null) => {
+    setEl(node);
+  }, []);
+
   useEffect(() => {
-    const el = ref.current;
     if (!el) return;
     const obs = new IntersectionObserver(
       ([e]) => { if (e.isIntersecting) { setVisible(true); obs.disconnect(); } },
@@ -42,7 +45,8 @@ function useReveal(threshold = 0.1) {
     );
     obs.observe(el);
     return () => obs.disconnect();
-  }, [threshold]);
+  }, [el, threshold]);
+
   return { ref, visible };
 }
 
@@ -191,28 +195,26 @@ const EventsDestinationsSection = () => {
   }
 
   return (
-    <section className="py-20 md:py-28 bg-white overflow-hidden">
+    <section className="py-20 md:py-18 bg-white overflow-hidden">
       <div className="max-w-[1300px] mx-auto px-6">
-
-        {/* Pub banner */}
-        <div className="mb-16 rounded-2xl overflow-hidden">
-          <AdvertisingBanner zoneSlug="leaderboards-footer" showDots className="" />
-        </div>
-
+        
         {/* Heading */}
-        <div
-          ref={headingRef}
-          className="mb-14 transition-all duration-700"
-          style={{ opacity: headingVisible ? 1 : 0, transform: headingVisible ? 'none' : 'translateY(20px)' }}
-        >
-          <p className="text-xs font-bold uppercase tracking-[0.25em] mb-3" style={{ color: '#B85C38' }}>
-            — Agenda & Voyages
-          </p>
-          <h2 className="text-3xl md:text-5xl font-black leading-none" style={{ color: '#0D1A10', letterSpacing: '-0.03em' }}>
-            Événements &<br />
-            <span style={{ color: '#1A5C43' }}>Destinations</span>
-          </h2>
+      <div
+        ref={headingRef}
+        className="text-center mb-14 transition-all duration-700"
+        style={{ opacity: headingVisible ? 1 : 0, transform: headingVisible ? 'none' : 'translateY(20px)' }}
+      >
+        <div className="flex items-center justify-center gap-3 mb-4">
+          <div className="h-px w-10" style={{ background: '#C8A84B' }} />
+          <span className="text-[11px] font-bold uppercase tracking-[0.25em]" style={{ color: '#B85C38' }}>
+            Agenda & Voyages
+          </span>
+          <div className="h-px w-10" style={{ background: '#C8A84B' }} />
         </div>
+        <h2 className="text-3xl md:text-5xl font-black leading-none" style={{ color: '#0D1A10', letterSpacing: '-0.03em' }}>
+          Événements & <span style={{ color: '#1A5C43' }}>Destinations</span>
+        </h2>
+      </div>
 
         {/* Grid deux colonnes */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16">
