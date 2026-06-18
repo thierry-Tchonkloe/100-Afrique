@@ -3,20 +3,9 @@
 
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { ArrowRight, Loader2 } from 'lucide-react';
-import api from '@/lib/api';
+import { ArrowRight } from 'lucide-react';
 import MagazineImage from '@/components/shared/MagazineImage';
-
-interface Magazine {
-  id: number;
-  title: string;
-  slug: string;
-  excerpt?: string | null;
-  coverImage: string | null;
-  source: string;
-  publishedAt: string;
-  category?: { id: number; name: string; slug: string };
-}
+import type { Magazine } from '@/lib/server-data';
 
 const AVATAR_URLS = [
   'https://randomuser.me/api/portraits/women/65.jpg',
@@ -24,15 +13,6 @@ const AVATAR_URLS = [
   'https://randomuser.me/api/portraits/women/44.jpg',
   'https://randomuser.me/api/portraits/men/76.jpg',
 ];
-
-function HeroSkeleton() {
-  return (
-    <div className="w-full py-16 md:py-24 flex flex-col items-center justify-center gap-4 bg-white">
-      <Loader2 size={36} className="animate-spin" style={{ color: '#1A5C43' }} />
-      <p className="text-xs uppercase tracking-widest font-semibold text-gray-400 animate-pulse">Chargement…</p>
-    </div>
-  );
-}
 
 function ImageWithLabel({ magazine }: { magazine: Magazine }) {
   return (
@@ -85,32 +65,20 @@ function ImageWithOverlay({ magazine }: { magazine: Magazine }) {
   );
 }
 
-const HeroSlider = () => {
-  const [magazines, setMagazines] = useState<Magazine[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [visible, setVisible] = useState(false); // ← ICI, dans le composant
+interface HeroSliderProps {
+  magazines: Magazine[];
+}
 
-  // Chargement des magazines
-  useEffect(() => {
-    let cancelled = false;
-    api.get('/magazines/rss', { params: { pageSize: 5, page: 1 } })
-      .then((res) => {
-        if (cancelled) return;
-        setMagazines(res.data?.data?.magazines ?? []);
-      })
-      .catch(() => {})
-      .finally(() => { if (!cancelled) setLoading(false); });
-    return () => { cancelled = true; };
-  }, []);
+const HeroSlider = ({ magazines }: HeroSliderProps) => {
+  const [visible, setVisible] = useState(false);
 
-  // Animation déclenchée après chargement
+  // Les données arrivent déjà rendues côté serveur ; il ne reste qu'à
+  // déclencher l'animation d'entrée au montage.
   useEffect(() => {
-    if (loading) return;
     const timer = setTimeout(() => setVisible(true), 100);
     return () => clearTimeout(timer);
-  }, [loading]);
+  }, []);
 
-  if (loading) return <HeroSkeleton />;
   if (!magazines.length) return null;
 
   const colLeft     = magazines[0];
@@ -123,7 +91,6 @@ const HeroSlider = () => {
     <section className="w-full bg-white pt-10 pb-16 md:pt-14 md:pb-20">
       <div className="max-w-[1600px] mx-auto px-6 md:px-10">
 
-        {/* ── Bandeau avatars ── */}
         <div
           className="flex items-center justify-center gap-3 mb-5"
           style={{
@@ -152,7 +119,6 @@ const HeroSlider = () => {
           <span className="text-sm text-gray-500">Plus de 45 000 + Professionnels du tourismes</span>
         </div>
 
-        {/* ── Bloc texte centré ── */}
         <div
           className="text-center -mb-12"
           style={{
@@ -162,7 +128,7 @@ const HeroSlider = () => {
           }}
         >
           <h1
-            className="font-black leading-[1.05] mb-4 text-4xl w-xl md:text-5xl md:w-3xl lg:w-4xl mx-auto lg:text-6xl"
+            className="font-bold leading-[1.05] mb-4 text-4xl w-xl md:text-5xl md:w-3xl lg:w-4xl mx-auto lg:text-6xl"
             style={{ color: '#0D1A10', letterSpacing: '-0.02em' }}
           >
             L&apos;Afrique qui voyage, investit et innove
@@ -182,10 +148,7 @@ const HeroSlider = () => {
           </Link>
         </div>
 
-        {/* ── Grille 5 colonnes ── */}
         <div className="hidden md:grid grid-cols-5 gap-4 items-end" style={{ height: 480 }}>
-
-          {/* Col 1 — pleine hauteur */}
           <div
             className="h-full"
             style={{
@@ -197,7 +160,6 @@ const HeroSlider = () => {
             <ImageWithLabel magazine={colLeft} />
           </div>
 
-          {/* Col 2 — hauteur intermédiaire */}
           <div
             style={{
               height: '80%',
@@ -209,7 +171,6 @@ const HeroSlider = () => {
             <ImageWithOverlay magazine={colLeftMid} />
           </div>
 
-          {/* Col 3 — petite image */}
           <div
             style={{
               height: '50%',
@@ -230,7 +191,6 @@ const HeroSlider = () => {
             </Link>
           </div>
 
-          {/* Col 4 — hauteur intermédiaire */}
           <div
             style={{
               height: '80%',
@@ -242,7 +202,6 @@ const HeroSlider = () => {
             <ImageWithOverlay magazine={colRightMid} />
           </div>
 
-          {/* Col 5 — pleine hauteur */}
           <div
             className="h-full"
             style={{
@@ -255,7 +214,6 @@ const HeroSlider = () => {
           </div>
         </div>
 
-        {/* ── Version mobile ── */}
         <div
           className="grid grid-cols-2 gap-4 md:hidden mt-4"
           style={{
@@ -274,6 +232,294 @@ const HeroSlider = () => {
 };
 
 export default HeroSlider;
+
+
+
+
+
+
+
+
+
+
+
+
+// // src/components/home/HeroSlider.tsx
+// "use client";
+
+// import React, { useEffect, useState } from 'react';
+// import Link from 'next/link';
+// import { ArrowRight, Loader2 } from 'lucide-react';
+// import api from '@/lib/api';
+// import MagazineImage from '@/components/shared/MagazineImage';
+
+// interface Magazine {
+//   id: number;
+//   title: string;
+//   slug: string;
+//   excerpt?: string | null;
+//   coverImage: string | null;
+//   source: string;
+//   publishedAt: string;
+//   category?: { id: number; name: string; slug: string };
+// }
+
+// const AVATAR_URLS = [
+//   'https://randomuser.me/api/portraits/women/65.jpg',
+//   'https://randomuser.me/api/portraits/men/32.jpg',
+//   'https://randomuser.me/api/portraits/women/44.jpg',
+//   'https://randomuser.me/api/portraits/men/76.jpg',
+// ];
+
+// function HeroSkeleton() {
+//   return (
+//     <div className="w-full py-16 md:py-24 flex flex-col items-center justify-center gap-4 bg-white">
+//       <Loader2 size={36} className="animate-spin" style={{ color: '#1A5C43' }} />
+//       <p className="text-xs uppercase tracking-widest font-semibold text-gray-400 animate-pulse">Chargement…</p>
+//     </div>
+//   );
+// }
+
+// function ImageWithLabel({ magazine }: { magazine: Magazine }) {
+//   return (
+//     <div className="flex flex-col gap-3 h-full">
+//       <Link
+//         href={`/magazine/${magazine.slug}`}
+//         className="group relative block overflow-hidden rounded-2xl flex-1 min-h-0"
+//       >
+//         <MagazineImage
+//           src={magazine.coverImage}
+//           alt={magazine.title}
+//           className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+//         />
+//       </Link>
+//       <Link
+//         href={`/magazine/${magazine.slug}`}
+//         className="rounded-2xl px-5 py-4 shrink-0 transition-colors"
+//         style={{ background: '#0D3525' }}
+//         onMouseEnter={e => (e.currentTarget.style.background = '#1A5C43')}
+//         onMouseLeave={e => (e.currentTarget.style.background = '#0D3525')}
+//       >
+//         <span className="text-white font-bold text-sm leading-snug line-clamp-2">
+//           {magazine.title}
+//         </span>
+//       </Link>
+//     </div>
+//   );
+// }
+
+// function ImageWithOverlay({ magazine }: { magazine: Magazine }) {
+//   return (
+//     <Link
+//       href={`/magazine/${magazine.slug}`}
+//       className="group relative block overflow-hidden rounded-2xl h-full"
+//     >
+//       <MagazineImage
+//         src={magazine.coverImage}
+//         alt={magazine.title}
+//         className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+//       />
+//       <div
+//         className="absolute bottom-0 left-0 right-0 rounded-b-2xl px-4 py-5"
+//         style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.78) 0%, rgba(0,0,0,0.3) 60%, transparent 100%)' }}
+//       >
+//         <span className="text-white font-bold text-sm leading-snug line-clamp-3">
+//           {magazine.title}
+//         </span>
+//       </div>
+//     </Link>
+//   );
+// }
+
+// const HeroSlider = () => {
+//   const [magazines, setMagazines] = useState<Magazine[]>([]);
+//   const [loading, setLoading] = useState(true);
+//   const [visible, setVisible] = useState(false); // ← ICI, dans le composant
+
+//   // Chargement des magazines
+//   useEffect(() => {
+//     let cancelled = false;
+//     api.get('/magazines/rss', { params: { pageSize: 5, page: 1 } })
+//       .then((res) => {
+//         if (cancelled) return;
+//         setMagazines(res.data?.data?.magazines ?? []);
+//       })
+//       .catch(() => {})
+//       .finally(() => { if (!cancelled) setLoading(false); });
+//     return () => { cancelled = true; };
+//   }, []);
+
+//   // Animation déclenchée après chargement
+//   useEffect(() => {
+//     if (loading) return;
+//     const timer = setTimeout(() => setVisible(true), 100);
+//     return () => clearTimeout(timer);
+//   }, [loading]);
+
+//   if (loading) return <HeroSkeleton />;
+//   if (!magazines.length) return null;
+
+//   const colLeft     = magazines[0];
+//   const colLeftMid  = magazines[1] ?? magazines[0];
+//   const colCenter   = magazines[2] ?? magazines[0];
+//   const colRightMid = magazines[3] ?? magazines[0];
+//   const colRight    = magazines[4] ?? magazines[0];
+
+//   return (
+//     <section className="w-full bg-white pt-10 pb-16 md:pt-14 md:pb-20">
+//       <div className="max-w-[1600px] mx-auto px-6 md:px-10">
+
+//         {/* ── Bandeau avatars ── */}
+//         <div
+//           className="flex items-center justify-center gap-3 mb-5"
+//           style={{
+//             transition: 'opacity 0.6s 0.05s, transform 0.6s 0.05s',
+//             opacity: visible ? 1 : 0,
+//             transform: visible ? 'translateY(0)' : 'translateY(16px)',
+//           }}
+//         >
+//           <div className="flex items-center -space-x-3">
+//             {AVATAR_URLS.map((src, i) => (
+//               <img
+//                 key={i}
+//                 src={src}
+//                 alt=""
+//                 className="w-9 h-9 rounded-full border-2 border-white object-cover"
+//                 style={{ zIndex: AVATAR_URLS.length - i }}
+//               />
+//             ))}
+//             <div
+//               className="w-9 h-9 rounded-full border-2 border-white flex items-center justify-center text-[10px] font-bold text-white"
+//               style={{ background: '#1A5C43', zIndex: 0 }}
+//             >
+//               +
+//             </div>
+//           </div>
+//           <span className="text-sm text-gray-500">Plus de 45 000 + Professionnels du tourismes</span>
+//         </div>
+
+//         {/* ── Bloc texte centré ── */}
+//         <div
+//           className="text-center -mb-12"
+//           style={{
+//             transition: 'opacity 0.7s 0.15s, transform 0.7s 0.15s',
+//             opacity: visible ? 1 : 0,
+//             transform: visible ? 'translateY(0)' : 'translateY(28px)',
+//           }}
+//         >
+//           <h1
+//             className="font-black leading-[1.05] mb-4 text-4xl w-xl md:text-5xl md:w-3xl lg:w-4xl mx-auto lg:text-6xl"
+//             style={{ color: '#0D1A10', letterSpacing: '-0.02em' }}
+//           >
+//             L&apos;Afrique qui voyage, investit et innove
+//           </h1>
+//           <p className="text-gray-500 text-base md:text-lg mb-7 leading-relaxed max-w-xl mx-auto">
+//             Une veille stratégique dédiée aux professionnels du tourisme, de l&apos;hôtellerie, du transport et de la mobilité.
+//           </p>
+//           <Link
+//             href="/actualites"
+//             className="group inline-flex items-center gap-3 font-bold text-sm px-7 py-3.5 rounded-full transition-all shadow-lg hover:shadow-xl active:scale-95 text-white whitespace-nowrap"
+//             style={{ background: '#B85C38' }}
+//             onMouseEnter={e => (e.currentTarget.style.background = '#9C4B2D')}
+//             onMouseLeave={e => (e.currentTarget.style.background = '#B85C38')}
+//           >
+//             Lire l&apos;actualités
+//             <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
+//           </Link>
+//         </div>
+
+//         {/* ── Grille 5 colonnes ── */}
+//         <div className="hidden md:grid grid-cols-5 gap-4 items-end" style={{ height: 480 }}>
+
+//           {/* Col 1 — pleine hauteur */}
+//           <div
+//             className="h-full"
+//             style={{
+//               transition: 'opacity 0.65s 0.2s, transform 0.65s 0.2s',
+//               opacity: visible ? 1 : 0,
+//               transform: visible ? 'translateY(0)' : 'translateY(32px)',
+//             }}
+//           >
+//             <ImageWithLabel magazine={colLeft} />
+//           </div>
+
+//           {/* Col 2 — hauteur intermédiaire */}
+//           <div
+//             style={{
+//               height: '80%',
+//               transition: 'opacity 0.65s 0.3s, transform 0.65s 0.3s',
+//               opacity: visible ? 1 : 0,
+//               transform: visible ? 'translateY(0)' : 'translateY(32px)',
+//             }}
+//           >
+//             <ImageWithOverlay magazine={colLeftMid} />
+//           </div>
+
+//           {/* Col 3 — petite image */}
+//           <div
+//             style={{
+//               height: '50%',
+//               transition: 'opacity 0.65s 0.4s, transform 0.65s 0.4s',
+//               opacity: visible ? 1 : 0,
+//               transform: visible ? 'translateY(0)' : 'translateY(32px)',
+//             }}
+//           >
+//             <Link
+//               href={`/magazine/${colCenter.slug}`}
+//               className="group relative block overflow-hidden rounded-2xl h-full"
+//             >
+//               <MagazineImage
+//                 src={colCenter.coverImage}
+//                 alt={colCenter.title}
+//                 className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+//               />
+//             </Link>
+//           </div>
+
+//           {/* Col 4 — hauteur intermédiaire */}
+//           <div
+//             style={{
+//               height: '80%',
+//               transition: 'opacity 0.65s 0.3s, transform 0.65s 0.3s',
+//               opacity: visible ? 1 : 0,
+//               transform: visible ? 'translateY(0)' : 'translateY(32px)',
+//             }}
+//           >
+//             <ImageWithOverlay magazine={colRightMid} />
+//           </div>
+
+//           {/* Col 5 — pleine hauteur */}
+//           <div
+//             className="h-full"
+//             style={{
+//               transition: 'opacity 0.65s 0.2s, transform 0.65s 0.2s',
+//               opacity: visible ? 1 : 0,
+//               transform: visible ? 'translateY(0)' : 'translateY(32px)',
+//             }}
+//           >
+//             <ImageWithLabel magazine={colRight} />
+//           </div>
+//         </div>
+
+//         {/* ── Version mobile ── */}
+//         <div
+//           className="grid grid-cols-2 gap-4 md:hidden mt-4"
+//           style={{
+//             transition: 'opacity 0.65s 0.2s, transform 0.65s 0.2s',
+//             opacity: visible ? 1 : 0,
+//             transform: visible ? 'translateY(0)' : 'translateY(24px)',
+//           }}
+//         >
+//           <ImageWithLabel magazine={colLeft} />
+//           <ImageWithLabel magazine={colRight} />
+//         </div>
+
+//       </div>
+//     </section>
+//   );
+// };
+
+// export default HeroSlider;
 
 
 

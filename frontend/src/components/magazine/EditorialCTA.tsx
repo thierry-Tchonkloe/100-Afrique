@@ -36,7 +36,7 @@ const EditorialCTA = () => {
             <p className="text-xs font-bold uppercase tracking-[0.25em] mb-3" style={{ color: '#B85C38' }}>
               — Équipe éditoriale
             </p>
-            <h2 className="text-3xl md:text-5xl font-black leading-none mb-5" style={{ color: '#0D1A10', letterSpacing: '-0.03em' }}>
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold leading-none  mb-5" style={{ color: '#0D1A10', letterSpacing: '-0.02em' }}>
               Rejoignez notre<br />
               <span style={{ color: '#1A5C43' }}>Équipe Éditoriale</span>
             </h2>

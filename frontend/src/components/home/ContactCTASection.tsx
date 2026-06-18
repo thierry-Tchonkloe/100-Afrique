@@ -114,7 +114,7 @@ const ContactCTASection = () => {
             <div className="h-px w-12" style={{ background: '#C8A84B' }} />
           </div>
 
-          <h2 className="text-3xl md:text-5xl lg:text-6xl font-black text-white leading-tight mb-6" style={{ letterSpacing: '-0.02em' }}>
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white leading-tight mb-6" style={{ letterSpacing: '-0.02em' }}>
             Devenez Partenaire<br />
             <span style={{ color: '#C8A84B' }}>de la Voix Africaine</span>
           </h2>
