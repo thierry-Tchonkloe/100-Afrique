@@ -1,3 +1,4 @@
+// src/components/home/ContactCTASection.tsx
 "use client";
 
 import React, { useState, useEffect, useRef } from 'react';
@@ -123,7 +124,7 @@ const ContactCTASection = () => {
           </p>
 
           {/* Boutons CTA */}
-          <div className="flex flex-wrap justify-center gap-4 mb-14">
+          <div className="flex flex-wrap justify-center gap-4">
             <button
               onClick={() => setIsModalOpen(true)}
               className="group flex items-center gap-2 font-bold text-sm px-8 py-4 rounded-full text-white transition-all hover:shadow-2xl active:scale-95"
