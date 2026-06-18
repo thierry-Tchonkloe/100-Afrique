@@ -73,9 +73,9 @@ const NAV_ITEMS: NavItem[] = [
     href: '/actualites',
     label: 'Actualités',
     megaMenu: [
-      { label: 'Hôtellerie',   href: '/actualites/hotellerie',   icon: <Star size={16} />,        description: 'Tendances hôtels & resorts' },
-      { label: 'Transport',    href: '/actualites/transport',    icon: <TrendingUp size={16} />,   description: 'Aviation, train, maritime'  },
-      { label: 'Restauration', href: '/actualites/restauration', icon: <Star size={16} />,        description: 'Gastronomie africaine'       },
+      { label: 'Hôtellerie',   href: '/secteurs/hotellerie',   icon: <Star size={16} />,        description: 'Tendances hôtels & resorts' },
+      { label: 'Transport',    href: '/secteurs/transport',    icon: <TrendingUp size={16} />,   description: 'Aviation, train, maritime'  },
+      { label: 'Restauration', href: '/secteurs/restauration', icon: <Star size={16} />,        description: 'Gastronomie africaine'       },
     ],
   },
   { href: '/evenements',  label: 'Événements'  },

@@ -80,7 +80,7 @@ const NewsletterSection = () => {
             <span className="text-[10px] font-bold uppercase tracking-[0.25em]" style={{ color: '#C8A84B' }}>Newsletter Pro</span>
             <div className="h-px w-8" style={{ background: '#C8A84B' }} />
           </div>
-          <h2 className="text-3xl md:text-4xl font-black text-white mb-4 leading-tight" style={{ letterSpacing: '-0.02em' }}>
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-semibold text-white mb-4 " style={{ letterSpacing: '-0.02em' }}>
             Restez informé,<br />
             <span style={{ color: '#C8A84B' }}>chaque semaine</span>
           </h2>
