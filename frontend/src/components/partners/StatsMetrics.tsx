@@ -66,7 +66,7 @@ const AnimatedStat = ({ stat, index }: { stat: StatItem; index: number }) => {
         transition={{ duration: 0.8, delay: index * 0.15 + 0.4, ease: 'easeOut' }}
         className="h-[2px] w-12 bg-it-gold/50 mx-auto origin-left"
       />
-      <p className="text-sm text-white/70 font-light max-w-[200px] mx-auto leading-relaxed">
+      <p className="text-md text-white/70 max-w-[200px] mx-auto leading-relaxed">
         {stat.label}
       </p>
     </motion.div>
@@ -89,7 +89,7 @@ const StatsMetrics = ({ stats, mediaKitUrl }: StatsMetricsProps) => {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: false }}
           transition={{ duration: 0.6, ease: 'easeOut' }}
-          className="text-2xl md:text-4xl font-serif font-bold uppercase tracking-[0.2em]"
+          className="text-3xl md:text-4xl font-bold uppercase"
         >
           Nos Chiffres Clés
         </motion.h2>

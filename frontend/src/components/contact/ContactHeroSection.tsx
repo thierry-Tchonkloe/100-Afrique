@@ -101,7 +101,7 @@ const ContactHeroSection = () => {
 
         {/* Titre */}
         <h1
-          className="text-4xl md:text-5xl lg:text-6xl font-serif font-bold text-white uppercase tracking-tight leading-tight"
+          className="text-4xl md:text-5xl font-bold text-white uppercase tracking-tight leading-tight"
           style={{
             transition: 'opacity 0.7s 0.35s, transform 0.7s 0.35s',
             opacity: visible ? 1 : 0,

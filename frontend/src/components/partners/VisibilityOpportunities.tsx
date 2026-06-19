@@ -49,7 +49,7 @@ const VisibilityOpportunities = ({ opportunities }: VisibilityOpportunitiesProps
   return (
     <section className="py-24 bg-slate-50 px-6">
       <div className="max-w-7xl mx-auto">
-        <h2 className="text-3xl md:text-4xl font-serif font-bold text-it-blue text-center uppercase tracking-[0.2em] mb-16">
+        <h2 className="text-3xl md:text-4xl font-bold text-it-blue text-center uppercase mb-16">
           Vos Opportunités de Visibilité
         </h2>
 

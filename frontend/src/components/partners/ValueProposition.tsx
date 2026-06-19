@@ -65,7 +65,7 @@ const ValueProposition = ({ values }: ValuePropositionProps) => {
   return (
     <section className="py-24 bg-white px-6">
       <div className="max-w-7xl mx-auto">
-        <h2 className="text-3xl md:text-4xl font-serif font-bold text-it-blue text-center uppercase tracking-[0.15em] mb-20 border-b-2 border-slate-100 pb-8">
+        <h2 className="text-3xl md:text-4xl font-bold text-it-blue text-center uppercase mb-16 border-b-2 border-slate-100 pb-8">
           Notre Proposition de Valeur Unique
         </h2>
 

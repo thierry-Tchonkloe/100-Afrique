@@ -328,11 +328,11 @@ const Header = () => {
         />
 
         <div className="px-4 sm:px-6 lg:px-8 pt-[3px] pb-0 relative z-10">
-          <div className="flex items-center justify-between h-[72px]">
+          <div className="flex my-2 items-center justify-between h-[72px]">
 
             {/* ── LOGO ── */}
-            <div className="flex flex-col items-center shrink-0">
-              <Link href="/" className="flex items-center group">
+            <div className="flex flex-col ml-8 items-center shrink-0">
+              <Link href="/" className="flex -ml-13 items-center group">
                 <div className="bg-white px-2 py-1.5 rounded-lg shadow-sm group-hover:shadow-md transition-shadow">
                   <img
                     src="/logos/itourismenomade.png"
@@ -342,7 +342,7 @@ const Header = () => {
                 </div>
               </Link>
               <span
-                className="hidden md:block ml-3 text-[11px] font-semibold tracking-wide animate-pulse"
+                className="hidden md:block text-[10px] font-semibold animate-pulse"
                 style={{ color: '#C8A84B' }}
               >
                 La voix du tourisme en Afrique
