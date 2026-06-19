@@ -69,6 +69,16 @@ export interface Salon {
   location?: string;
   city?: string;
   country?: string;
+  category?: { id: number; name: string };
+}
+
+export interface SalonInterview {
+  id: number;
+  title: string;
+  slug: string;
+  excerpt: string;
+  coverImage: string;
+  author: { name: string };
 }
 
 export interface DestinationArticle {
@@ -130,7 +140,6 @@ export async function getHomeDestinations(): Promise<DestinationArticle[]> {
 
 // ─── Page /actualites ─────────────────────────────────────────────────────────
 
-/** Hero de la page actualités : 3 derniers magazines. */
 export async function getNewsHeroMagazines(): Promise<Magazine[]> {
   const json = await safeFetch<{ data?: { magazines?: Magazine[] } }>(
     '/magazines/rss',
@@ -140,7 +149,6 @@ export async function getNewsHeroMagazines(): Promise<Magazine[]> {
   return json?.data?.magazines ?? [];
 }
 
-/** Données sidebar éditoriales (lentes à changer → revalidate 5 min). */
 export async function getNewsSidebarData(): Promise<{
   analyses: SidebarArticle[];
   interview: SidebarArticle | null;
@@ -162,4 +170,26 @@ export async function getNewsSidebarData(): Promise<{
     analyses: analysesJson?.data ?? [],
     interview: interviewJson?.data?.[0] ?? null,
   };
+}
+
+// ─── Page /salons ─────────────────────────────────────────────────────────────
+
+/** Liste des salons triée par date de début (revalidate 5 min). */
+export async function getPageSalons(): Promise<Salon[]> {
+  const json = await safeFetch<{ data?: Salon[] }>(
+    '/mag/articles',
+    { type: 'SALON', pageSize: 10, page: 1, status: 'PUBLISHED', sortBy: 'createdAt:asc' },
+    300
+  );
+  return json?.data ?? [];
+}
+
+/** Interview featured pour la sidebar de la page salons. */
+export async function getPageSalonInterview(): Promise<SalonInterview | null> {
+  const json = await safeFetch<{ data?: SalonInterview[] }>(
+    '/mag/articles',
+    { type: 'ARTICLE', categorySlug: 'interviews', featured: 1, pageSize: 1, status: 'PUBLISHED' },
+    300
+  );
+  return json?.data?.[0] ?? null;
 }

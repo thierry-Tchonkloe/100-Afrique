@@ -59,7 +59,7 @@ const PartnersContact = () => {
       <div className="absolute bottom-10 right-10 w-80 h-80 rounded-full bg-it-emerald/25 blur-3xl pointer-events-none" />
 
       <div className="relative z-10 max-w-7xl mx-auto">
-        <h2 className="text-3xl md:text-4xl font-serif font-bold text-white text-center uppercase tracking-[0.2em] mb-4">
+        <h2 className="text-3xl md:text-4xl font-bold text-white text-center uppercase mb-4">
           Prêt à lancer votre campagne ?
         </h2>
         <p className="text-center text-slate-300 text-sm mb-16 tracking-wide">
@@ -141,7 +141,7 @@ const PartnersContact = () => {
             <div className="absolute inset-0 bg-white/10 backdrop-blur-xl group-hover:bg-white/15 transition-all duration-500" />
             <div className="relative z-10 p-8 md:p-10 space-y-10 h-full flex flex-col justify-between">
               <div>
-                <h3 className="text-2xl font-serif font-bold text-white mb-8">Contact Direct</h3>
+                <h3 className="text-2xl font-bold text-white mb-8">Contact Direct</h3>
                 <div className="space-y-6">
                   <a href="tel:+33774454001" className="flex items-center gap-4 group/link">
                     <div className="p-4 bg-white/10 rounded-full group-hover/link:bg-it-gold/20 transition-colors">

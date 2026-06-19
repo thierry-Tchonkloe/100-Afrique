@@ -32,7 +32,7 @@ const PartnerLogos = ({ partners }: PartnerLogosProps) => {
   return (
     <section className="py-20 bg-slate-50/50 px-6 overflow-hidden">
       <div className="max-w-7xl mx-auto">
-        <h2 className="text-3xl md:text-4xl font-serif font-bold text-[#2D3E50] text-center uppercase tracking-[0.2em] mb-16">
+        <h2 className="text-3xl md:text-4xl font-bold text-[#2D3E50] text-center uppercase mb-16">
           Ils nous font confiance
         </h2>
       </div>

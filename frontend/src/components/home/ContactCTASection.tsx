@@ -76,7 +76,7 @@ const ContactCTASection = () => {
       <div className="absolute top-0 left-0 w-1/2 h-full opacity-20" style={{ background: 'radial-gradient(ellipse at 0% 50%, #1A5C43 0%, transparent 70%)' }} />
       <div className="absolute bottom-0 right-0 w-1/2 h-1/2 opacity-15" style={{ background: 'radial-gradient(ellipse at 100% 100%, #B85C38 0%, transparent 70%)' }} />
 
-      <div ref={sectionRef} className="relative z-10 max-w-[1300px] mx-auto px-6 py-20 md:py-28">
+      <div ref={sectionRef} className="relative z-10 max-w-[1300px] mx-auto px-6 py-12 md:py-18">
 
         {/* ── Stats row ── */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-px mb-16 overflow-hidden rounded-2xl" style={{ background: 'rgba(255,255,255,0.06)' }}>
@@ -114,7 +114,7 @@ const ContactCTASection = () => {
             <div className="h-px w-12" style={{ background: '#C8A84B' }} />
           </div>
 
-          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white leading-tight mb-6" style={{ letterSpacing: '-0.02em' }}>
+          <h2 className="text-3xl md:text-4xl font-bold text-white leading-tight mb-6" style={{ letterSpacing: '-0.02em' }}>
             Devenez Partenaire<br />
             <span style={{ color: '#C8A84B' }}>de la Voix Africaine</span>
           </h2>
