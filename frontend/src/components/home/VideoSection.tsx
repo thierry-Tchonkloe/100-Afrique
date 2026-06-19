@@ -140,7 +140,7 @@ const VideoSection = ({ videos }: VideoSectionProps) => {
   const sides = videos.slice(1, 5);
 
   return (
-    <section ref={sectionRef} className="py-20 md:py-18 overflow-hidden" style={{ background: '#F7F9F8' }}>
+    <section ref={sectionRef} className="py-12 md:py-18 overflow-hidden" style={{ background: '#F7F9F8' }}>
       <div className="max-w-[1300px] mx-auto px-6">
 
         <div
@@ -151,7 +151,7 @@ const VideoSection = ({ videos }: VideoSectionProps) => {
             <p className="text-xs font-bold uppercase tracking-[0.25em] mb-3" style={{ color: '#B85C38' }}>
               — Vidéothèque
             </p>
-            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold leading-none" style={{ color: '#0D1A10', letterSpacing: '-0.03em' }}>
+            <h2 className="text-3xl md:text-4xl font-bold leading-none" style={{ color: '#0D1A10', letterSpacing: '-0.03em' }}>
               Vidéos &<br />
               <span style={{ color: '#1A5C43' }}>Reportages</span>
             </h2>

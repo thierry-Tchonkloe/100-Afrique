@@ -80,7 +80,7 @@ function SectionHeading({
           <p className="text-[11px] font-bold uppercase tracking-[0.2em] mb-1.5" style={{ color: '#B85C38' }}>
             — Explorer par source
           </p>
-          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold leading-tight" style={{ color: '#0D1A10', letterSpacing: '-0.02em' }}>
+          <h2 className="text-3xl md:text-4xl font-bold leading-none" style={{ color: '#0D1A10', letterSpacing: '-0.02em' }}>
             Toutes les <span style={{ color: '#1A5C43' }}>Actualités</span>
           </h2>
         </div>

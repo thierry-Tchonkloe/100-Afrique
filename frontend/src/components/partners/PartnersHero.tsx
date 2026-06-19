@@ -26,7 +26,7 @@ const PartnersHero = ({ onOpenOffers, data }: PartnersHeroProps) => {
         <div className="flex flex-col lg:flex-row items-center gap-12 lg:gap-20">
 
           <div className="lg:w-1/2 space-y-8 text-white">
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-serif font-bold uppercase leading-[1.1] tracking-tight">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold uppercase leading-tight">
               {content.title}
             </h1>
             <p className="text-white/75 text-lg md:text-xl font-light leading-relaxed max-w-xl">

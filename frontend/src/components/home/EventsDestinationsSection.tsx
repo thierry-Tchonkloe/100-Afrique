@@ -142,7 +142,7 @@ const EventsDestinationsSection = ({ salons, destinations }: EventsDestinationsS
   const { ref: headingRef, visible: headingVisible } = useReveal(0.2);
 
   return (
-    <section className="py-20 md:py-18 bg-white overflow-hidden">
+    <section className="py-12 md:py-18 bg-white overflow-hidden">
       <div className="max-w-[1300px] mx-auto px-6">
 
         <div
@@ -157,7 +157,7 @@ const EventsDestinationsSection = ({ salons, destinations }: EventsDestinationsS
             </span>
             <div className="h-px w-10" style={{ background: '#C8A84B' }} />
           </div>
-          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold leading-none" style={{ color: '#0D1A10', letterSpacing: '-0.03em' }}>
+          <h2 className="text-3xl md:text-4xl font-bold leading-none" style={{ color: '#0D1A10', letterSpacing: '-0.03em' }}>
             Événements & <span style={{ color: '#1A5C43' }}>Destinations</span>
           </h2>
         </div>
