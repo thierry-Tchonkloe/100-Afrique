@@ -15,7 +15,7 @@ const VideoCTASection = () => {
 
           {/* Texte */}
           <div className="w-full md:w-1/2 p-10 md:p-16 flex flex-col justify-center items-start space-y-6">
-            <h2 className="text-3xl md:text-4xl font-serif font-bold text-white uppercase leading-tight">
+            <h2 className="text-3xl md:text-4xl font-bold text-white uppercase leading-tight">
               Créez votre reportage avec nous
             </h2>
             <p className="text-white/75 leading-relaxed text-sm md:text-base">
