@@ -120,7 +120,7 @@ const DestinationGrid = () => {
         </div>
       </div>
 
-      <h2 className="text-2xl md:text-3xl font-serif font-bold text-it-blue uppercase tracking-[0.15em] mb-10">
+      <h2 className="text-3xl md:text-4xl font-bold text-it-blue uppercase mb-10">
         Explorez nos destinations
       </h2>
 

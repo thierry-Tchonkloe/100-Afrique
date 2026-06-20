@@ -5,7 +5,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { AxiosError } from 'axios';
 import api from '@/lib/api';
-import { Play, FileText, Image as ImageIcon, ExternalLink, Clock } from 'lucide-react';
+import { Play, FileText, Image as ImageIcon, ExternalLink, Clock, SlidersHorizontal, X } from 'lucide-react';
 
 interface Reportage {
   id: number;
@@ -47,6 +47,16 @@ function useReveal(threshold = 0.08) {
   return { ref, visible };
 }
 
+// ─── Hook détection touch ─────────────────────────────────────────────────────
+
+function useIsTouchDevice() {
+  const [isTouch, setIsTouch] = useState(false);
+  useEffect(() => {
+    setIsTouch(window.matchMedia('(pointer: coarse)').matches);
+  }, []);
+  return isTouch;
+}
+
 // ─── Utilitaires ─────────────────────────────────────────────────────────────
 
 function getContentType(reportage: Reportage): 'video' | 'article' | 'interview' {
@@ -75,12 +85,12 @@ function renderTypeIcon(type: string) {
 
 function Skeleton() {
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
       {Array.from({ length: 6 }).map((_, n) => (
         <div
           key={n}
           className="rounded-2xl bg-gray-200 animate-pulse"
-          style={{ aspectRatio: '3/2' }}
+          style={{ aspectRatio: '16/9' }}
         />
       ))}
     </div>
@@ -93,6 +103,10 @@ function ReportageCard({ item, delay = 0 }: { item: Reportage; delay?: number })
   const { ref, visible } = useReveal(0.06);
   const contentType = getContentType(item);
   const [hovered, setHovered] = useState(false);
+  const isTouch = useIsTouchDevice();
+
+  // Sur touch : l'overlay est toujours visible (pas de hover)
+  const overlayVisible = isTouch || hovered;
 
   return (
     <div
@@ -107,7 +121,7 @@ function ReportageCard({ item, delay = 0 }: { item: Reportage; delay?: number })
       <Link
         href={`/actualites/${item.slug}`}
         className="group block relative overflow-hidden rounded-2xl active:scale-[0.98] transition-transform duration-150"
-        style={{ aspectRatio: '3/2' }}
+        style={{ aspectRatio: '16/9' }}
         onMouseEnter={() => setHovered(true)}
         onMouseLeave={() => setHovered(false)}
       >
@@ -134,69 +148,66 @@ function ReportageCard({ item, delay = 0 }: { item: Reportage; delay?: number })
           style={getCategoryStyle(item.category.name)}
         >
           {renderTypeIcon(contentType)}
-          {item.category.name}
+          <span className="hidden xs:inline">{item.category.name}</span>
         </span>
 
-        {/* ── Overlay hover (style EditorialTeamSection) ── */}
+        {/* ── Overlay hover / touch (avec excerpt) ── */}
         <div
-          className="absolute inset-0 flex flex-col justify-end p-4 transition-opacity duration-300 z-10"
+          className="absolute inset-0 flex flex-col justify-end p-3 sm:p-4 transition-opacity duration-300 z-10"
           style={{
             background:
-              'linear-gradient(to top, rgba(26,92,67,0.97) 0%, rgba(26,92,67,0.55) 55%, transparent 100%)',
-            opacity: hovered ? 1 : 0,
+              'linear-gradient(to top, rgba(26,92,67,0.97) 0%, rgba(26,92,67,0.60) 55%, transparent 100%)',
+            opacity: overlayVisible ? 1 : 0,
           }}
         >
-          {/* Date */}
           <p
-            className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider mb-1"
+            className="flex items-center gap-1 text-[9px] sm:text-[10px] font-bold uppercase tracking-wider mb-1"
             style={{ color: '#C8A84B' }}
           >
-            <Clock size={9} />
+            <Clock size={8} />
             {new Date(item.createdAt).toLocaleDateString('fr-FR', {
               day: 'numeric', month: 'short', year: 'numeric',
             })}
           </p>
 
-          {/* Titre */}
-          <h3 className="font-bold text-[13px] sm:text-[14px] leading-snug line-clamp-2 text-white mb-2">
+          <h3 className="font-bold text-[12px] sm:text-[13px] leading-snug line-clamp-2 text-white mb-1.5 sm:mb-2">
             {item.title}
           </h3>
 
-          {/* Excerpt — apparaît uniquement au hover */}
+          {/* Excerpt masqué sur très petit écran pour éviter l'étouffement */}
           {item.excerpt && (
-            <p className="text-white/75 text-[11px] leading-relaxed line-clamp-3 mb-3">
+            <p className="hidden sm:block text-white/75 text-[10px] sm:text-[11px] leading-relaxed line-clamp-2 mb-2 sm:mb-3">
               {item.excerpt}
             </p>
           )}
 
-          {/* CTA */}
-          <div className="border-t pt-2.5" style={{ borderColor: 'rgba(255,255,255,0.18)' }}>
-            <span className="flex items-center gap-1 text-[10px] font-bold" style={{ color: '#B85C38' }}>
-              Lire le reportage <ExternalLink size={9} />
+          <div className="border-t pt-2" style={{ borderColor: 'rgba(255,255,255,0.18)' }}>
+            <span className="flex items-center gap-1 text-[9px] sm:text-[10px] font-bold" style={{ color: '#B85C38' }}>
+              Lire le reportage <ExternalLink size={8} />
             </span>
           </div>
         </div>
 
-        {/* ── État par défaut (sans hover) : titre + date en bas ── */}
+        {/* ── État par défaut (desktop sans hover) ── */}
         <div
-          className="absolute bottom-0 left-0 right-0 p-4 transition-opacity duration-300 z-10"
-          style={{ opacity: hovered ? 0 : 1 }}
+          className="absolute bottom-0 left-0 right-0 p-3 sm:p-4 transition-opacity duration-300 z-10"
+          style={{ opacity: overlayVisible ? 0 : 1 }}
         >
           <p
-            className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider mb-1.5"
+            className="flex items-center gap-1 text-[9px] sm:text-[10px] font-bold uppercase tracking-wider mb-1 sm:mb-1.5"
             style={{ color: '#C8A84B' }}
           >
-            <Clock size={9} />
+            <Clock size={8} />
             {new Date(item.createdAt).toLocaleDateString('fr-FR', {
               day: 'numeric', month: 'short', year: 'numeric',
             })}
           </p>
-          <h3 className="font-bold text-[13px] sm:text-[14px] leading-snug line-clamp-2 text-white mb-3">
+          <h3 className="font-bold text-[12px] sm:text-[13px] leading-snug line-clamp-2 text-white mb-2 sm:mb-3">
             {item.title}
           </h3>
-          <div className="border-t pt-2.5" style={{ borderColor: 'rgba(255,255,255,0.12)' }}>
-            <span className="flex items-center gap-1 text-[10px] font-bold" style={{ color: '#B85C38' }}>
-              Lire le reportage <ExternalLink size={9} />
+          <div className="border-t pt-2" style={{ borderColor: 'rgba(255,255,255,0.12)' }}>
+            <span className="flex items-center gap-1 text-[9px] sm:text-[10px] font-bold" style={{ color: '#B85C38' }}>
+              Lire le reportage <ExternalLink size={8} />
             </span>
           </div>
         </div>
@@ -205,7 +216,7 @@ function ReportageCard({ item, delay = 0 }: { item: Reportage; delay?: number })
   );
 }
 
-// ─── Barre de filtres ─────────────────────────────────────────────────────────
+// ─── Barre de filtres — version mobile collapsible ────────────────────────────
 
 function FilterBar({
   filters,
@@ -214,72 +225,145 @@ function FilterBar({
   filters: FilterState;
   onChange: (f: FilterState) => void;
 }) {
+  const [open, setOpen] = useState(false);
   const hasActive =
     filters.year !== 'all' || filters.region !== 'all' || filters.type !== 'all';
 
   const selectClass =
-    'bg-white border border-gray-200 rounded-xl px-4 py-2.5 text-sm font-medium outline-none transition-all cursor-pointer';
+    'w-full bg-white border border-gray-200 rounded-xl px-3 py-2.5 text-sm font-medium outline-none transition-all cursor-pointer';
 
   return (
-    <div className="flex flex-wrap gap-4 p-5 rounded-2xl border border-gray-100" style={{ background: '#F7F9F8' }}>
-      <div className="flex flex-col gap-1.5">
-        <label className="text-[10px] font-black uppercase text-gray-400 ml-1">Année</label>
-        <select
-          value={filters.year}
-          onChange={(e) => onChange({ ...filters, year: e.target.value })}
-          className={selectClass}
-          style={{ minWidth: 140 }}
-        >
-          <option value="all">Toutes les années</option>
-          <option value="2025">2025</option>
-          <option value="2024">2024</option>
-          <option value="2023">2023</option>
-        </select>
-      </div>
+    <div className="rounded-2xl border border-gray-100 overflow-hidden" style={{ background: '#F7F9F8' }}>
 
-      <div className="flex flex-col gap-1.5">
-        <label className="text-[10px] font-black uppercase text-gray-400 ml-1">Région</label>
-        <select
-          value={filters.region}
-          onChange={(e) => onChange({ ...filters, region: e.target.value })}
-          className={selectClass}
-          style={{ minWidth: 160 }}
-        >
-          <option value="all">Toutes les régions</option>
-          <option value="afrique">Afrique</option>
-          <option value="europe">Europe</option>
-          <option value="ameriques">Amériques</option>
-          <option value="asie-pacifique">Asie-Pacifique</option>
-          <option value="moyen-orient">Moyen-Orient</option>
-        </select>
-      </div>
-
-      <div className="flex flex-col gap-1.5">
-        <label className="text-[10px] font-black uppercase text-gray-400 ml-1">Format</label>
-        <select
-          value={filters.type}
-          onChange={(e) => onChange({ ...filters, type: e.target.value })}
-          className={selectClass}
-          style={{ minWidth: 160 }}
-        >
-          <option value="all">Tous les contenus</option>
-          <option value="article">Articles &amp; Dossiers</option>
-          <option value="video">Vidéos &amp; Web TV</option>
-          <option value="interview">Interviews exclusives</option>
-        </select>
-      </div>
-
-      {hasActive && (
+      {/* ── Barre de contrôle mobile ── */}
+      <div className="flex items-center justify-between p-4 sm:hidden">
         <button
-          onClick={() => onChange({ year: 'all', region: 'all', type: 'all' })}
-          className="mt-auto mb-0.5 text-[10px] font-bold uppercase px-2 py-2 transition-colors"
-          style={{ color: '#B85C38' }}
-          onMouseEnter={e => (e.currentTarget.style.color = '#8A3E22')}
-          onMouseLeave={e => (e.currentTarget.style.color = '#B85C38')}
+          onClick={() => setOpen(!open)}
+          className="flex items-center gap-2 text-sm font-bold"
+          style={{ color: '#0D1A10' }}
         >
-          Réinitialiser
+          <SlidersHorizontal size={15} style={{ color: '#1A5C43' }} />
+          Filtrer les reportages
+          {hasActive && (
+            <span
+              className="text-[9px] font-black px-1.5 py-0.5 rounded-full text-white"
+              style={{ background: '#B85C38' }}
+            >
+              actif
+            </span>
+          )}
         </button>
-      )}
+        {hasActive && (
+          <button
+            onClick={() => onChange({ year: 'all', region: 'all', type: 'all' })}
+            className="flex items-center gap-1 text-[10px] font-bold uppercase"
+            style={{ color: '#B85C38' }}
+          >
+            <X size={11} /> Réinitialiser
+          </button>
+        )}
+      </div>
+
+      {/* ── Contenu filtres mobile (collapsible) ── */}
+      <div
+        className={`grid gap-3 px-4 pb-4 sm:hidden transition-all duration-300 overflow-hidden ${open ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'}`}
+      >
+        <div className="overflow-hidden flex flex-col gap-3">
+          <div className="grid grid-cols-2 gap-3">
+            <div className="flex flex-col gap-1.5">
+              <label className="text-[10px] font-black uppercase text-gray-400 ml-1">Année</label>
+              <select value={filters.year} onChange={(e) => onChange({ ...filters, year: e.target.value })} className={selectClass}>
+                <option value="all">Toutes</option>
+                <option value="2025">2025</option>
+                <option value="2024">2024</option>
+                <option value="2023">2023</option>
+              </select>
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <label className="text-[10px] font-black uppercase text-gray-400 ml-1">Format</label>
+              <select value={filters.type} onChange={(e) => onChange({ ...filters, type: e.target.value })} className={selectClass}>
+                <option value="all">Tous</option>
+                <option value="article">Articles</option>
+                <option value="video">Vidéos</option>
+                <option value="interview">Interviews</option>
+              </select>
+            </div>
+          </div>
+          <div className="flex flex-col gap-1.5">
+            <label className="text-[10px] font-black uppercase text-gray-400 ml-1">Région</label>
+            <select value={filters.region} onChange={(e) => onChange({ ...filters, region: e.target.value })} className={selectClass}>
+              <option value="all">Toutes les régions</option>
+              <option value="afrique">Afrique</option>
+              <option value="europe">Europe</option>
+              <option value="ameriques">Amériques</option>
+              <option value="asie-pacifique">Asie-Pacifique</option>
+              <option value="moyen-orient">Moyen-Orient</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      {/* ── Version desktop : inline, toujours visible ── */}
+      <div className="hidden sm:flex flex-wrap gap-4 p-5">
+        <div className="flex flex-col gap-1.5">
+          <label className="text-[10px] font-black uppercase text-gray-400 ml-1">Année</label>
+          <select
+            value={filters.year}
+            onChange={(e) => onChange({ ...filters, year: e.target.value })}
+            className="bg-white border border-gray-200 rounded-xl px-4 py-2.5 text-sm font-medium outline-none transition-all cursor-pointer"
+            style={{ minWidth: 140 }}
+          >
+            <option value="all">Toutes les années</option>
+            <option value="2025">2025</option>
+            <option value="2024">2024</option>
+            <option value="2023">2023</option>
+          </select>
+        </div>
+
+        <div className="flex flex-col gap-1.5">
+          <label className="text-[10px] font-black uppercase text-gray-400 ml-1">Région</label>
+          <select
+            value={filters.region}
+            onChange={(e) => onChange({ ...filters, region: e.target.value })}
+            className="bg-white border border-gray-200 rounded-xl px-4 py-2.5 text-sm font-medium outline-none transition-all cursor-pointer"
+            style={{ minWidth: 160 }}
+          >
+            <option value="all">Toutes les régions</option>
+            <option value="afrique">Afrique</option>
+            <option value="europe">Europe</option>
+            <option value="ameriques">Amériques</option>
+            <option value="asie-pacifique">Asie-Pacifique</option>
+            <option value="moyen-orient">Moyen-Orient</option>
+          </select>
+        </div>
+
+        <div className="flex flex-col gap-1.5">
+          <label className="text-[10px] font-black uppercase text-gray-400 ml-1">Format</label>
+          <select
+            value={filters.type}
+            onChange={(e) => onChange({ ...filters, type: e.target.value })}
+            className="bg-white border border-gray-200 rounded-xl px-4 py-2.5 text-sm font-medium outline-none transition-all cursor-pointer"
+            style={{ minWidth: 160 }}
+          >
+            <option value="all">Tous les contenus</option>
+            <option value="article">Articles &amp; Dossiers</option>
+            <option value="video">Vidéos &amp; Web TV</option>
+            <option value="interview">Interviews exclusives</option>
+          </select>
+        </div>
+
+        {hasActive && (
+          <button
+            onClick={() => onChange({ year: 'all', region: 'all', type: 'all' })}
+            className="mt-auto mb-0.5 text-[10px] font-bold uppercase px-2 py-2 transition-colors"
+            style={{ color: '#B85C38' }}
+            onMouseEnter={e => (e.currentTarget.style.color = '#8A3E22')}
+            onMouseLeave={e => (e.currentTarget.style.color = '#B85C38')}
+          >
+            Réinitialiser
+          </button>
+        )}
+      </div>
     </div>
   );
 }
@@ -315,29 +399,29 @@ const ReportageGrid = () => {
   }, [filters]);
 
   return (
-    <section className="space-y-8">
+    <section className="space-y-6 sm:space-y-8">
 
       {/* Heading */}
       <div
         ref={headingRef as React.RefCallback<HTMLDivElement>}
-        className="flex items-center gap-4 pb-6 border-b border-gray-100 transition-all duration-700"
+        className="flex items-center gap-3 sm:gap-4 pb-5 sm:pb-6 border-b border-gray-100 transition-all duration-700"
         style={{
           opacity: headingVisible ? 1 : 0,
           transform: headingVisible ? 'none' : 'translateY(20px)',
         }}
       >
         <div
-          className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0"
+          className="w-9 h-9 sm:w-11 sm:h-11 rounded-xl flex items-center justify-center shrink-0"
           style={{ background: '#B85C38' }}
         >
-          <Play size={18} fill="white" className="text-white ml-0.5" />
+          <Play size={15} fill="white" className="text-white ml-0.5" />
         </div>
         <div>
-          <p className="text-[11px] font-bold uppercase tracking-[0.2em] mb-0.5" style={{ color: '#B85C38' }}>
+          <p className="text-[10px] sm:text-[11px] font-bold uppercase tracking-[0.2em] mb-0.5" style={{ color: '#B85C38' }}>
             — Contenus exclusifs
           </p>
           <h2
-            className="text-2xl font-bold leading-tight"
+            className="text-xl sm:text-2xl font-black leading-tight"
             style={{ color: '#0D1A10', letterSpacing: '-0.02em' }}
           >
             Reportages &amp; <span style={{ color: '#1A5C43' }}>Comptes-rendus</span>
@@ -348,18 +432,22 @@ const ReportageGrid = () => {
       {/* Filtres */}
       <FilterBar filters={filters} onChange={setFilters} />
 
-      {/* Grille */}
+      {/* Grille :
+          - Mobile  : 1 colonne pleine largeur → cartes lisibles, excerpt visible
+          - Tablet  : 2 colonnes
+          - Desktop : 3 colonnes
+      */}
       {loading ? (
         <Skeleton />
       ) : reportages.length > 0 ? (
-        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-5">
           {reportages.map((item, i) => (
             <ReportageCard key={item.id} item={item} delay={i * 60} />
           ))}
         </div>
       ) : (
         <div
-          className="py-20 text-center rounded-2xl border border-dashed border-gray-200"
+          className="py-16 sm:py-20 text-center rounded-2xl border border-dashed border-gray-200"
           style={{ background: '#F7F9F8' }}
         >
           <p className="text-gray-400 text-sm">
@@ -370,9 +458,9 @@ const ReportageGrid = () => {
 
       {/* Bouton charger plus */}
       {!loading && reportages.length >= 12 && (
-        <div className="flex justify-center pt-6">
+        <div className="flex justify-center pt-4 sm:pt-6">
           <button
-            className="font-bold text-xs uppercase tracking-[0.2em] px-12 py-4 rounded-full text-white transition-all shadow-lg active:scale-95"
+            className="font-bold text-xs uppercase tracking-[0.2em] px-8 sm:px-12 py-3.5 sm:py-4 rounded-full text-white transition-all shadow-lg active:scale-95"
             style={{ background: '#1A5C43' }}
             onMouseEnter={e => (e.currentTarget.style.background = '#B85C38')}
             onMouseLeave={e => (e.currentTarget.style.background = '#1A5C43')}
@@ -386,7 +474,6 @@ const ReportageGrid = () => {
 };
 
 export default ReportageGrid;
-
 
 
 
