@@ -69,7 +69,7 @@ const AfricaHighlights = () => {
 
         {/* Header */}
         <div className="flex justify-between items-center mb-12">
-          <h2 className="text-2xl md:text-3xl font-serif font-bold text-it-blue uppercase tracking-[0.15em]">
+          <h2 className="text-3xl md:text-4xl font-bold text-it-blue uppercase">
             Nos coups de cœur Afrique
           </h2>
 

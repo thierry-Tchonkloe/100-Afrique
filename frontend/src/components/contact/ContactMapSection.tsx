@@ -64,7 +64,7 @@ const ContactMapSection = () => {
           style={{ background: 'rgba(26,92,67,0.95)', backdropFilter: 'blur(4px)' }}
         >
           <div className="w-2.5 h-2.5 rounded-full bg-green-400 animate-pulse" />
-          <span className="text-white text-xs font-bold">iTourisme — Cotonou, Bénin</span>
+          <span className="text-white text-xs font-bold">100% Afrique — Cotonou, Bénin</span>
         </div>
 
         <a

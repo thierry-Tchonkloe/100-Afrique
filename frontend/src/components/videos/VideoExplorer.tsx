@@ -99,7 +99,7 @@ const VideoExplorer = () => {
 
         {/* Barre de filtres */}
         <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-          <h2 className="text-2xl font-serif font-bold text-it-blue uppercase mb-6">
+          <h2 className="text-2xl font-bold text-it-blue uppercase mb-6">
             Explorer par catégorie
           </h2>
 

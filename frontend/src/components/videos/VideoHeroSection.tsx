@@ -113,7 +113,7 @@ const VideoHeroSection = () => {
     <section className="bg-white py-12 px-6">
       <div className="max-w-6xl mx-auto">
 
-        <h1 className="text-3xl md:text-4xl font-serif font-bold text-it-blue text-center uppercase tracking-tight mb-10 leading-tight">
+        <h1 className="text-3xl md:text-4xl font-bold text-it-blue text-center uppercase tracking-tight mb-10 leading-tight">
           Vidéos et Web TV : Reportages, Interviews,{' '}
           <br className="hidden md:block" /> Émissions
         </h1>
@@ -189,7 +189,7 @@ const VideoHeroSection = () => {
               </span>
             </div>
 
-            <h2 className="text-2xl md:text-3xl font-serif font-bold text-it-blue leading-tight">
+            <h2 className="text-2xl md:text-3xl font-bold text-it-blue leading-tight">
               {mainVideo.title}
             </h2>
 

@@ -22,7 +22,7 @@ const DestinationCTA = () => {
             </div>
           </div>
 
-          <h2 className="text-3xl md:text-5xl font-serif font-bold text-white uppercase leading-tight tracking-[0.05em]">
+          <h2 className="text-3xl md:text-4xl font-bold text-white uppercase leading-tight tracking-[0.05em]">
             Offices de Tourisme : <br />
             <span className="text-white">Faites la promotion de votre destination</span>
           </h2>

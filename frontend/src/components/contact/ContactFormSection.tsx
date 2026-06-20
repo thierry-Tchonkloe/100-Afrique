@@ -71,7 +71,7 @@ const ContactFormSection = () => {
             }}
           >
             <div className="px-8 py-5" style={{ background: '#1A5C43' }}>
-              <h2 className="text-white font-serif font-bold text-lg uppercase tracking-wide">
+              <h2 className="text-white font-bold text-lg uppercase tracking-wide">
                 Formulaire de Contact
               </h2>
               <p className="text-white/60 text-xs mt-1">Notre équipe vous répond sous 24h ouvrées.</p>
@@ -239,7 +239,7 @@ const ContactFormSection = () => {
 
                 <div className="flex-1 flex flex-col justify-between">
                   <div className="px-7 pt-6 pb-4 border-b border-gray-100">
-                    <h3 className="font-serif font-bold text-lg uppercase tracking-wide" style={{ color: '#1A2B4A' }}>
+                    <h3 className="font-bold text-lg uppercase tracking-wide" style={{ color: '#1A2B4A' }}>
                       Coordonnées Directes
                     </h3>
                   </div>
@@ -291,7 +291,7 @@ const ContactFormSection = () => {
               className="rounded-2xl p-6 border"
               style={{ background: '#F8FAF9', borderColor: '#D1E8DC' }}
             >
-              <h3 className="font-serif font-bold text-sm uppercase tracking-wide mb-4" style={{ color: '#1A5C43' }}>
+              <h3 className="font-bold text-sm uppercase tracking-wide mb-4" style={{ color: '#1A5C43' }}>
                 Horaires d&apos;ouverture
               </h3>
               <ul className="space-y-2 text-sm">
@@ -321,7 +321,7 @@ const ContactFormSection = () => {
               className="rounded-2xl p-6 border"
               style={{ background: '#F8FAF9', borderColor: '#D1E8DC' }}
             >
-              <h3 className="font-serif font-bold text-sm uppercase tracking-wide mb-4" style={{ color: '#1A5C43' }}>
+              <h3 className="font-bold text-sm uppercase tracking-wide mb-4" style={{ color: '#1A5C43' }}>
                 Informations Légales
               </h3>
               <ul className="space-y-3">

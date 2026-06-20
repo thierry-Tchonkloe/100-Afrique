@@ -1,7 +1,7 @@
 // src/components/about/MissionVisionSection.tsx
 "use client";
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { Target, Eye } from 'lucide-react';
 import api from '@/lib/api';
 
@@ -13,14 +13,43 @@ interface StatsData {
 }
 
 const DEFAULT_STATS: StatsData = {
-  monthlyReaders: '50K+',
+  monthlyReaders:    '50K+',
   articlesPublished: '200+',
-  countriesCovered: '30+',
-  yearsExperience: '10+',
+  countriesCovered:  '30+',
+  yearsExperience:   '10+',
 };
+
+// ─── Hook reveal générique ────────────────────────────────────────────────────
+
+function useReveal(threshold = 0.1) {
+  const [el, setEl] = useState<HTMLElement | null>(null);
+  const [visible, setVisible] = useState(false);
+  const ref = useCallback((node: HTMLElement | null) => setEl(node), []);
+
+  useEffect(() => {
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    if (rect.top < window.innerHeight && rect.bottom > 0) { setVisible(true); return; }
+    const obs = new IntersectionObserver(
+      ([e]) => { if (e.isIntersecting) { setVisible(true); obs.disconnect(); } },
+      { threshold }
+    );
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, [el, threshold]);
+
+  return { ref, visible };
+}
+
+// ─── Composant principal ──────────────────────────────────────────────────────
 
 const MissionVisionSection = () => {
   const [stats, setStats] = useState<StatsData>(DEFAULT_STATS);
+
+  const { ref: headingRef, visible: headingVisible } = useReveal(0.1);
+  const { ref: missionRef, visible: missionVisible } = useReveal(0.1);
+  const { ref: visionRef,  visible: visionVisible  } = useReveal(0.1);
+  const { ref: statsRef,   visible: statsVisible   } = useReveal(0.1);
 
   useEffect(() => {
     api.get('/about/stats')
@@ -29,47 +58,74 @@ const MissionVisionSection = () => {
   }, []);
 
   return (
-    <section className="py-20 px-6 bg-white">
+    <section className="py-16 sm:py-20 px-5 sm:px-6 bg-white">
       <div className="max-w-6xl mx-auto">
 
-        {/* Titre section */}
-        <div className="text-center mb-16">
+        {/* ── Titre section ── */}
+        <div
+          ref={headingRef as React.RefCallback<HTMLDivElement>}
+          className="text-center mb-12 sm:mb-16 transition-all duration-700"
+          style={{
+            opacity: headingVisible ? 1 : 0,
+            transform: headingVisible ? 'translateY(0)' : 'translateY(24px)',
+          }}
+        >
           <p className="text-[11px] font-bold uppercase tracking-[0.3em] mb-3" style={{ color: '#B85C38' }}>
             Ce qui nous anime
           </p>
-          <h2 className="text-3xl md:text-4xl font-serif font-bold uppercase tracking-tight" style={{ color: '#1A2B4A' }}>
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold uppercase tracking-tight" style={{ color: '#1A2B4A' }}>
             Notre mission &amp; notre vision
           </h2>
         </div>
 
-        {/* Mission / Vision — 2 colonnes */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-16">
+        {/* ── Mission / Vision — 2 colonnes ── */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 mb-10 sm:mb-16">
 
-          {/* Mission */}
-          <div className="rounded-2xl p-8 md:p-10 border-l-4 shadow-sm" style={{ background: '#F8FAF9', borderColor: '#1A5C43' }}>
+          {/* Mission — slide depuis la gauche */}
+          <div
+            ref={missionRef as React.RefCallback<HTMLDivElement>}
+            className="rounded-2xl p-7 sm:p-10 border-l-4 shadow-sm transition-all duration-700"
+            style={{
+              background: '#F8FAF9',
+              borderColor: '#1A5C43',
+              opacity: missionVisible ? 1 : 0,
+              transform: missionVisible ? 'translateX(0)' : 'translateX(-32px)',
+            }}
+          >
             <div className="flex items-center gap-3 mb-5">
-              <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: '#1A5C43' }}>
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: '#1A5C43' }}>
                 <Target size={18} className="text-white" />
               </div>
-              <h3 className="text-lg font-serif font-bold uppercase tracking-wide" style={{ color: '#1A2B4A' }}>
+              <h3 className="text-base sm:text-lg font-serif font-bold uppercase tracking-wide" style={{ color: '#1A2B4A' }}>
                 Notre Mission
               </h3>
             </div>
             <p className="text-gray-600 text-sm leading-relaxed mb-4">
-              Créé pour valoriser les destinations africaines et informer les professionnels du tourisme, <strong style={{ color: '#1A5C43' }}>WAXÉHO</strong> et <strong style={{ color: '#1A5C43' }}>i Tourisme TV</strong> forment un duo complémentaire unique dans le paysage médiatique touristique francophone.
+              Créé pour valoriser les destinations africaines et informer les professionnels du tourisme,{' '}
+              <strong style={{ color: '#1A5C43' }}>WAXÉHO</strong> et{' '}
+              <strong style={{ color: '#1A5C43' }}>i Tourisme TV</strong> forment un duo complémentaire unique dans le paysage médiatique touristique francophone.
             </p>
             <p className="text-gray-600 text-sm leading-relaxed">
               Notre équipe de journalistes spécialisés décrypte les tendances, met en lumière les innovations et accompagne les acteurs du secteur avec des analyses approfondies et des reportages exclusifs.
             </p>
           </div>
 
-          {/* Vision */}
-          <div className="rounded-2xl p-8 md:p-10 border-l-4 shadow-sm" style={{ background: '#FDF9F0', borderColor: '#C8A84B' }}>
+          {/* Vision — slide depuis la droite */}
+          <div
+            ref={visionRef as React.RefCallback<HTMLDivElement>}
+            className="rounded-2xl p-7 sm:p-10 border-l-4 shadow-sm transition-all duration-700"
+            style={{
+              background: '#FDF9F0',
+              borderColor: '#C8A84B',
+              opacity: visionVisible ? 1 : 0,
+              transform: visionVisible ? 'translateX(0)' : 'translateX(32px)',
+            }}
+          >
             <div className="flex items-center gap-3 mb-5">
-              <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: '#C8A84B' }}>
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: '#C8A84B' }}>
                 <Eye size={18} className="text-white" />
               </div>
-              <h3 className="text-lg font-serif font-bold uppercase tracking-wide" style={{ color: '#1A2B4A' }}>
+              <h3 className="text-base sm:text-lg font-serif font-bold uppercase tracking-wide" style={{ color: '#1A2B4A' }}>
                 Notre Vision
               </h3>
             </div>
@@ -82,23 +138,31 @@ const MissionVisionSection = () => {
           </div>
         </div>
 
-        {/* Statistiques */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* ── Statistiques — cascade staggerée ── */}
+        <div
+          ref={statsRef as React.RefCallback<HTMLDivElement>}
+          className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4"
+        >
           {[
-            { value: stats.monthlyReaders,   label: 'Lecteurs Mensuels'  },
-            { value: stats.articlesPublished, label: 'Articles Publiés'   },
-            { value: stats.countriesCovered,  label: 'Pays Couverts'      },
-            { value: stats.yearsExperience,   label: "Ans d'expérience"   },
-          ].map(({ value, label }) => (
+            { value: stats.monthlyReaders,    label: 'Lecteurs Mensuels' },
+            { value: stats.articlesPublished,  label: 'Articles Publiés'  },
+            { value: stats.countriesCovered,   label: 'Pays Couverts'     },
+            { value: stats.yearsExperience,    label: "Ans d'expérience"  },
+          ].map(({ value, label }, i) => (
             <div
               key={label}
-              className="rounded-2xl p-6 text-center transition-transform hover:scale-105 shadow-sm"
-              style={{ background: '#1A5C43' }}
+              className="rounded-2xl p-5 sm:p-6 text-center shadow-sm transition-all duration-700 hover:scale-105"
+              style={{
+                background: '#1A5C43',
+                transitionDelay: `${i * 100}ms`,
+                opacity: statsVisible ? 1 : 0,
+                transform: statsVisible ? 'translateY(0)' : 'translateY(28px)',
+              }}
             >
-              <span className="block text-3xl md:text-4xl font-serif font-bold mb-1" style={{ color: '#C8A84B' }}>
+              <span className="block text-3xl sm:text-4xl font-serif font-bold mb-1" style={{ color: '#C8A84B' }}>
                 {value}
               </span>
-              <span className="text-xs font-medium uppercase tracking-wide text-white/70">
+              <span className="text-[10px] sm:text-xs font-medium uppercase tracking-wide text-white/70">
                 {label}
               </span>
             </div>
