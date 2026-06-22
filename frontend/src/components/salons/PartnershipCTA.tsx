@@ -1,7 +1,7 @@
 // src/components/salons/PartnershipCTA.tsx
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
 import { ArrowRight, Camera } from 'lucide-react';
 
@@ -9,9 +9,36 @@ interface PartnershipCTAProps {
   onOpenModale: () => void;
 }
 
+// ─── Hook reveal ──────────────────────────────────────────────────────────────
+
+function useReveal(threshold = 0.1) {
+  const [el, setEl] = useState<HTMLElement | null>(null);
+  const [visible, setVisible] = useState(false);
+  const ref = useCallback((node: HTMLElement | null) => setEl(node), []);
+
+  useEffect(() => {
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    if (rect.top < window.innerHeight && rect.bottom > 0) { setVisible(true); return; }
+    const obs = new IntersectionObserver(
+      ([e]) => { if (e.isIntersecting) { setVisible(true); obs.disconnect(); } },
+      { threshold }
+    );
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, [el, threshold]);
+
+  return { ref, visible };
+}
+
+// ─── Composant ────────────────────────────────────────────────────────────────
+
 const PartnershipCTA = ({ onOpenModale }: PartnershipCTAProps) => {
+  const { ref, visible } = useReveal(0.1);
+
   return (
     <section
+      ref={ref as React.RefCallback<HTMLElement>}
       className="relative overflow-hidden rounded-2xl p-8 md:p-14 text-center text-white"
       style={{ background: '#0D2B1A' }}
     >
@@ -23,52 +50,118 @@ const PartnershipCTA = ({ onOpenModale }: PartnershipCTAProps) => {
           backgroundSize: '24px 24px',
         }}
       />
-      {/* Lueurs */}
+      {/* Lueur terracotta — animate au reveal */}
       <div
-        className="absolute top-0 right-0 w-1/2 h-full opacity-15"
-        style={{ background: 'radial-gradient(ellipse at 100% 30%, #B85C38 0%, transparent 65%)' }}
+        className="absolute top-0 right-0 w-1/2 h-full pointer-events-none transition-opacity duration-1000"
+        style={{
+          background: 'radial-gradient(ellipse at 100% 30%, #B85C38 0%, transparent 65%)',
+          opacity: visible ? 0.18 : 0,
+        }}
       />
+      {/* Lueur émeraude */}
       <div
-        className="absolute bottom-0 left-0 w-1/3 h-2/3 opacity-20"
-        style={{ background: 'radial-gradient(ellipse at 0% 100%, #1A5C43 0%, transparent 70%)' }}
+        className="absolute bottom-0 left-0 w-1/3 h-2/3 pointer-events-none transition-opacity duration-1000"
+        style={{
+          background: 'radial-gradient(ellipse at 0% 100%, #1A5C43 0%, transparent 70%)',
+          opacity: visible ? 0.22 : 0,
+          transitionDelay: '200ms',
+        }}
+      />
+
+      {/* Barre accent top — scaleX */}
+      <div
+        className="absolute top-0 left-0 right-0 h-[3px] origin-left"
+        style={{
+          background: '#B85C38',
+          transition: 'transform 0.9s cubic-bezier(0.22,1,0.36,1) 0.1s',
+          transform: visible ? 'scaleX(1)' : 'scaleX(0)',
+        }}
       />
 
       <div className="relative z-10">
         {/* Icône */}
         <div
-          className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-6"
-          style={{ background: '#1A5C43', boxShadow: '0 8px 32px rgba(26,92,67,0.4)' }}
+          className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-6 transition-all duration-700"
+          style={{
+            background: '#1A5C43',
+            boxShadow: '0 8px 32px rgba(26,92,67,0.4)',
+            opacity: visible ? 1 : 0,
+            transform: visible ? 'translateY(0) scale(1)' : 'translateY(20px) scale(0.85)',
+          }}
         >
           <Camera size={24} style={{ color: '#C8A84B' }} />
         </div>
 
         {/* Eyebrow */}
-        <div className="flex items-center justify-center gap-3 mb-4">
-          <div className="h-px w-8" style={{ background: '#C8A84B' }} />
+        <div
+          className="flex items-center justify-center gap-3 mb-4 transition-all duration-700"
+          style={{
+            transitionDelay: '100ms',
+            opacity: visible ? 1 : 0,
+            transform: visible ? 'translateY(0)' : 'translateY(16px)',
+          }}
+        >
+          <div
+            className="h-px transition-all duration-700"
+            style={{
+              background: '#C8A84B',
+              width: visible ? 32 : 0,
+              transitionDelay: '300ms',
+            }}
+          />
           <span className="text-[11px] font-bold uppercase tracking-[0.25em]" style={{ color: '#C8A84B' }}>
             Partenariats média
           </span>
-          <div className="h-px w-8" style={{ background: '#C8A84B' }} />
+          <div
+            className="h-px transition-all duration-700"
+            style={{
+              background: '#C8A84B',
+              width: visible ? 32 : 0,
+              transitionDelay: '300ms',
+            }}
+          />
         </div>
 
+        {/* Titre */}
         <h2
-          className="text-3xl md:text-4xl font-bold mb-4"
-          style={{ letterSpacing: '-0.02em' }}
+          className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4 transition-all duration-700"
+          style={{
+            letterSpacing: '-0.02em',
+            transitionDelay: '150ms',
+            opacity: visible ? 1 : 0,
+            transform: visible ? 'translateY(0)' : 'translateY(20px)',
+          }}
         >
           Vous exposez ?<br />
           <span style={{ color: '#C8A84B' }}>Faites-vous remarquer !</span>
         </h2>
-        <p className="text-white/55 text-sm md:text-base max-w-2xl mx-auto mb-10 leading-relaxed">
+
+        {/* Description */}
+        <p
+          className="text-white/55 text-sm md:text-base max-w-2xl mx-auto mb-10 leading-relaxed transition-all duration-700"
+          style={{
+            transitionDelay: '230ms',
+            opacity: visible ? 1 : 0,
+            transform: visible ? 'translateY(0)' : 'translateY(18px)',
+          }}
+        >
           Offices du tourisme, agences, institutions : bénéficiez d&apos;une couverture dédiée
           lors des grands salons. Articles, vidéos, interviews sponsorisées — contactez notre
           service partenariats.
         </p>
 
-        <div className="flex flex-col sm:flex-row justify-center items-center gap-4">
-          {/* CTA principal */}
+        {/* CTAs */}
+        <div
+          className="flex flex-col sm:flex-row justify-center items-center gap-3 sm:gap-4 transition-all duration-700"
+          style={{
+            transitionDelay: '320ms',
+            opacity: visible ? 1 : 0,
+            transform: visible ? 'translateY(0)' : 'translateY(14px)',
+          }}
+        >
           <button
             onClick={onOpenModale}
-            className="w-full sm:w-auto flex items-center justify-center gap-2 font-bold text-sm px-8 py-4 rounded-full text-white transition-all shadow-lg hover:shadow-xl active:scale-95"
+            className="w-full sm:w-auto flex items-center justify-center gap-2 font-bold text-sm px-7 sm:px-8 py-4 rounded-full text-white transition-all shadow-lg hover:shadow-xl active:scale-95"
             style={{ background: '#B85C38' }}
             onMouseEnter={e => (e.currentTarget.style.background = '#8A3E22')}
             onMouseLeave={e => (e.currentTarget.style.background = '#B85C38')}
@@ -77,10 +170,9 @@ const PartnershipCTA = ({ onOpenModale }: PartnershipCTAProps) => {
             <ArrowRight size={16} />
           </button>
 
-          {/* CTA secondaire */}
           <Link
             href="/partenaires-annonceurs"
-            className="w-full sm:w-auto flex items-center justify-center gap-2 font-bold text-sm px-8 py-4 rounded-full text-white transition-all border-2"
+            className="w-full sm:w-auto flex items-center justify-center gap-2 font-bold text-sm px-7 sm:px-8 py-4 rounded-full text-white transition-all border-2"
             style={{ borderColor: 'rgba(255,255,255,0.3)' }}
             onMouseEnter={e => {
               (e.currentTarget as HTMLAnchorElement).style.background = 'rgba(255,255,255,0.1)';

@@ -51,15 +51,15 @@ const LanguageSwitcher = () => {
                 flex items-center gap-2.5 px-4 py-2.5 rounded-xl text-sm font-medium
                 shadow-lg border transition-all duration-200 whitespace-nowrap
                 ${isActive
-                  ? 'bg-[#001A4D] text-white border-[#001A4D] shadow-[#001A4D]/30'
-                  : 'bg-white text-[#001A4D] border-slate-200 hover:bg-orange-50 hover:border-orange-300'
+                  ? 'bg-[#1A5C43] text-white border-[#1A5C43] shadow-[#1A5C43]/30'
+                  : 'bg-white text-[#001A4D] border-slate-200 hover:bg-[#F4EDD4] hover:border-[#C8A84B]'
                 }
               `}
             >
               <span className="text-base leading-none">{lang.flag}</span>
               <span>{lang.label}</span>
               {isActive && (
-                <span className="ml-auto w-1.5 h-1.5 rounded-full bg-orange-400" />
+                <span className="ml-auto w-1.5 h-1.5 rounded-full bg-[#C8A84B]" />
               )}
             </button>
           );
@@ -74,8 +74,8 @@ const LanguageSwitcher = () => {
           group relative flex items-center gap-2.5 pl-3.5 pr-4 py-2.5
           rounded-2xl shadow-xl border transition-all duration-300
           ${isExpanded
-            ? 'bg-[#001A4D] text-white border-[#001A4D] shadow-[#001A4D]/40'
-            : 'bg-white text-[#001A4D] border-slate-200 hover:shadow-2xl hover:border-orange-300'
+            ? 'bg-[#1A5C43] text-white border-[#1A5C43] shadow-[#1A5C43]/40'
+            : 'bg-white text-[#001A4D] border-slate-200 hover:shadow-2xl hover:border-[#C8A84B]'
           }
         `}
         aria-label="Changer de langue"
@@ -83,7 +83,7 @@ const LanguageSwitcher = () => {
       >
         <Globe
           size={16}
-          className={`transition-all duration-300 ${isExpanded ? 'text-orange-400 rotate-12' : 'text-[#001A4D] group-hover:text-orange-500'}`}
+          className={`transition-all duration-300 ${isExpanded ? 'text-[#C8A84B] rotate-12' : 'text-[#001A4D] group-hover:text-[#9A7C2E]'}`}
         />
         <span className="text-sm leading-none">{activeLangData.flag}</span>
         <span
@@ -97,7 +97,7 @@ const LanguageSwitcher = () => {
         <span
           className={`
             text-[10px] transition-all duration-300 ml-0.5
-            ${isExpanded ? 'text-orange-300 -translate-y-0.5' : 'text-slate-400 translate-y-0'}
+            ${isExpanded ? 'text-[#C8A84B] -translate-y-0.5' : 'text-slate-400 translate-y-0'}
           `}
         >
           {isExpanded ? '▾' : '▴'}
@@ -108,8 +108,6 @@ const LanguageSwitcher = () => {
 };
 
 export default LanguageSwitcher;
-
-
 
 
 

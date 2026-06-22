@@ -5,7 +5,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { AxiosError } from 'axios';
 import api from '@/lib/api';
-import { Play, FileText, Image as ImageIcon, ExternalLink, Clock, SlidersHorizontal, X } from 'lucide-react';
+import { Play, FileText, Image as ImageIcon, ExternalLink, Clock, SlidersHorizontal, ChevronDown } from 'lucide-react';
 
 interface Reportage {
   id: number;
@@ -24,12 +24,11 @@ interface FilterState {
   type: string;
 }
 
-// ─── Hook reveal avec ref callback ───────────────────────────────────────────
+// ─── Hook reveal ─────────────────────────────────────────────────────────────
 
 function useReveal(threshold = 0.08) {
   const [el, setEl] = useState<HTMLElement | null>(null);
   const [visible, setVisible] = useState(false);
-
   const ref = useCallback((node: HTMLElement | null) => setEl(node), []);
 
   useEffect(() => {
@@ -51,22 +50,20 @@ function useReveal(threshold = 0.08) {
 
 function useIsTouchDevice() {
   const [isTouch, setIsTouch] = useState(false);
-  useEffect(() => {
-    setIsTouch(window.matchMedia('(pointer: coarse)').matches);
-  }, []);
+  useEffect(() => { setIsTouch(window.matchMedia('(pointer: coarse)').matches); }, []);
   return isTouch;
 }
 
 // ─── Utilitaires ─────────────────────────────────────────────────────────────
 
-function getContentType(reportage: Reportage): 'video' | 'article' | 'interview' {
-  if (reportage.content?.some((b) => b.type === 'video')) return 'video';
-  if (reportage.category.name.toLowerCase().includes('interview')) return 'interview';
+function getContentType(r: Reportage): 'video' | 'article' | 'interview' {
+  if (r.content?.some((b) => b.type === 'video')) return 'video';
+  if (r.category.name.toLowerCase().includes('interview')) return 'interview';
   return 'article';
 }
 
-function getCategoryStyle(categoryName: string): { background: string } {
-  const name = categoryName.toLowerCase();
+function getCategoryStyle(n: string): { background: string } {
+  const name = n.toLowerCase();
   if (name.includes('interview')) return { background: 'rgba(42,127,95,0.9)' };
   if (name.includes('video'))     return { background: 'rgba(184,92,56,0.9)' };
   if (name.includes('analyse'))   return { background: 'rgba(0,26,77,0.9)' };
@@ -74,39 +71,31 @@ function getCategoryStyle(categoryName: string): { background: string } {
 }
 
 function renderTypeIcon(type: string) {
-  switch (type) {
-    case 'video':     return <Play size={10} className="fill-current" />;
-    case 'interview': return <ImageIcon size={10} />;
-    default:          return <FileText size={10} />;
-  }
+  if (type === 'video')     return <Play size={10} className="fill-current" />;
+  if (type === 'interview') return <ImageIcon size={10} />;
+  return <FileText size={10} />;
 }
 
-// ─── Squelette de chargement ──────────────────────────────────────────────────
+// ─── Squelette ───────────────────────────────────────────────────────────────
 
 function Skeleton() {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
       {Array.from({ length: 6 }).map((_, n) => (
-        <div
-          key={n}
-          className="rounded-2xl bg-gray-200 animate-pulse"
-          style={{ aspectRatio: '16/9' }}
-        />
+        <div key={n} className="rounded-2xl bg-gray-200 animate-pulse" style={{ aspectRatio: '16/9' }} />
       ))}
     </div>
   );
 }
 
-// ─── Carte reportage ──────────────────────────────────────────────────────────
+// ─── Carte ────────────────────────────────────────────────────────────────────
 
 function ReportageCard({ item, delay = 0 }: { item: Reportage; delay?: number }) {
   const { ref, visible } = useReveal(0.06);
-  const contentType = getContentType(item);
   const [hovered, setHovered] = useState(false);
   const isTouch = useIsTouchDevice();
-
-  // Sur touch : l'overlay est toujours visible (pas de hover)
   const overlayVisible = isTouch || hovered;
+  const contentType = getContentType(item);
 
   return (
     <div
@@ -125,62 +114,47 @@ function ReportageCard({ item, delay = 0 }: { item: Reportage; delay?: number })
         onMouseEnter={() => setHovered(true)}
         onMouseLeave={() => setHovered(false)}
       >
-        {/* Image */}
         <div className="absolute inset-0">
           <img
             src={item.coverImage || '/images/magazine-placeholder.jpg'}
             alt={item.title}
             className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
           />
-          {/* Dégradé de base — toujours visible */}
           <div
             className="absolute inset-0"
-            style={{
-              background:
-                'linear-gradient(to top, rgba(10,35,20,0.97) 0%, rgba(10,35,20,0.55) 45%, rgba(0,0,0,0.08) 100%)',
-            }}
+            style={{ background: 'linear-gradient(to top, rgba(10,35,20,0.97) 0%, rgba(10,35,20,0.55) 45%, rgba(0,0,0,0.08) 100%)' }}
           />
         </div>
 
-        {/* Badge catégorie — coin haut gauche */}
+        {/* Badge */}
         <span
           className="absolute top-3 left-3 flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[9px] font-bold uppercase tracking-wider text-white backdrop-blur-sm z-10"
           style={getCategoryStyle(item.category.name)}
         >
           {renderTypeIcon(contentType)}
-          <span className="hidden xs:inline">{item.category.name}</span>
+          <span className="hidden sm:inline">{item.category.name}</span>
         </span>
 
-        {/* ── Overlay hover / touch (avec excerpt) ── */}
+        {/* Overlay hover */}
         <div
           className="absolute inset-0 flex flex-col justify-end p-3 sm:p-4 transition-opacity duration-300 z-10"
           style={{
-            background:
-              'linear-gradient(to top, rgba(26,92,67,0.97) 0%, rgba(26,92,67,0.60) 55%, transparent 100%)',
+            background: 'linear-gradient(to top, rgba(26,92,67,0.97) 0%, rgba(26,92,67,0.60) 55%, transparent 100%)',
             opacity: overlayVisible ? 1 : 0,
           }}
         >
-          <p
-            className="flex items-center gap-1 text-[9px] sm:text-[10px] font-bold uppercase tracking-wider mb-1"
-            style={{ color: '#C8A84B' }}
-          >
+          <p className="flex items-center gap-1 text-[9px] sm:text-[10px] font-bold uppercase tracking-wider mb-1" style={{ color: '#C8A84B' }}>
             <Clock size={8} />
-            {new Date(item.createdAt).toLocaleDateString('fr-FR', {
-              day: 'numeric', month: 'short', year: 'numeric',
-            })}
+            {new Date(item.createdAt).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })}
           </p>
-
           <h3 className="font-bold text-[12px] sm:text-[13px] leading-snug line-clamp-2 text-white mb-1.5 sm:mb-2">
             {item.title}
           </h3>
-
-          {/* Excerpt masqué sur très petit écran pour éviter l'étouffement */}
           {item.excerpt && (
             <p className="hidden sm:block text-white/75 text-[10px] sm:text-[11px] leading-relaxed line-clamp-2 mb-2 sm:mb-3">
               {item.excerpt}
             </p>
           )}
-
           <div className="border-t pt-2" style={{ borderColor: 'rgba(255,255,255,0.18)' }}>
             <span className="flex items-center gap-1 text-[9px] sm:text-[10px] font-bold" style={{ color: '#B85C38' }}>
               Lire le reportage <ExternalLink size={8} />
@@ -188,23 +162,16 @@ function ReportageCard({ item, delay = 0 }: { item: Reportage; delay?: number })
           </div>
         </div>
 
-        {/* ── État par défaut (desktop sans hover) ── */}
+        {/* État par défaut */}
         <div
           className="absolute bottom-0 left-0 right-0 p-3 sm:p-4 transition-opacity duration-300 z-10"
           style={{ opacity: overlayVisible ? 0 : 1 }}
         >
-          <p
-            className="flex items-center gap-1 text-[9px] sm:text-[10px] font-bold uppercase tracking-wider mb-1 sm:mb-1.5"
-            style={{ color: '#C8A84B' }}
-          >
+          <p className="flex items-center gap-1 text-[9px] sm:text-[10px] font-bold uppercase tracking-wider mb-1 sm:mb-1.5" style={{ color: '#C8A84B' }}>
             <Clock size={8} />
-            {new Date(item.createdAt).toLocaleDateString('fr-FR', {
-              day: 'numeric', month: 'short', year: 'numeric',
-            })}
+            {new Date(item.createdAt).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })}
           </p>
-          <h3 className="font-bold text-[12px] sm:text-[13px] leading-snug line-clamp-2 text-white mb-2 sm:mb-3">
-            {item.title}
-          </h3>
+          <h3 className="font-bold text-[12px] sm:text-[13px] leading-snug line-clamp-2 text-white mb-2 sm:mb-3">{item.title}</h3>
           <div className="border-t pt-2" style={{ borderColor: 'rgba(255,255,255,0.12)' }}>
             <span className="flex items-center gap-1 text-[9px] sm:text-[10px] font-bold" style={{ color: '#B85C38' }}>
               Lire le reportage <ExternalLink size={8} />
@@ -216,154 +183,114 @@ function ReportageCard({ item, delay = 0 }: { item: Reportage; delay?: number })
   );
 }
 
-// ─── Barre de filtres — version mobile collapsible ────────────────────────────
+// ─── FilterBar — redesignée en barre horizontale compacte ─────────────────────
 
-function FilterBar({
-  filters,
-  onChange,
-}: {
-  filters: FilterState;
-  onChange: (f: FilterState) => void;
-}) {
-  const [open, setOpen] = useState(false);
-  const hasActive =
-    filters.year !== 'all' || filters.region !== 'all' || filters.type !== 'all';
+function FilterBar({ filters, onChange }: { filters: FilterState; onChange: (f: FilterState) => void }) {
+  const hasActive = filters.year !== 'all' || filters.region !== 'all' || filters.type !== 'all';
 
-  const selectClass =
-    'w-full bg-white border border-gray-200 rounded-xl px-3 py-2.5 text-sm font-medium outline-none transition-all cursor-pointer';
+  const selectBase =
+    'appearance-none bg-transparent border-0 text-sm font-semibold outline-none cursor-pointer pr-6 pl-1 py-0 transition-colors';
 
   return (
-    <div className="rounded-2xl border border-gray-100 overflow-hidden" style={{ background: '#F7F9F8' }}>
+    <div
+      className="flex flex-wrap items-center gap-2 px-4 py-3 rounded-2xl border border-gray-100"
+      style={{ background: '#F7F9F8' }}
+    >
+      {/* Label gauche */}
+      <div className="flex items-center gap-2 mr-1 shrink-0">
+        <SlidersHorizontal size={14} style={{ color: '#1A5C43' }} />
+        <span className="text-[11px] font-bold uppercase tracking-[0.15em] text-gray-400 hidden sm:block">
+          Filtrer
+        </span>
+      </div>
 
-      {/* ── Barre de contrôle mobile ── */}
-      <div className="flex items-center justify-between p-4 sm:hidden">
-        <button
-          onClick={() => setOpen(!open)}
-          className="flex items-center gap-2 text-sm font-bold"
-          style={{ color: '#0D1A10' }}
-        >
-          <SlidersHorizontal size={15} style={{ color: '#1A5C43' }} />
-          Filtrer les reportages
-          {hasActive && (
-            <span
-              className="text-[9px] font-black px-1.5 py-0.5 rounded-full text-white"
-              style={{ background: '#B85C38' }}
-            >
-              actif
+      {/* Séparateur */}
+      <div className="h-5 w-px bg-gray-200 hidden sm:block" />
+
+      {/* Sélects inline */}
+      {[
+        {
+          key: 'year' as const,
+          label: 'Année',
+          value: filters.year,
+          options: [
+            { value: 'all', label: 'Toutes les années' },
+            { value: '2025', label: '2025' },
+            { value: '2024', label: '2024' },
+            { value: '2023', label: '2023' },
+          ],
+        },
+        {
+          key: 'region' as const,
+          label: 'Région',
+          value: filters.region,
+          options: [
+            { value: 'all', label: 'Toutes les régions' },
+            { value: 'afrique', label: 'Afrique' },
+            { value: 'europe', label: 'Europe' },
+            { value: 'ameriques', label: 'Amériques' },
+            { value: 'asie-pacifique', label: 'Asie-Pacifique' },
+            { value: 'moyen-orient', label: 'Moyen-Orient' },
+          ],
+        },
+        {
+          key: 'type' as const,
+          label: 'Format',
+          value: filters.type,
+          options: [
+            { value: 'all', label: 'Tous les formats' },
+            { value: 'article', label: 'Articles' },
+            { value: 'video', label: 'Vidéos' },
+            { value: 'interview', label: 'Interviews' },
+          ],
+        },
+      ].map((f, i) => (
+        <React.Fragment key={f.key}>
+          {i > 0 && <div className="h-5 w-px bg-gray-200" />}
+          <div className="relative flex items-center gap-1.5 px-2 py-1.5 rounded-xl transition-colors hover:bg-white">
+            <span className="text-[10px] font-bold uppercase tracking-widest text-gray-400 shrink-0 hidden md:block">
+              {f.label} :
             </span>
-          )}
-        </button>
-        {hasActive && (
-          <button
-            onClick={() => onChange({ year: 'all', region: 'all', type: 'all' })}
-            className="flex items-center gap-1 text-[10px] font-bold uppercase"
-            style={{ color: '#B85C38' }}
-          >
-            <X size={11} /> Réinitialiser
-          </button>
-        )}
-      </div>
-
-      {/* ── Contenu filtres mobile (collapsible) ── */}
-      <div
-        className={`grid gap-3 px-4 pb-4 sm:hidden transition-all duration-300 overflow-hidden ${open ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'}`}
-      >
-        <div className="overflow-hidden flex flex-col gap-3">
-          <div className="grid grid-cols-2 gap-3">
-            <div className="flex flex-col gap-1.5">
-              <label className="text-[10px] font-black uppercase text-gray-400 ml-1">Année</label>
-              <select value={filters.year} onChange={(e) => onChange({ ...filters, year: e.target.value })} className={selectClass}>
-                <option value="all">Toutes</option>
-                <option value="2025">2025</option>
-                <option value="2024">2024</option>
-                <option value="2023">2023</option>
+            <div className="relative">
+              <select
+                value={f.value}
+                onChange={(e) => onChange({ ...filters, [f.key]: e.target.value })}
+                className={selectBase}
+                style={{ color: f.value !== 'all' ? '#1A5C43' : '#374151' }}
+              >
+                {f.options.map((o) => (
+                  <option key={o.value} value={o.value}>{o.label}</option>
+                ))}
               </select>
-            </div>
-            <div className="flex flex-col gap-1.5">
-              <label className="text-[10px] font-black uppercase text-gray-400 ml-1">Format</label>
-              <select value={filters.type} onChange={(e) => onChange({ ...filters, type: e.target.value })} className={selectClass}>
-                <option value="all">Tous</option>
-                <option value="article">Articles</option>
-                <option value="video">Vidéos</option>
-                <option value="interview">Interviews</option>
-              </select>
+              <ChevronDown
+                size={12}
+                className="absolute right-0 top-1/2 -translate-y-1/2 pointer-events-none"
+                style={{ color: f.value !== 'all' ? '#1A5C43' : '#9CA3AF' }}
+              />
             </div>
           </div>
-          <div className="flex flex-col gap-1.5">
-            <label className="text-[10px] font-black uppercase text-gray-400 ml-1">Région</label>
-            <select value={filters.region} onChange={(e) => onChange({ ...filters, region: e.target.value })} className={selectClass}>
-              <option value="all">Toutes les régions</option>
-              <option value="afrique">Afrique</option>
-              <option value="europe">Europe</option>
-              <option value="ameriques">Amériques</option>
-              <option value="asie-pacifique">Asie-Pacifique</option>
-              <option value="moyen-orient">Moyen-Orient</option>
-            </select>
-          </div>
-        </div>
-      </div>
+        </React.Fragment>
+      ))}
 
-      {/* ── Version desktop : inline, toujours visible ── */}
-      <div className="hidden sm:flex flex-wrap gap-4 p-5">
-        <div className="flex flex-col gap-1.5">
-          <label className="text-[10px] font-black uppercase text-gray-400 ml-1">Année</label>
-          <select
-            value={filters.year}
-            onChange={(e) => onChange({ ...filters, year: e.target.value })}
-            className="bg-white border border-gray-200 rounded-xl px-4 py-2.5 text-sm font-medium outline-none transition-all cursor-pointer"
-            style={{ minWidth: 140 }}
-          >
-            <option value="all">Toutes les années</option>
-            <option value="2025">2025</option>
-            <option value="2024">2024</option>
-            <option value="2023">2023</option>
-          </select>
-        </div>
-
-        <div className="flex flex-col gap-1.5">
-          <label className="text-[10px] font-black uppercase text-gray-400 ml-1">Région</label>
-          <select
-            value={filters.region}
-            onChange={(e) => onChange({ ...filters, region: e.target.value })}
-            className="bg-white border border-gray-200 rounded-xl px-4 py-2.5 text-sm font-medium outline-none transition-all cursor-pointer"
-            style={{ minWidth: 160 }}
-          >
-            <option value="all">Toutes les régions</option>
-            <option value="afrique">Afrique</option>
-            <option value="europe">Europe</option>
-            <option value="ameriques">Amériques</option>
-            <option value="asie-pacifique">Asie-Pacifique</option>
-            <option value="moyen-orient">Moyen-Orient</option>
-          </select>
-        </div>
-
-        <div className="flex flex-col gap-1.5">
-          <label className="text-[10px] font-black uppercase text-gray-400 ml-1">Format</label>
-          <select
-            value={filters.type}
-            onChange={(e) => onChange({ ...filters, type: e.target.value })}
-            className="bg-white border border-gray-200 rounded-xl px-4 py-2.5 text-sm font-medium outline-none transition-all cursor-pointer"
-            style={{ minWidth: 160 }}
-          >
-            <option value="all">Tous les contenus</option>
-            <option value="article">Articles &amp; Dossiers</option>
-            <option value="video">Vidéos &amp; Web TV</option>
-            <option value="interview">Interviews exclusives</option>
-          </select>
-        </div>
-
-        {hasActive && (
+      {/* Badge actif + reset */}
+      {hasActive && (
+        <>
+          <div className="h-5 w-px bg-gray-200" />
           <button
             onClick={() => onChange({ year: 'all', region: 'all', type: 'all' })}
-            className="mt-auto mb-0.5 text-[10px] font-bold uppercase px-2 py-2 transition-colors"
-            style={{ color: '#B85C38' }}
-            onMouseEnter={e => (e.currentTarget.style.color = '#8A3E22')}
-            onMouseLeave={e => (e.currentTarget.style.color = '#B85C38')}
+            className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider px-3 py-1.5 rounded-xl transition-all"
+            style={{ color: '#B85C38', background: 'rgba(184,92,56,0.08)' }}
+            onMouseEnter={e => (e.currentTarget.style.background = 'rgba(184,92,56,0.16)')}
+            onMouseLeave={e => (e.currentTarget.style.background = 'rgba(184,92,56,0.08)')}
           >
+            <span
+              className="w-1.5 h-1.5 rounded-full"
+              style={{ background: '#B85C38' }}
+            />
             Réinitialiser
           </button>
-        )}
-      </div>
+        </>
+      )}
     </div>
   );
 }
@@ -373,28 +300,19 @@ function FilterBar({
 const ReportageGrid = () => {
   const [reportages, setReportages] = useState<Reportage[]>([]);
   const [loading, setLoading] = useState(true);
-  const [filters, setFilters] = useState<FilterState>({
-    year: 'all', region: 'all', type: 'all',
-  });
-
+  const [filters, setFilters] = useState<FilterState>({ year: 'all', region: 'all', type: 'all' });
   const { ref: headingRef, visible: headingVisible } = useReveal(0.1);
 
   useEffect(() => {
     setLoading(true);
-    const params: Record<string, string | number> = {
-      pageSize: 12, page: 1, status: 'PUBLISHED',
-    };
+    const params: Record<string, string | number> = { pageSize: 12, page: 1, status: 'PUBLISHED' };
     if (filters.year !== 'all')   params.year        = filters.year;
     if (filters.region !== 'all') params.region      = filters.region;
     if (filters.type !== 'all')   params.contentType = filters.type;
 
-    api
-      .get('/mag/articles', { params })
+    api.get('/mag/articles', { params })
       .then((res) => setReportages(res.data.data ?? []))
-      .catch((err: AxiosError) => {
-        console.error('Erreur reportages:', err.message);
-        setReportages([]);
-      })
+      .catch((err: AxiosError) => { console.error('Erreur reportages:', err.message); setReportages([]); })
       .finally(() => setLoading(false));
   }, [filters]);
 
@@ -405,25 +323,16 @@ const ReportageGrid = () => {
       <div
         ref={headingRef as React.RefCallback<HTMLDivElement>}
         className="flex items-center gap-3 sm:gap-4 pb-5 sm:pb-6 border-b border-gray-100 transition-all duration-700"
-        style={{
-          opacity: headingVisible ? 1 : 0,
-          transform: headingVisible ? 'none' : 'translateY(20px)',
-        }}
+        style={{ opacity: headingVisible ? 1 : 0, transform: headingVisible ? 'none' : 'translateY(20px)' }}
       >
-        <div
-          className="w-9 h-9 sm:w-11 sm:h-11 rounded-xl flex items-center justify-center shrink-0"
-          style={{ background: '#B85C38' }}
-        >
+        <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-xl flex items-center justify-center shrink-0" style={{ background: '#B85C38' }}>
           <Play size={15} fill="white" className="text-white ml-0.5" />
         </div>
         <div>
           <p className="text-[10px] sm:text-[11px] font-bold uppercase tracking-[0.2em] mb-0.5" style={{ color: '#B85C38' }}>
             — Contenus exclusifs
           </p>
-          <h2
-            className="text-xl sm:text-2xl font-black leading-tight"
-            style={{ color: '#0D1A10', letterSpacing: '-0.02em' }}
-          >
+          <h2 className="text-xl sm:text-2xl font-bold leading-tight" style={{ color: '#0D1A10', letterSpacing: '-0.02em' }}>
             Reportages &amp; <span style={{ color: '#1A5C43' }}>Comptes-rendus</span>
           </h2>
         </div>
@@ -432,11 +341,7 @@ const ReportageGrid = () => {
       {/* Filtres */}
       <FilterBar filters={filters} onChange={setFilters} />
 
-      {/* Grille :
-          - Mobile  : 1 colonne pleine largeur → cartes lisibles, excerpt visible
-          - Tablet  : 2 colonnes
-          - Desktop : 3 colonnes
-      */}
+      {/* Grille */}
       {loading ? (
         <Skeleton />
       ) : reportages.length > 0 ? (
@@ -446,17 +351,12 @@ const ReportageGrid = () => {
           ))}
         </div>
       ) : (
-        <div
-          className="py-16 sm:py-20 text-center rounded-2xl border border-dashed border-gray-200"
-          style={{ background: '#F7F9F8' }}
-        >
-          <p className="text-gray-400 text-sm">
-            Aucun reportage ne correspond à vos critères de recherche.
-          </p>
+        <div className="py-16 sm:py-20 text-center rounded-2xl border border-dashed border-gray-200" style={{ background: '#F7F9F8' }}>
+          <p className="text-gray-400 text-sm">Aucun reportage ne correspond à vos critères de recherche.</p>
         </div>
       )}
 
-      {/* Bouton charger plus */}
+      {/* Charger plus */}
       {!loading && reportages.length >= 12 && (
         <div className="flex justify-center pt-4 sm:pt-6">
           <button
