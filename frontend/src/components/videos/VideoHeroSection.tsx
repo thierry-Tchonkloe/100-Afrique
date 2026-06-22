@@ -1,7 +1,7 @@
 // src/components/videos/VideoHeroSection.tsx
 "use client";
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import {
   Play, Calendar, Clock, Facebook, Twitter, Linkedin, MessageCircle, Loader2, ExternalLink,
 } from 'lucide-react';
@@ -21,8 +21,8 @@ interface VideoData {
 }
 
 const toEmbedUrl = (raw: string): string => {
-  if (!raw) return "";
-  if (raw.includes("/embed/") || raw.includes("player.vimeo")) return raw;
+  if (!raw) return '';
+  if (raw.includes('/embed/') || raw.includes('player.vimeo')) return raw;
   const ytShort = raw.match(/youtu\.be\/([^?&]+)/);
   if (ytShort) return `https://www.youtube.com/embed/${ytShort[1]}`;
   const ytWatch = raw.match(/[?&]v=([^?&]+)/);
@@ -33,17 +33,42 @@ const toEmbedUrl = (raw: string): string => {
 };
 
 const getExternalLink = (url: string): string => {
-  if (url.includes('youtube.com/embed/'))
-    return url.replace('youtube.com/embed/', 'youtube.com/watch?v=');
-  if (url.includes('player.vimeo.com/video/'))
-    return url.replace('player.vimeo.com/video/', 'vimeo.com/');
+  if (url.includes('youtube.com/embed/')) return url.replace('youtube.com/embed/', 'youtube.com/watch?v=');
+  if (url.includes('player.vimeo.com/video/')) return url.replace('player.vimeo.com/video/', 'vimeo.com/');
   return url;
 };
+
+// ─── Hook reveal ──────────────────────────────────────────────────────────────
+
+function useReveal(threshold = 0.08) {
+  const [el, setEl] = useState<HTMLElement | null>(null);
+  const [visible, setVisible] = useState(false);
+  const ref = useCallback((node: HTMLElement | null) => setEl(node), []);
+
+  useEffect(() => {
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    if (rect.top < window.innerHeight && rect.bottom > 0) { setVisible(true); return; }
+    const obs = new IntersectionObserver(
+      ([e]) => { if (e.isIntersecting) { setVisible(true); obs.disconnect(); } },
+      { threshold }
+    );
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, [el, threshold]);
+
+  return { ref, visible };
+}
+
+// ─── Composant ────────────────────────────────────────────────────────────────
 
 const VideoHeroSection = () => {
   const [mainVideo, setMainVideo] = useState<VideoData | null>(null);
   const [loading, setLoading]     = useState(true);
   const [playing, setPlaying]     = useState(false);
+
+  const { ref: headingRef, visible: headingVisible } = useReveal(0.1);
+  const { ref: cardRef,    visible: cardVisible    } = useReveal(0.05);
 
   useEffect(() => {
     const fetchLatestVideo = async () => {
@@ -60,8 +85,7 @@ const VideoHeroSection = () => {
         }
         setMainVideo(data[0] ?? null);
       } catch (error) {
-        if (error instanceof AxiosError)
-          console.error('Erreur chargement vidéo hero:', error.message);
+        if (error instanceof AxiosError) console.error('Erreur chargement vidéo hero:', error.message);
       } finally {
         setLoading(false);
       }
@@ -89,10 +113,23 @@ const VideoHeroSection = () => {
 
   if (loading) {
     return (
-      <div className="h-[600px] flex items-center justify-center bg-white">
-        <div className="text-center space-y-4">
-          <Loader2 className="animate-spin text-it-terracotta mx-auto" size={40} />
-          <p className="text-gray-500 text-sm">Chargement de la vidéo...</p>
+      <div className="py-12 px-5 sm:px-6">
+        <div className="max-w-6xl mx-auto">
+          {/* Heading skeleton */}
+          <div className="h-10 bg-gray-200 animate-pulse rounded-xl w-2/3 mx-auto mb-10" />
+          {/* Card skeleton */}
+          <div className="rounded-2xl overflow-hidden border border-gray-100 shadow-xl">
+            <div className="aspect-video bg-gray-200 animate-pulse" />
+            <div className="p-6 md:p-10 space-y-4">
+              <div className="flex gap-2">
+                <div className="h-6 w-24 bg-gray-200 animate-pulse rounded" />
+                <div className="h-6 w-16 bg-gray-200 animate-pulse rounded" />
+              </div>
+              <div className="h-8 bg-gray-200 animate-pulse rounded-xl w-3/4" />
+              <div className="h-4 bg-gray-200 animate-pulse rounded w-full" />
+              <div className="h-4 bg-gray-200 animate-pulse rounded w-2/3" />
+            </div>
+          </div>
         </div>
       </div>
     );
@@ -110,107 +147,142 @@ const VideoHeroSection = () => {
   const embedUrl = rawUrl ? toEmbedUrl(rawUrl) : null;
 
   return (
-    <section className="bg-white py-12 px-6">
+    <section className="bg-white py-10 sm:py-12 px-5 sm:px-6">
       <div className="max-w-6xl mx-auto">
 
-        <h1 className="text-3xl md:text-4xl font-bold text-it-blue text-center uppercase tracking-tight mb-10 leading-tight">
-          Vidéos et Web TV : Reportages, Interviews,{' '}
-          <br className="hidden md:block" /> Émissions
-        </h1>
+        {/* Heading */}
+        <div
+          ref={headingRef as React.RefCallback<HTMLDivElement>}
+          className="text-center mb-8 sm:mb-10 transition-all duration-700"
+          style={{ opacity: headingVisible ? 1 : 0, transform: headingVisible ? 'translateY(0)' : 'translateY(24px)' }}
+        >
+          {/* Eyebrow */}
+          <p className="text-[11px] font-bold uppercase tracking-[0.3em] mb-3" style={{ color: '#B85C38' }}>
+            — Contenus exclusifs
+          </p>
+          <h1
+            className="text-2xl sm:text-3xl md:text-4xl font-bold uppercase tracking-tight leading-tight"
+            style={{ color: '#0D1A10', letterSpacing: '-0.02em' }}
+          >
+            Vidéos &amp; <span style={{ color: '#1A5C43' }}>Web TV</span>
+          </h1>
+          <p className="text-gray-400 text-sm mt-2">Reportages, Interviews &amp; Émissions</p>
+        </div>
 
-        <div className="bg-white rounded-xl shadow-2xl overflow-hidden border border-gray-100">
-
+        {/* Carte vidéo */}
+        <div
+          ref={cardRef as React.RefCallback<HTMLDivElement>}
+          className="bg-white rounded-2xl shadow-2xl overflow-hidden border border-gray-100 transition-all duration-700"
+          style={{ opacity: cardVisible ? 1 : 0, transform: cardVisible ? 'translateY(0)' : 'translateY(32px)' }}
+        >
           {/* Zone vidéo */}
-          <div className="space-y-0">
-            {playing && embedUrl ? (
-              <div className="space-y-3">
-                <div className="relative aspect-video bg-black">
-                  <iframe
-                    src={`${embedUrl}?autoplay=1`}
-                    title={mainVideo.title}
-                    className="absolute inset-0 w-full h-full"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    allowFullScreen
-                  />
-                </div>
-                <div className="flex justify-center pb-2">
-                  <a
-                    href={getExternalLink(embedUrl)}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-2 text-sm text-slate-400 hover:text-it-terracotta transition-colors duration-200 py-1"
-                  >
-                    <ExternalLink size={14} />
-                    Regarder directement sur la plateforme
-                  </a>
-                </div>
-              </div>
-            ) : (
-              <div
-                className="relative aspect-video bg-[#0F172A] cursor-pointer group"
-                onClick={() => embedUrl && setPlaying(true)}
-              >
-                <img
-                  src={mainVideo.coverImage || '/images/placeholder.jpg'}
-                  alt={mainVideo.title}
-                  className="absolute inset-0 w-full h-full object-cover opacity-70 group-hover:opacity-60 transition-opacity duration-300"
+          {playing && embedUrl ? (
+            <div>
+              <div className="relative aspect-video bg-black">
+                <iframe
+                  src={`${embedUrl}?autoplay=1`}
+                  title={mainVideo.title}
+                  className="absolute inset-0 w-full h-full"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-
-                {embedUrl ? (
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="w-20 h-20 bg-it-terracotta rounded-full flex items-center justify-center shadow-2xl transition-transform duration-300 group-hover:scale-110">
-                      <Play size={34} fill="white" className="text-white ml-1" />
-                    </div>
-                  </div>
-                ) : (
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <span className="text-white/60 text-sm font-light tracking-wide">
-                      Vidéo non disponible en lecture directe
-                    </span>
-                  </div>
-                )}
-
-                <p className="absolute bottom-5 left-0 right-0 text-center text-white/70 text-xs tracking-widest uppercase">
-                  {embedUrl ? 'Cliquer pour lancer la vidéo' : ''}
-                </p>
               </div>
-            )}
-          </div>
+              <div className="flex justify-center pb-2 pt-1">
+                <a
+                  href={getExternalLink(embedUrl)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 text-sm text-slate-400 hover:text-[#B85C38] transition-colors py-1"
+                >
+                  <ExternalLink size={14} />
+                  Regarder directement sur la plateforme
+                </a>
+              </div>
+            </div>
+          ) : (
+            <div
+              className="relative aspect-video bg-[#0F172A] cursor-pointer group"
+              onClick={() => embedUrl && setPlaying(true)}
+            >
+              <img
+                src={mainVideo.coverImage || '/images/placeholder.jpg'}
+                alt={mainVideo.title}
+                className="absolute inset-0 w-full h-full object-cover opacity-70 group-hover:opacity-60 transition-opacity duration-300"
+              />
+              <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(10,35,20,0.85) 0%, rgba(0,0,0,0.2) 60%, transparent 100%)' }} />
 
-          {/* Infos */}
-          <div className="p-6 md:p-10 space-y-4">
-            <div className="flex items-center gap-3 flex-wrap">
-              <span className="bg-it-terracotta text-white text-[10px] font-bold px-3 py-1 rounded uppercase tracking-wider">
+              {/* Badge catégorie */}
+              <span
+                className="absolute top-4 left-4 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-wider text-white backdrop-blur-sm"
+                style={{ background: 'rgba(184,92,56,0.9)' }}
+              >
+                <Play size={10} className="fill-current" />
                 {mainVideo.category.name}
               </span>
-              <span className="bg-it-emerald-light text-it-emerald-dark text-[10px] font-bold px-3 py-1 rounded uppercase tracking-wider">
+
+              {embedUrl ? (
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div
+                    className="w-16 h-16 sm:w-20 sm:h-20 rounded-full flex items-center justify-center shadow-2xl transition-transform duration-300 group-hover:scale-110"
+                    style={{ background: '#B85C38' }}
+                  >
+                    <Play size={28} fill="white" className="text-white ml-1" />
+                  </div>
+                </div>
+              ) : (
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <span className="text-white/60 text-sm font-light tracking-wide">Vidéo non disponible en lecture directe</span>
+                </div>
+              )}
+
+              {/* Titre superposé sur l'image */}
+              <div className="absolute bottom-0 left-0 right-0 p-5 sm:p-8">
+                <p className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider mb-2" style={{ color: '#C8A84B' }}>
+                  <Calendar size={10} />
+                  {new Date(mainVideo.createdAt).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}
+                </p>
+                <h2 className="text-white font-bold text-base sm:text-xl md:text-2xl leading-snug line-clamp-2" style={{ letterSpacing: '-0.01em' }}>
+                  {mainVideo.title}
+                </h2>
+                {embedUrl && (
+                  <p className="text-white/50 text-xs mt-3 uppercase tracking-widest">
+                    Cliquer pour lancer la vidéo
+                  </p>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Infos */}
+          <div className="p-5 sm:p-6 md:p-10 space-y-4">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span
+                className="text-white text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider"
+                style={{ background: '#B85C38' }}
+              >
+                {mainVideo.category.name}
+              </span>
+              <span
+                className="text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider"
+                style={{ background: 'rgba(26,92,67,0.1)', color: '#1A5C43' }}
+              >
                 Vidéo
               </span>
             </div>
 
-            <h2 className="text-2xl md:text-3xl font-bold text-it-blue leading-tight">
+            <h3 className="text-xl sm:text-2xl md:text-3xl font-bold leading-tight" style={{ color: '#0D1A10', letterSpacing: '-0.01em' }}>
               {mainVideo.title}
-            </h2>
+            </h3>
 
-            <div className="flex flex-wrap items-center gap-6 text-sm text-gray-500">
+            <div className="flex flex-wrap items-center gap-4 sm:gap-6 text-sm text-gray-500">
               <div className="flex items-center gap-2">
-                <Calendar size={16} className="text-it-gold" />
-                <span>
-                  {new Date(mainVideo.createdAt).toLocaleDateString('fr-FR', {
-                    day: 'numeric', month: 'long', year: 'numeric',
-                  })}
-                </span>
+                <Calendar size={15} style={{ color: '#C8A84B' }} />
+                <span>{new Date(mainVideo.createdAt).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
               </div>
               {rawUrl && (
                 <div className="flex items-center gap-2">
-                  <Clock size={16} className="text-it-gold" />
-                  <a
-                    href={rawUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="underline hover:text-it-terracotta transition-colors"
-                  >
+                  <Clock size={15} style={{ color: '#C8A84B' }} />
+                  <a href={rawUrl} target="_blank" rel="noopener noreferrer" className="underline hover:text-[#B85C38] transition-colors">
                     Voir sur YouTube
                   </a>
                 </div>
@@ -218,15 +290,13 @@ const VideoHeroSection = () => {
             </div>
 
             {mainVideo.excerpt && (
-              <p className="text-gray-600 leading-relaxed max-w-5xl">{mainVideo.excerpt}</p>
+              <p className="text-gray-500 leading-relaxed text-sm sm:text-base max-w-5xl">{mainVideo.excerpt}</p>
             )}
 
             {/* Partage social */}
-            <div className="pt-6 border-t border-gray-100 flex items-center gap-4">
-              <span className="text-[11px] font-bold text-gray-400 uppercase tracking-widest">
-                Partager :
-              </span>
-              <div className="flex gap-3">
+            <div className="pt-5 border-t border-gray-100 flex flex-wrap items-center gap-3 sm:gap-4">
+              <span className="text-[11px] font-bold text-gray-400 uppercase tracking-widest shrink-0">Partager :</span>
+              <div className="flex gap-2 sm:gap-3">
                 {[
                   { id: 'facebook', bg: '#3B5998', Icon: Facebook      },
                   { id: 'twitter',  bg: '#000000', Icon: Twitter       },
@@ -237,16 +307,15 @@ const VideoHeroSection = () => {
                     key={id}
                     onClick={() => handleShare(id)}
                     style={{ backgroundColor: bg }}
-                    className="p-2 text-white rounded-full hover:opacity-80 transition-opacity"
+                    className="w-8 h-8 sm:p-2 text-white rounded-full hover:opacity-80 transition-opacity flex items-center justify-center"
                     aria-label={`Partager sur ${id}`}
                   >
-                    <Icon size={18} />
+                    <Icon size={15} />
                   </button>
                 ))}
               </div>
             </div>
           </div>
-
         </div>
       </div>
     </section>
