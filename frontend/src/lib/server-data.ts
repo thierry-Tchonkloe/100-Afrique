@@ -1,7 +1,6 @@
 // src/lib/server-data.ts
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
-// Render à froid peut prendre 20-40s : on laisse de la marge.
 const FETCH_TIMEOUT_MS = 25000;
 
 async function safeFetch<T>(
@@ -19,7 +18,6 @@ async function safeFetch<T>(
       next: { revalidate },
       signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
     });
-
     if (!res.ok) {
       console.error(`[server-data] ${path} → HTTP ${res.status}`);
       return null;
@@ -53,8 +51,10 @@ export interface VideoArticle {
   slug: string;
   coverImage: string;
   createdAt: string;
-  content: Array<{ type: string; url?: string }>;
-  category: { id: number; name: string; slug: string };
+  excerpt?: string;
+  sourceUrl?: string | null;
+  content: Array<{ type: string; url?: string; value?: string }>;
+  category: { id: number; name: string; slug?: string };
 }
 
 export interface Salon {
@@ -86,6 +86,15 @@ export interface DestinationArticle {
   title: string;
   slug: string;
   coverImage: string;
+}
+
+export interface Highlight {
+  id: number;
+  title: string;
+  slug: string;
+  excerpt: string;
+  coverImage: string;
+  category?: { name: string };
 }
 
 export interface SidebarArticle {
@@ -165,7 +174,6 @@ export async function getNewsSidebarData(): Promise<{
       300
     ),
   ]);
-
   return {
     analyses: analysesJson?.data ?? [],
     interview: interviewJson?.data?.[0] ?? null,
@@ -174,7 +182,6 @@ export async function getNewsSidebarData(): Promise<{
 
 // ─── Page /salons ─────────────────────────────────────────────────────────────
 
-/** Liste des salons triée par date de début (revalidate 5 min). */
 export async function getPageSalons(): Promise<Salon[]> {
   const json = await safeFetch<{ data?: Salon[] }>(
     '/mag/articles',
@@ -184,7 +191,6 @@ export async function getPageSalons(): Promise<Salon[]> {
   return json?.data ?? [];
 }
 
-/** Interview featured pour la sidebar de la page salons. */
 export async function getPageSalonInterview(): Promise<SalonInterview | null> {
   const json = await safeFetch<{ data?: SalonInterview[] }>(
     '/mag/articles',
@@ -192,4 +198,39 @@ export async function getPageSalonInterview(): Promise<SalonInterview | null> {
     300
   );
   return json?.data?.[0] ?? null;
+}
+
+// ─── Page /destinations ───────────────────────────────────────────────────────
+
+/** Coups de cœur Afrique pour la section AfricaHighlights (revalidate 5 min). */
+export async function getAfricaHighlights(): Promise<Highlight[]> {
+  const json = await safeFetch<{ data?: Highlight[] } | Highlight[]>(
+    '/destinations/featured',
+    { limit: 6, region: 'AFRIQUE' },
+    300
+  );
+  // L'API peut retourner { data: [...] } ou directement [...]
+  if (Array.isArray(json)) return json;
+  return (json as { data?: Highlight[] })?.data ?? [];
+}
+
+// ─── Page /videos ─────────────────────────────────────────────────────────────
+
+/** Vidéo featured pour le hero de la page vidéos (revalidate 2 min). */
+export async function getFeaturedVideo(): Promise<VideoArticle | null> {
+  // Essai 1 : vidéo featured
+  const featuredJson = await safeFetch<{ data?: VideoArticle[] }>(
+    '/mag/articles',
+    { type: 'VIDEO', featured: 1, pageSize: 1, page: 1, status: 'PUBLISHED' },
+    120
+  );
+  if (featuredJson?.data?.[0]) return featuredJson.data[0];
+
+  // Fallback : dernière vidéo publiée
+  const fallbackJson = await safeFetch<{ data?: VideoArticle[] }>(
+    '/mag/articles',
+    { type: 'VIDEO', pageSize: 1, page: 1, status: 'PUBLISHED' },
+    120
+  );
+  return fallbackJson?.data?.[0] ?? null;
 }
