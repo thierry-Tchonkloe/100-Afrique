@@ -30,7 +30,12 @@ function useReveal(threshold = 0.08) {
 
   useEffect(() => {
     const el = ref.current;
-    if (!el) return;
+
+    // Fallback : si le ref n'est pas encore attaché, forcer visible après 100ms
+    if (!el) {
+      const t = setTimeout(() => setVisible(true), 100);
+      return () => clearTimeout(t);
+    }
 
     // Fallback : déjà dans le viewport au montage
     const rect = el.getBoundingClientRect();
@@ -55,19 +60,13 @@ function useReveal(threshold = 0.08) {
 // ─── Heading ──────────────────────────────────────────────────────────────────
 
 function SectionHeading({
-  headingRef,
-  headingVisible,
   total,
 }: {
-  headingRef: React.RefObject<HTMLDivElement | null>;
-  headingVisible: boolean;
   total: number | null;
 }) {
   return (
     <div
-      ref={headingRef}
-      className="flex items-start justify-between gap-6 flex-wrap pb-7 mb-10 border-b border-gray-100 transition-all duration-700"
-      style={{ opacity: headingVisible ? 1 : 0, transform: headingVisible ? 'none' : 'translateY(20px)' }}
+      className="flex items-start justify-between gap-6 flex-wrap pb-7 mb-10 border-b border-gray-100"
     >
       <div className="flex items-center gap-4">
         <div
@@ -357,7 +356,11 @@ const LatestNews = ({ searchFilters, sidebarAnalyses, sidebarInterview }: Latest
   const [loading, setLoading] = useState(true);
   const [pageLoading, setPageLoading] = useState(false);
 
-  const { ref: headingRef, visible: headingVisible } = useReveal(0.01);
+  // ── FIX : le heading est toujours visible dès le montage.
+  // L'utilisation de useReveal(0.01) + display:none parent (lg:hidden/lg:block)
+  // provoquait une opacity:0 permanente car l'IntersectionObserver ne se
+  // déclenchait pas sur un élément initialement masqué par Tailwind.
+  // Le heading étant en haut de section, aucune animation reveal n'est nécessaire.
 
   // Seul fetch client restant : la liste paginée avec filtres dynamiques.
   useEffect(() => {
@@ -405,7 +408,8 @@ const LatestNews = ({ searchFilters, sidebarAnalyses, sidebarInterview }: Latest
   return (
     <section id="magazines-section" className="max-w-[1300px] mx-auto px-4 sm:px-6 py-16 md:py-24">
 
-      <SectionHeading headingRef={headingRef} headingVisible={headingVisible} total={meta?.total ?? null} />
+      {/* FIX : SectionHeading sans ref/visible — toujours affiché, jamais opacity:0 */}
+      <SectionHeading total={meta?.total ?? null} />
 
       {/* ── Mobile sidebar ── */}
       <div className="lg:hidden space-y-6 mb-12">
@@ -481,7 +485,6 @@ const LatestNews = ({ searchFilters, sidebarAnalyses, sidebarInterview }: Latest
 };
 
 export default LatestNews;
-
 
 
 
