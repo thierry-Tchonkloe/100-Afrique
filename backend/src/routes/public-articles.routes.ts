@@ -1,3 +1,4 @@
+// backend/src/routes/public-articles.routes.ts
 import { Router } from 'express';
 import { articleController } from '../controllers/article.controller';
 import { validate } from '../middlewares/validate';

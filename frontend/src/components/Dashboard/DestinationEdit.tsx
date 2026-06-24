@@ -1,3 +1,4 @@
+// src/components/Dashboard/DestinationEdit
 "use client";
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
@@ -894,6 +895,8 @@ function DestinationEditorContent({ destination, onClose, onSubmit }: {
 
 
 
+    // ── À l'intérieur de DestinationEditorContent, remplacer save() par : ──
+
     const save = async (publish = false) => {
         if (publish) setPublishing(true); else setSaving(true);
         setSaveError(null);
@@ -903,60 +906,65 @@ function DestinationEditorContent({ destination, onClose, onSubmit }: {
             // 1. Upload image
             let finalCoverImage = coverImage && !coverImage.startsWith("blob:") ? coverImage : null;
             if (coverPendingFile) {
-            finalCoverImage = await uploadImage(coverPendingFile);
-            setCoverImage(finalCoverImage);
-            setCoverPendingFile(null);
+                finalCoverImage = await uploadImage(coverPendingFile);
+                setCoverImage(finalCoverImage);
+                setCoverPendingFile(null);
             }
 
             const apiStatus = STATUS_UI_TO_API[form.status] as "DRAFT" | "PUBLISHED" | "REVIEW" | "ARCHIVED";
             const targetStatus = publish ? "PUBLISHED" : apiStatus;
 
             const contentBlocks = form.description.trim()
-            ? form.description.split(/\n{2,}/).map((line) => {
-                const t = line.trim();
-                if (!t) return null;
-                if (t.startsWith("## ")) return { type: "heading", value: t.slice(3) };
-                return { type: "text", value: t };
+                ? form.description.split(/\n{2,}/).map((line) => {
+                    const t = line.trim();
+                    if (!t) return null;
+                    if (t.startsWith("## ")) return { type: "heading", value: t.slice(3) };
+                    return { type: "text", value: t };
                 }).filter(Boolean) as { type: string; value: string }[]
-            : [{ type: "text", value: "Contenu vide" }];
+                : [{ type: "text", value: "Contenu vide" }];
 
             const payload: UpdateDestinationPayload = {
-            title: form.title.trim(),
-            name: form.title.trim(),
-            status: targetStatus,
-            content: contentBlocks,
-            categoryId: form.categoryId,
-            tags: form.selectedTagIds,
-            metaTitle: form.metaTitle.trim(),
-            metaDescription: form.metaDescription.trim(),
-            coverImage: finalCoverImage ?? undefined,
-            slogan: form.slogan.trim(),
-            typeZone: form.typeZone,
-            niveauGeographique: form.niveauGeographique,
-            continent: form.continent,
-            regionAssociee: form.regionAssociee,
-            langue: form.langue.trim(),
-            monnaie: form.monnaie.trim(),
-            fuseauHoraire: form.fuseauHoraire,
-            officeTourisme: form.officeTourisme.trim(),
-            climatDominant: form.climatDominant,
-            population: form.population.trim(),
-            codeTel: form.codeTel.trim(),
-            meillerePeriode: form.meillerePeriode.trim(),
-            description: form.description.trim(),
+                title: form.title.trim(),
+                name: form.title.trim(),
+                status: targetStatus,
+                content: contentBlocks,
+                categoryId: form.categoryId,
+                tags: form.selectedTagIds,
+                metaTitle: form.metaTitle.trim(),
+                metaDescription: form.metaDescription.trim(),
+                coverImage: finalCoverImage ?? undefined,
+                slogan: form.slogan.trim(),
+                typeZone: form.typeZone,
+                niveauGeographique: form.niveauGeographique,
+                continent: form.continent,
+                regionAssociee: form.regionAssociee,
+                langue: form.langue.trim(),
+                monnaie: form.monnaie.trim(),
+                fuseauHoraire: form.fuseauHoraire,
+                officeTourisme: form.officeTourisme.trim(),
+                climatDominant: form.climatDominant,
+                population: form.population.trim(),
+                codeTel: form.codeTel.trim(),
+                meillerePeriode: form.meillerePeriode.trim(),
+                description: form.description.trim(),
             };
 
-            // 3. Créer OU éditer la fiche destination — en utilisant le ref pour éviter la double création
+            // 3. Créer OU éditer la fiche destination (table `Destination`)
             if (!destIdRef.current) {
-            const newDest = await createDestination(payload);
-            destIdRef.current = newDest.data.id as number; // mémorise l'id pour les saves suivantes
-            payload.destinationId = destIdRef.current;
+                const newDest = await createDestination(payload);
+                destIdRef.current = newDest.data.id as number;
             } else {
-            await editDestination(destIdRef.current, payload);
-            payload.destinationId = destIdRef.current;
+                await editDestination(destIdRef.current, payload);
             }
 
-            // 4. Mise à jour de l'Article (lie la fiche via destinationId)
+            // ❌ SUPPRIMÉ : payload.destinationId = destIdRef.current;
+            // L'article-vitrine de type DESTINATION ne doit JAMAIS référencer
+            // sa propre fiche via destinationId — ce champ ne sert qu'à
+            // l'association ARTICLE/VIDEO → Destination existante. Le lien
+            // entre l'Article-vitrine et sa fiche Destination passe uniquement
+            // par Destination.id, jamais par Article.destinationId.
+
+            // 4. Mise à jour de l'Article-vitrine (titre, statut, SEO, etc.)
             const res = await updateDestination(destination.id, payload);
 
             setSaveSuccess(true);
