@@ -56,11 +56,19 @@ export const quickCreateArticleSchema = z.object({
       .number({ message: "L'auteur est requis" })
       .int({ message: "L'auteur doit être un entier" })
       .positive({ message: "L'auteur doit être un entier positif" }),
+
     type: z
-      .enum(['ARTICLE', 'VIDEO', 'PAGE', 'SALON', 'DESTINATION'], {message: 'Type invalide',}).default('ARTICLE'),
+      .enum(['ARTICLE', 'VIDEO', 'PAGE', 'SALON', 'DESTINATION'], { message: 'Type invalide' })
+      .default('ARTICLE'),
+
     location: z.string().optional().nullable(),
     startDate: z.string().datetime({ message: 'Date de début invalide' }).optional().nullable(),
     endDate: z.string().datetime({ message: 'Date de fin invalide' }).optional().nullable(),
+
+    // ✅ NOUVEAU — association optionnelle à une destination existante.
+    // Le garde-fou anti self-link (type !== 'DESTINATION') reste géré
+    // côté article.service.ts → quickCreateArticle(), pas ici.
+    destinationId: z.number().int().positive().optional(),
   }),
 });
 

@@ -1,3 +1,4 @@
+// src/services/destination.service.ts
 import slugify from 'slugify';
 import { prisma } from '../config/database';
 import { AppError } from '../middlewares/errorHandler';
