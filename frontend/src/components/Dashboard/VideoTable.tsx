@@ -688,6 +688,7 @@ export default function VideoTable() {
 
         {/* Edit Modal */}
         <VideoEdit
+            key={selectedEditVideo?.id ?? "none"}  // ✅ force un remount propre par vidéo
             isOpen={!!selectedEditVideo}
             video={selectedEditVideo}
             onClose={() => setSelectedEditVideo(null)}
