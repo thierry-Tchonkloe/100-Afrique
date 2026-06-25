@@ -108,19 +108,31 @@ export interface DestinationOption {
  * d'association lors de la création/édition d'un article ou d'une vidéo.
  *
  * Endpoint réel : GET /api/destinations/admin/destinations
- * (le routeur destinations.routes.ts est monté sur /destinations dans
- * routes/index.ts, et déclare ses sous-routes admin en /admin/destinations).
+ * (destinations.routes.ts est monté sur /destinations dans routes/index.ts,
+ * et déclare ses sous-routes admin en /admin/destinations).
+ *
+ * ⚠️ La réponse de destinationController.getAllAdmin est doublement
+ * imbriquée : successResponse() enveloppe son payload dans une clé `data`,
+ * et ce payload contient lui-même `{ data: [...], pagination: {...} }`.
+ * Donc la forme réelle est { success, data: { data: [...], pagination } },
+ * pas { success, data: [...] }.
  */
 export async function fetchDestinationsForSelect(): Promise<DestinationOption[]> {
     const res = await fetch(`${API()}/destinations/admin/destinations?pageSize=100`, {
         headers: authHeaders(),
     });
+
     const json = await handleResponse<{
         success: boolean;
-        data: { id: number; name: string; slug: string; continent?: string | null }[];
+        data: {
+            data: { id: number; name: string; slug: string; continent?: string | null }[];
+            pagination?: unknown;
+        };
     }>(res);
 
-    return (json.data ?? [])
+    const list = json.data?.data ?? [];
+
+    return list
         .map((d) => ({ id: d.id, name: d.name, slug: d.slug, continent: d.continent }))
         .sort((a, b) => a.name.localeCompare(b.name, "fr"));
 }
