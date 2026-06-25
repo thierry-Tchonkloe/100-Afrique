@@ -474,6 +474,7 @@ export default function GestionDesContenusArticle() {
 
         {/* Article Editor Modal */}
         <ArticleEditor
+          key={selectedArticle?.id ?? "none"}  // ✅ idem
           isOpen={!!selectedArticle}
           article={selectedArticle}
           onClose={() => setSelectedArticle(null)}
