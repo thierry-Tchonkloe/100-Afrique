@@ -1,3 +1,4 @@
+// src/utils/slugify.ts
 import slugify from 'slugify';
 
 /**

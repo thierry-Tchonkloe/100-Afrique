@@ -1,3 +1,4 @@
+// src/controllers/destination.controller.ts
 import type { Request, Response } from 'express';
 import { prisma } from '../config/database';
 import { asyncHandler } from '../middlewares/errorHandler';
