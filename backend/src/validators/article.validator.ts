@@ -1,3 +1,4 @@
+// src/validators/article.validator.ts
 import { z } from 'zod';
 
 /**

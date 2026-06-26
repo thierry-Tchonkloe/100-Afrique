@@ -1,3 +1,4 @@
+// src/routes/destinations.routes.ts
 import { Router } from 'express';
 import { destinationController } from '../controllers/destination.controller';
 import { validate } from '../middlewares/validate';
