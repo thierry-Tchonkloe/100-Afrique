@@ -131,8 +131,8 @@ const MissionVisionSection = () => {
             </div>
             <p className="text-gray-600 text-sm leading-relaxed mb-4">
               Créé pour valoriser les destinations africaines et informer les professionnels du tourisme,{' '}
-              <strong style={{ color: '#1A5C43' }}>WAXÉHO</strong> et{' '}
-              <strong style={{ color: '#1A5C43' }}>i Tourisme TV</strong> forment un duo complémentaire unique dans le paysage médiatique touristique francophone.
+              <strong style={{ color: '#1A5C43' }}>Waxeho</strong> et{' '}
+              <strong style={{ color: '#1A5C43' }}>iTourisme TV</strong> forment un duo complémentaire unique dans le paysage médiatique touristique francophone.
             </p>
             <p className="text-gray-600 text-sm leading-relaxed">
               Notre équipe de journalistes spécialisés décrypte les tendances, met en lumière les innovations et accompagne les acteurs du secteur avec des analyses approfondies et des reportages exclusifs.
