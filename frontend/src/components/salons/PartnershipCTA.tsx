@@ -171,7 +171,7 @@ const PartnershipCTA = ({ onOpenModale }: PartnershipCTAProps) => {
           </button>
 
           <Link
-            href="/partenaires-annonceurs"
+            href="/partenaires"
             className="w-full sm:w-auto flex items-center justify-center gap-2 font-bold text-sm px-7 sm:px-8 py-4 rounded-full text-white transition-all border-2"
             style={{ borderColor: 'rgba(255,255,255,0.3)' }}
             onMouseEnter={e => {

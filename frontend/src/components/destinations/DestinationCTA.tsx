@@ -208,7 +208,7 @@ const DestinationCTA = () => {
             </button>
 
             <Link
-              href="/partenaires-annonceurs"
+              href="/partenaires"
               className="w-full sm:w-auto inline-flex items-center justify-center gap-2 font-bold text-sm px-7 sm:px-8 py-4 rounded-full text-white transition-all active:scale-95"
               style={{
                 background: 'rgba(255,255,255,0.08)',

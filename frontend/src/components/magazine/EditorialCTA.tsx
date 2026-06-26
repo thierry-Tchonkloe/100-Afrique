@@ -86,7 +86,7 @@ const EditorialCTA = () => {
               — Équipe éditoriale
             </p>
             <h2
-              className="text-3xl md:text-4xl font-black text-white mb-4"
+              className="text-3xl md:text-4xl font-bold text-white mb-4"
               style={{ letterSpacing: '-0.02em', lineHeight: 1.2 }}
             >
               Rejoignez notre<br />
