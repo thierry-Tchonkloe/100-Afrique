@@ -1,3 +1,4 @@
+// src/controllers/article.controller.ts
 import type { Request, Response } from 'express';
 import { articleService } from '../services/article.service';
 import { successResponse, paginatedResponse, calculatePagination } from '../utils/response';
