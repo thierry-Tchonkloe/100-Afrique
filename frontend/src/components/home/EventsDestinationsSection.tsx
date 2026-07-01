@@ -3,7 +3,8 @@
 
 import React, { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
-import { ArrowRight, Calendar, Globe, MapPin, Clock } from 'lucide-react';
+import { ArrowRight, Clock } from 'lucide-react';
+import { AgendaMark, RoutePlanet, LocaleMark } from '@/components/icons/CustomIcons';
 import type { Salon, DestinationArticle } from '@/lib/server-data';
 
 function useReveal(threshold = 0.1) {
@@ -60,7 +61,7 @@ function SalonCard({ salon, delay = 0 }: { salon: Salon; delay?: number }) {
               </span>
             </>
           )}
-          {!salon.startDate && <Calendar size={20} />}
+          {!salon.startDate && <AgendaMark size={40} />}
         </div>
 
         <div className="flex-1 min-w-0">
@@ -77,7 +78,7 @@ function SalonCard({ salon, delay = 0 }: { salon: Salon; delay?: number }) {
             )}
             {(salon.city || salon.country) && (
               <span className="flex items-center gap-1 text-[11px] text-gray-500">
-                <MapPin size={11} className="text-[#B85C38]" />
+                <LocaleMark size={11} className="text-[#B85C38]" />
                 {[salon.city, salon.country].filter(Boolean).join(', ')}
               </span>
             )}
@@ -168,7 +169,7 @@ const EventsDestinationsSection = ({ salons, destinations }: EventsDestinationsS
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center gap-3">
                 <div className="w-8 h-8 rounded-lg flex items-center justify-center text-white" style={{ background: '#1A5C43' }}>
-                  <Calendar size={16} />
+                  <AgendaMark size={26} />
                 </div>
                 <h3 className="text-xl font-black text-gray-900">Salons & Événements</h3>
               </div>
@@ -194,7 +195,7 @@ const EventsDestinationsSection = ({ salons, destinations }: EventsDestinationsS
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center gap-3">
                 <div className="w-8 h-8 rounded-lg flex items-center justify-center text-white" style={{ background: '#B85C38' }}>
-                  <Globe size={16} />
+                  <RoutePlanet size={30} />
                 </div>
                 <h3 className="text-xl font-black text-gray-900">Destinations Phares</h3>
               </div>

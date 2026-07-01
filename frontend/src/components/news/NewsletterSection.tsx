@@ -2,7 +2,11 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, Loader2, CheckCircle2, Mail } from 'lucide-react';
+import { Send, Loader2, CheckCircle2} from 'lucide-react';
+import {
+  SocialFacette, SocialEnvol, SocialNoeud, SocialEcran, SocialObjectif,
+  MissiveMark, RingMark, LocaleMark,
+} from '@/components/icons/CustomIcons';
 import { AxiosError } from 'axios';
 import api from '@/lib/api';
 
@@ -67,7 +71,7 @@ const NewsletterSection = () => {
             transform: visible ? 'scale(1)' : 'scale(0.7)',
           }}
         >
-          <Mail size={28} style={{ color: '#C8A84B' }} />
+          <MissiveMark size={46} className="shrink-0" style={{ color: '#C8A84B' }} />
         </div>
 
         {/* Texte */}

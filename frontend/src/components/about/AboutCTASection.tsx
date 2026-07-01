@@ -4,6 +4,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
 import { ArrowRight, Mail } from 'lucide-react';
+import { MissiveMark } from '@/components/icons/CustomIcons';
 
 function useReveal(threshold = 0.1) {
   const [el, setEl] = useState<HTMLElement | null>(null);
@@ -157,7 +158,7 @@ const AboutCTASection = () => {
             onMouseEnter={e => (e.currentTarget.style.background = '#9C4B2D')}
             onMouseLeave={e => (e.currentTarget.style.background = '#B85C38')}
           >
-            <Mail size={15} /> Nous contacter <ArrowRight size={15} />
+            <MissiveMark size={26} /> Nous contacter <ArrowRight size={15} />
           </Link>
 
           <Link

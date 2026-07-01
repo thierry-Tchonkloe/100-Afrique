@@ -197,7 +197,7 @@ const MissionVisionSection = () => {
               <span className="block text-3xl sm:text-4xl font-serif font-bold mb-1" style={{ color: '#C8A84B' }}>
                 {value}
               </span>
-              <span className="text-[10px] sm:text-xs font-medium uppercase tracking-wide text-white/70">
+              <span className="text-[10px] sm:text-sm font-medium tracking-wide text-white/70">
                 {label}
               </span>
             </div>
