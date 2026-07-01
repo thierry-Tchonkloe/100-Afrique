@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { Mail, Loader2, X, Check, AlertCircle } from "lucide-react";
+ import { MissiveMark } from '@/components/icons/CustomIcons';
 import api from "@/lib/api";
 import { AxiosError } from "axios";
 
@@ -50,7 +51,7 @@ export default function NewsletterButton() {
         className="flex items-center gap-2 px-4 py-2 rounded-full font-semibold text-xs uppercase tracking-wider transition-all hover:shadow-md active:scale-95"
         style={{ background: 'rgba(255,255,255,0.12)', color: '#ffffff', border: '1px solid rgba(255,255,255,0.2)' }}
       >
-        <Mail size={14} strokeWidth={1.5} />
+        <MissiveMark size={16} strokeWidth={1.5} />
         Newsletter
       </button>
     );
@@ -73,7 +74,7 @@ export default function NewsletterButton() {
         </div>
       ) : (
         <form onSubmit={handleSubmit} className="flex items-center gap-2 w-full">
-          <Mail size={14} className="text-gray-400 shrink-0" strokeWidth={1.5} />
+          <MissiveMark size={16} className="text-gray-400 shrink-0" strokeWidth={1.5} />
           <input
             type="email"
             value={email}

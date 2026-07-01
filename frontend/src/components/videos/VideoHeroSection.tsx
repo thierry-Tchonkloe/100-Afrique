@@ -3,8 +3,12 @@
 
 import React, { useEffect, useState, useCallback } from 'react';
 import {
-  Play, Calendar, Clock, Facebook, Twitter, Linkedin, MessageCircle, ExternalLink,
+  Play, Calendar, Clock, Facebook, Twitter, Linkedin, ExternalLink,
 } from 'lucide-react';
+import {
+  SocialFacette, SocialEnvol, SocialNoeud, SocialEcran, SocialObjectif,
+  MissiveMark, RingMark, LocaleMark, WaveMark,
+} from '@/components/icons/CustomIcons';
 import type { VideoArticle } from '@/lib/server-data';
 
 interface VideoHeroSectionProps {
@@ -120,7 +124,7 @@ const VideoHeroSection = ({ featuredVideo }: VideoHeroSectionProps) => {
             className="text-2xl sm:text-3xl md:text-4xl font-black uppercase tracking-tight leading-tight"
             style={{ color: '#0D1A10', letterSpacing: '-0.02em' }}
           >
-            Vidéos &amp; <span style={{ color: '#1A5C43' }}>Web TV</span>
+            Videos &amp; <span style={{ color: '#1A5C43' }}>Web TV</span>
           </h1>
           <p className="text-gray-400 text-sm mt-2">Reportages, Interviews &amp; Émissions</p>
         </div>
@@ -302,10 +306,10 @@ const VideoHeroSection = ({ featuredVideo }: VideoHeroSectionProps) => {
               </span>
               <div className="flex gap-2 sm:gap-3">
                 {[
-                  { id: 'facebook', bg: '#3B5998', Icon: Facebook },
-                  { id: 'twitter',  bg: '#000000', Icon: Twitter  },
-                  { id: 'linkedin', bg: '#0077B5', Icon: Linkedin },
-                  { id: 'whatsapp', bg: '#25D366', Icon: MessageCircle },
+                  { id: 'facebook', bg: '#3B5998', Icon: SocialFacette },
+                  { id: 'twitter',  bg: '#000000', Icon: SocialEnvol  },
+                  { id: 'linkedin', bg: '#0077B5', Icon: SocialNoeud },
+                  { id: 'whatsapp', bg: '#25D366', Icon: WaveMark },
                 ].map(({ id, bg, Icon }) => (
                   <button
                     key={id}
@@ -314,7 +318,7 @@ const VideoHeroSection = ({ featuredVideo }: VideoHeroSectionProps) => {
                     style={{ background: bg }}
                     aria-label={`Partager sur ${id}`}
                   >
-                    <Icon size={15} />
+                    <Icon size={24} />
                   </button>
                 ))}
               </div>

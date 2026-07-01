@@ -2,7 +2,8 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from 'react';
-import { Mail, Phone, MapPin, MessageCircle, Loader2, FileText, Shield, Cookie } from 'lucide-react';
+import { Loader2, FileText, Shield, Cookie } from 'lucide-react';
+import { MissiveMark, RingMark, LocaleMark, WaveMark } from '@/components/icons/CustomIcons';
 import api from '@/lib/api';
 
 const LEGAL_LINKS = [
@@ -239,20 +240,20 @@ const ContactFormSection = () => {
 
                 <div className="flex-1 flex flex-col justify-between">
                   <div className="px-7 pt-6 pb-4 border-b border-gray-100">
-                    <h3 className="font-bold text-lg uppercase tracking-wide" style={{ color: '#1A2B4A' }}>
+                    <h3 className="font-bold text-xl tracking-wide" style={{ color: '#1A2B4A' }}>
                       Coordonnées Directes
                     </h3>
                   </div>
 
                   <div className="p-7 space-y-5 flex-1">
                     {[
-                      { Icon: Mail,   label: 'Email',     value: 'contact@waxeho.com',  sub: null,             href: 'mailto:contact@waxeho.com' },
-                      { Icon: Phone,  label: 'Téléphone', value: '+229 01 XX XX XX XX', sub: 'Lun-Ven 9h–18h', href: 'tel:+22901XXXXXXXX'         },
-                      { Icon: MapPin, label: 'Adresse',   value: 'Cotonou, Bénin',      sub: null,             href: null                         },
+                      { Icon: MissiveMark,   label: 'Email',     value: 'contact@waxeho.com',  sub: null,             href: 'mailto:contact@waxeho.com' },
+                      { Icon: RingMark,  label: 'Téléphone', value: '+229 01 XX XX XX XX', sub: 'Lun-Ven 9h–18h', href: 'tel:+22901XXXXXXXX'         },
+                      { Icon: LocaleMark, label: 'Adresse',   value: 'Cotonou, Bénin',      sub: null,             href: null                         },
                     ].map(({ Icon, label, value, sub, href }) => (
                       <div key={label} className="flex gap-4 items-start">
                         <div className="p-2.5 rounded-lg shrink-0" style={{ background: '#EAF3EE' }}>
-                          <Icon size={17} style={{ color: '#1A5C43' }} />
+                          <Icon size={22} style={{ color: '#1A5C43' }} />
                         </div>
                         <div>
                           <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">{label}</p>
@@ -277,7 +278,7 @@ const ContactFormSection = () => {
                       className="flex items-center justify-center gap-3 text-white font-bold py-3.5 rounded-xl text-sm transition-all shadow-md hover:shadow-lg active:scale-95"
                       style={{ background: '#25D366' }}
                     >
-                      <MessageCircle size={20} fill="white" />
+                      <WaveMark size={20} />
                       Discuter sur WhatsApp
                     </a>
                   </div>

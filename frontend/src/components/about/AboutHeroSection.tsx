@@ -144,7 +144,7 @@ const AboutHeroSection = () => {
             transform: heroVisible ? 'translateY(0)' : 'translateY(22px)',
           }}
         >
-          À propos de <span style={{ color: '#C8A84B' }}>Waxeho</span> et iTourisme TV
+          A propos de <span style={{ color: '#C8A84B' }}>Waxeho</span> et iTourisme TV
         </h1>
 
         {/* Description */}

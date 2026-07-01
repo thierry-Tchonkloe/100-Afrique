@@ -2,7 +2,9 @@
 "use client";
 
 import React, { useState } from 'react';
-import { Phone, Mail, MessageCircle, Loader2, CheckCircle2 } from 'lucide-react';
+import { Loader2, CheckCircle2 } from 'lucide-react';
+import { WaveMark } from '@/components/icons/CustomIcons';
+import { MissiveMark, RingMark } from '@/components/icons/CustomIcons';
 import api from '@/lib/api';
 import { AxiosError } from 'axios';
 
@@ -145,7 +147,7 @@ const PartnersContact = () => {
                 <div className="space-y-6">
                   <a href="tel:+33774454001" className="flex items-center gap-4 group/link">
                     <div className="p-4 bg-white/10 rounded-full group-hover/link:bg-it-gold/20 transition-colors">
-                      <Phone size={22} className="text-it-gold" />
+                      <RingMark size={26} className="shrink-0" style={{ color: '#C8A84B' }} />
                     </div>
                     <span className="font-semibold text-white group-hover/link:text-it-gold transition-colors">
                       +33 774 454 001
@@ -153,7 +155,7 @@ const PartnersContact = () => {
                   </a>
                   <a href="mailto:regie@waxeho.com" className="flex items-center gap-4 group/link">
                     <div className="p-4 bg-white/10 rounded-full group-hover/link:bg-it-gold/20 transition-colors">
-                      <Mail size={22} className="text-it-gold" />
+                      <MissiveMark size={26} className="shrink-0" style={{ color: '#C8A84B' }} />
                     </div>
                     <span className="font-semibold text-white group-hover/link:text-it-gold transition-colors">
                       regie@waxeho.com
@@ -167,7 +169,7 @@ const PartnersContact = () => {
                 rel="noopener noreferrer"
                 className="flex items-center justify-center gap-3 bg-[#25D366] text-white font-bold py-5 rounded-xl shadow-lg hover:scale-[1.03] hover:shadow-[0_10px_30px_rgba(37,211,102,0.4)] transition-all duration-300 active:scale-95"
               >
-                <MessageCircle size={22} fill="white" />
+                <WaveMark size={24} />
                 WhatsApp Business
               </a>
             </div>

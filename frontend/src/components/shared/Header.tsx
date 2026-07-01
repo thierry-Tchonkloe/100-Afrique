@@ -7,6 +7,7 @@ import {
   Search, Menu, X, ChevronDown, TrendingUp, MapPin,
   Star, ChevronRight, BookOpen, ExternalLink, ArrowRight, Clock,
 } from 'lucide-react';
+import { LocaleMark } from '@/components/icons/CustomIcons';
 import { megaMenuData } from '@/constants/navigation';
 import { getToken } from '@/lib/auth';
 import MagazineImage from '@/components/shared/MagazineImage';
@@ -71,27 +72,27 @@ function subReducer(state: SubState, action: SubAction): SubState {
 const NAV_ITEMS: NavItem[] = [
   {
     href: '/actualites',
-    label: 'Actualités',
+    label: 'Actualites',
     megaMenu: [
       { label: 'Hôtellerie',   href: '/secteurs/hotellerie',   icon: <Star size={16} />,        description: 'Tendances hôtels & resorts' },
       { label: 'Transport',    href: '/secteurs/transport',    icon: <TrendingUp size={16} />,   description: 'Aviation, train, maritime'  },
       { label: 'Restauration', href: '/secteurs/restauration', icon: <Star size={16} />,        description: 'Gastronomie africaine'       },
     ],
   },
-  { href: '/evenements',  label: 'Événements'  },
+  { href: '/evenements',  label: 'Evenements'  },
   { href: '/partenaires', label: 'Partenaires' },
   {
     href: '/destinations',
     label: 'Destinations',
     megaMenu: [
-      { label: "Afrique de l'Ouest", href: '/destinations/ouest', icon: <MapPin size={16} />, description: "Sénégal, Côte d'Ivoire…" },
-      { label: "Afrique de l'Est",   href: '/destinations/est',   icon: <MapPin size={16} />, description: 'Kenya, Tanzanie…'        },
-      { label: "Afrique du Nord",    href: '/destinations/nord',  icon: <MapPin size={16} />, description: 'Maroc, Tunisie…'         },
+      { label: "Afrique de l'Ouest", href: '/destinations/ouest', icon: <LocaleMark size={20} />, description: "Sénégal, Côte d'Ivoire…" },
+      { label: "Afrique de l'Est",   href: '/destinations/est',   icon: <LocaleMark size={20} />, description: 'Kenya, Tanzanie…'        },
+      { label: "Afrique du Nord",    href: '/destinations/nord',  icon: <LocaleMark size={20} />, description: 'Maroc, Tunisie…'         },
     ],
   },
-  { href: '/videos',    label: 'Vidéos'    },
+  { href: '/videos',    label: 'Videos'    },
   { href: '/offres',    label: 'Nos offres' },
-  { href: '/a-propos',  label: 'À propos'  },
+  { href: '/a-propos',  label: 'A propos'  },
   { href: '/contact',   label: 'Contact'   },
 ];
 
