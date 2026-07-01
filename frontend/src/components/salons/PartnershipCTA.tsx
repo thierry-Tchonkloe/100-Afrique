@@ -3,7 +3,8 @@
 
 import React, { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
-import { ArrowRight, Camera } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
+import { CaptureMark } from '@/components/icons/CustomIcons';
 
 interface PartnershipCTAProps {
   onOpenModale: () => void;
@@ -50,7 +51,7 @@ const PartnershipCTA = ({ onOpenModale }: PartnershipCTAProps) => {
           backgroundSize: '24px 24px',
         }}
       />
-      {/* Lueur terracotta — animate au reveal */}
+      {/* Lueur terracotta */}
       <div
         className="absolute top-0 right-0 w-1/2 h-full pointer-events-none transition-opacity duration-1000"
         style={{
@@ -68,7 +69,7 @@ const PartnershipCTA = ({ onOpenModale }: PartnershipCTAProps) => {
         }}
       />
 
-      {/* Barre accent top — scaleX */}
+      {/* Barre accent top */}
       <div
         className="absolute top-0 left-0 right-0 h-[3px] origin-left"
         style={{
@@ -79,7 +80,7 @@ const PartnershipCTA = ({ onOpenModale }: PartnershipCTAProps) => {
       />
 
       <div className="relative z-10">
-        {/* Icône */}
+        {/* Icône — CaptureMark remplace Camera */}
         <div
           className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-6 transition-all duration-700"
           style={{
@@ -89,7 +90,7 @@ const PartnershipCTA = ({ onOpenModale }: PartnershipCTAProps) => {
             transform: visible ? 'translateY(0) scale(1)' : 'translateY(20px) scale(0.85)',
           }}
         >
-          <Camera size={24} style={{ color: '#C8A84B' }} />
+          <CaptureMark size={40} style={{ color: '#C8A84B' }} />
         </div>
 
         {/* Eyebrow */}

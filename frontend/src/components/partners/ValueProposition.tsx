@@ -3,6 +3,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { Users, Globe, PlayCircle, Award } from 'lucide-react';
+import { RoutePlanet } from '@/components/icons/CustomIcons';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface ValueItem {
@@ -27,7 +28,7 @@ const IconRenderer = ({ iconName }: { iconName: string }) => {
   const props = { size: 32, className: "text-white" };
   switch (iconName) {
     case 'users':  return <Users {...props} />;
-    case 'globe':  return <Globe {...props} />;
+    case 'globe':  return <RoutePlanet {...props} />;
     case 'play':   return <PlayCircle {...props} />;
     case 'award':  return <Award {...props} />;
     default:       return <Users {...props} />;

@@ -3,7 +3,10 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { Facebook, Twitter, Linkedin, Youtube, Instagram, Mail, Phone, MapPin } from 'lucide-react';
+import {
+  SocialFacette, SocialEnvol, SocialNoeud, SocialEcran, SocialObjectif,
+  MissiveMark, RingMark, LocaleMark,
+} from '@/components/icons/CustomIcons';
 import NewsletterButton from '@/components/shared/Newsletterbutton';
 
 const SECTEURS = [
@@ -15,6 +18,8 @@ const SECTEURS = [
   { label: 'Divertissement',     slug: 'divertissement'   },
   { label: 'Tourisme Durable',   slug: 'tourisme-durable' },
 ];
+
+const SOCIAL_ICONS = [SocialFacette, SocialEnvol, SocialNoeud, SocialEcran, SocialObjectif];
 
 const Footer = () => {
   return (
@@ -31,10 +36,10 @@ const Footer = () => {
               Une plateforme interactive pour les professionnels et passionnés du secteur.
             </p>
             <div className="flex gap-4">
-              {[Facebook, Twitter, Linkedin, Youtube, Instagram].map((Icon, i) => (
+              {SOCIAL_ICONS.map((Icon, i) => (
                 <Icon
                   key={i}
-                  size={20}
+                  size={30}
                   className="cursor-pointer transition-colors"
                   style={{ color: '#D4EDE5' }}
                   onMouseEnter={e => (e.currentTarget.style.color = '#C8A84B')}
@@ -124,16 +129,20 @@ const Footer = () => {
             </h4>
             <ul className="space-y-4 text-sm mb-6" style={{ color: '#D4EDE5' }}>
               <li className="flex items-start gap-3">
-                <MapPin size={18} className="shrink-0" style={{ color: '#C8A84B' }} />
+                <LocaleMark size={28} className="shrink-0" style={{ color: '#C8A84B' }} />
                 <span>Siège Social, Quartier International,<br />Cotonou, Bénin</span>
               </li>
               <li className="flex items-center gap-3">
-                <Phone size={18} className="shrink-0" style={{ color: '#C8A84B' }} />
-                <span>+229 01 97 44 80 97</span>
+                <a href="tel:+229 01 97 44 80 97" className="flex items-center gap-3">
+                  <RingMark size={26} className="shrink-0" style={{ color: '#C8A84B' }} />
+                  <span>+229 01 97 44 80 97</span>
+                </a>
               </li>
               <li className="flex items-center gap-3">
-                <Mail size={18} className="shrink-0" style={{ color: '#C8A84B' }} />
-                <span>contact@100-afrique.com</span>
+                <a href="mailto:contact@100-afrique.com" className="flex items-center gap-3">
+                  <MissiveMark size={26} className="shrink-0" style={{ color: '#C8A84B' }} />
+                  <span>contact@100-afrique.com</span>
+                </a>
               </li>
             </ul>
 

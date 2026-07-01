@@ -2,7 +2,7 @@
 "use client";
 
 import React from 'react';
-import { Layout, PenTool, BookOpen, Mic2 } from 'lucide-react';
+import { PlanMark, PlumeMark, VolumeMark, TribuneMark } from '@/components/icons/CustomIcons';
 
 interface Opportunity {
   id: string;
@@ -26,22 +26,50 @@ const cardImages: Record<string, string> = {
 
 const IconBox = ({ type }: { type: string }) => {
   const base = "p-3 rounded-xl flex items-center justify-center text-white shadow-lg";
-  const size = 22;
+  const size = 28;
   switch (type) {
-    case 'display':  return <div className={`${base} bg-it-emerald-dark`}><Layout size={size} /></div>;
-    case 'content':  return <div className={`${base} bg-it-gold`}><PenTool size={size} /></div>;
-    case 'magazine': return <div className={`${base} bg-it-emerald-dark`}><BookOpen size={size} /></div>;
-    case 'salons':   return <div className={`${base} bg-it-gold`}><Mic2 size={size} /></div>;
-    default:         return <div className={`${base} bg-it-emerald-dark`}><Layout size={size} /></div>;
+    // PlanMark remplace Layout
+    case 'display':  return <div className={`${base} bg-it-emerald-dark`}><PlanMark size={size} /></div>;
+    // PlumeMark remplace PenTool
+    case 'content':  return <div className={`${base} bg-it-gold`}><PlumeMark size={size} /></div>;
+    // VolumeMark remplace BookOpen
+    case 'magazine': return <div className={`${base} bg-it-emerald-dark`}><VolumeMark size={size} /></div>;
+    // TribuneMark remplace Mic2
+    case 'salons':   return <div className={`${base} bg-it-gold`}><TribuneMark size={size} /></div>;
+    default:         return <div className={`${base} bg-it-emerald-dark`}><PlanMark size={size} /></div>;
   }
 };
 
 const VisibilityOpportunities = ({ opportunities }: VisibilityOpportunitiesProps) => {
   const defaultOps: Opportunity[] = [
-    { id: '1', title: "Publicité Display",     subtitle: "Bannières stratégiquement placées : Header, Sidebar, In-Article, Footer", description: "Optimisez votre visibilité sur l'ensemble de notre plateforme web.",    iconType: 'display',  features: ["Formats standards IAB", "Ciblage géographique", "Statistiques détaillées"] },
-    { id: '2', title: "Contenus Sponsorisés",  subtitle: "Articles, dossiers spéciaux, vidéos avec mention « Sponsorisé »",         description: "Engagez notre audience avec du contenu à forte valeur ajoutée.",     iconType: 'content',  features: ["Rédaction professionnelle", "Optimisation SEO", "Promotion multi-canaux"] },
-    { id: '3', title: "Partenariat Magazine",  subtitle: "Espaces publicitaires dans l'édition papier et numérique",                 description: "Associez votre image à notre support de prestige trimestriel.",      iconType: 'magazine', features: ["Double exposition print/digital", "Formats premium", "Distribution ciblée"] },
-    { id: '4', title: "Couverture Salons",     subtitle: "Reportages, interviews et mise en avant lors des événements",              description: "Devenez l'acteur incontournable des grands rendez-vous du tourisme.", iconType: 'salons',   features: ["Couverture en direct", "Interviews exclusives", "Contenu multi-format"] },
+    {
+      id: '1', title: "Publicité Display",
+      subtitle: "Bannières stratégiquement placées : Header, Sidebar, In-Article, Footer",
+      description: "Optimisez votre visibilité sur l'ensemble de notre plateforme web.",
+      iconType: 'display',
+      features: ["Formats standards IAB", "Ciblage géographique", "Statistiques détaillées"],
+    },
+    {
+      id: '2', title: "Contenus Sponsorisés",
+      subtitle: "Articles, dossiers spéciaux, vidéos avec mention « Sponsorisé »",
+      description: "Engagez notre audience avec du contenu à forte valeur ajoutée.",
+      iconType: 'content',
+      features: ["Rédaction professionnelle", "Optimisation SEO", "Promotion multi-canaux"],
+    },
+    {
+      id: '3', title: "Partenariat Magazine",
+      subtitle: "Espaces publicitaires dans l'édition papier et numérique",
+      description: "Associez votre image à notre support de prestige trimestriel.",
+      iconType: 'magazine',
+      features: ["Double exposition print/digital", "Formats premium", "Distribution ciblée"],
+    },
+    {
+      id: '4', title: "Couverture Salons",
+      subtitle: "Reportages, interviews et mise en avant lors des événements",
+      description: "Devenez l'acteur incontournable des grands rendez-vous du tourisme.",
+      iconType: 'salons',
+      features: ["Couverture en direct", "Interviews exclusives", "Contenu multi-format"],
+    },
   ];
 
   const data = opportunities || defaultOps;
@@ -65,7 +93,6 @@ const VisibilityOpportunities = ({ opportunities }: VisibilityOpportunitiesProps
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/50 to-black/10 group-hover:from-black/90 transition-all duration-500" />
 
-              {/* Accent lumineux gold au survol */}
               <div className="absolute top-0 right-0 w-24 h-24 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
                 <div className="absolute top-0 right-0 w-full h-full bg-it-gold/20 blur-2xl rounded-full" />
               </div>
@@ -90,7 +117,6 @@ const VisibilityOpportunities = ({ opportunities }: VisibilityOpportunitiesProps
                 </div>
               </div>
 
-              {/* Barre terracotta en bas */}
               <div className="absolute bottom-0 left-0 h-[3px] w-0 bg-it-terracotta group-hover:w-full transition-all duration-500" />
             </div>
           ))}

@@ -60,7 +60,7 @@ const MissionVisionSection = () => {
             { value: stats.countriesCovered,   label: "Pays Couverts"      },
           ].map(({ value, label }) => (
             <div key={label} className="bg-slate-50 rounded-xl p-8 text-center transition-transform hover:scale-105">
-              <span className="block text-4xl font-serif font-bold text-it-gold mb-2">
+              <span className="block text-4xl font-bold text-it-gold mb-2">
                 {value}
               </span>
               <span className="text-sm font-medium text-gray-500 uppercase tracking-wide">

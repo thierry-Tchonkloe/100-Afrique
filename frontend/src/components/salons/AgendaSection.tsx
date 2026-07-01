@@ -3,9 +3,10 @@
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
-  Calendar, MapPin, Globe, Plane, ArrowRight,
+  Plane, ArrowRight,
   ChevronLeft, ChevronRight, Clock,
 } from 'lucide-react';
+import { AgendaMark, RoutePlanet, LocaleMark } from '@/components/icons/CustomIcons';
 import Link from 'next/link';
 
 interface Event {
@@ -65,11 +66,11 @@ const DateRange = ({ startDate, endDate }: { startDate: string; endDate?: string
 };
 
 function renderIcon(event: Event) {
-  const iconProps = { className: 'text-white', size: 22 };
+  const iconProps = { className: 'text-white', size: 48 };
   const t = event.title.toLowerCase();
-  if (t.includes('wtm') || t.includes('world travel market')) return <Globe {...iconProps} />;
+  if (t.includes('wtm') || t.includes('world travel market')) return <RoutePlanet {...iconProps} />;
   if (t.includes('iftm') || t.includes('itb')) return <Plane {...iconProps} />;
-  return <Calendar {...iconProps} />;
+  return <AgendaMark {...iconProps} />;
 }
 
 // ─── Carte événement avec reveal individuel ───────────────────────────────────
@@ -125,7 +126,7 @@ function EventCard({ event, delay = 0 }: { event: Event; delay?: number }) {
             </span>
             {(event.location || event.city || event.country) && (
               <span className="flex items-center gap-1.5 text-[12px] font-medium text-gray-500">
-                <MapPin size={12} style={{ color: '#B85C38' }} />
+                <LocaleMark size={12} style={{ color: '#B85C38' }} />
                 {[event.location, event.city, event.country].filter(Boolean).join(', ')}
               </span>
             )}
@@ -170,7 +171,7 @@ function AgendaHeading({ count, visible }: { count: number; visible: boolean }) 
           className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0"
           style={{ background: '#0D2B1A' }}
         >
-          <Calendar size={20} style={{ color: '#C8A84B' }} />
+          <AgendaMark size={36} style={{ color: '#C8A84B' }} />
         </div>
         <div>
           <p className="text-[11px] font-bold uppercase tracking-[0.2em] mb-0.5" style={{ color: '#B85C38' }}>

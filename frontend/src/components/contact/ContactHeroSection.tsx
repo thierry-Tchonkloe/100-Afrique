@@ -121,7 +121,7 @@ const ContactHeroSection = () => {
           }}
         >
           Vous avez un besoin en partenariat, publicité ou support ?{' '}
-          L&apos;équipe iTourisme est prête à vous accompagner.
+          L&apos;équipe 100% Afrique est prête à vous accompagner.
         </p>
 
         {/* Pills stats rapides */}

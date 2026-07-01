@@ -2,7 +2,8 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from 'react';
-import { MessageCircle, Facebook, Twitter, Linkedin, Instagram, Youtube, ArrowRight, TrendingUp, Users, Globe, Award } from 'lucide-react';
+import { ArrowRight, TrendingUp, Users, Award } from 'lucide-react';
+import { RoutePlanet, WaveMark, CordeMark } from '@/components/icons/CustomIcons';
 import ModaleAnnonceur from '@/components/shared/ModaleAnnonceur';
 
 // ─── Compteur animé ───────────────────────────────────────────────────────────
@@ -48,10 +49,10 @@ interface StatItem {
 }
 
 const STATS: StatItem[] = [
-  { icon: <Users size={20} />, value: 45000, suffix: '+', label: 'Professionnels du tourisme' },
-  { icon: <Globe size={20} />, value: 32, suffix: ' pays', label: 'Présence en Afrique' },
-  { icon: <TrendingUp size={20} />, value: 98, suffix: '%', label: 'Satisfaction partenaires' },
-  { icon: <Award size={20} />, value: 12, suffix: ' ans', label: 'D\'expertise média' },
+  { icon: <Users size={26} />,         value: 45000, suffix: '+',    label: 'Professionnels du tourisme' },
+  { icon: <RoutePlanet size={30} />,   value: 32,    suffix: ' pays',label: 'Présence en Afrique'        },
+  { icon: <TrendingUp size={26} />,    value: 98,    suffix: '%',    label: 'Satisfaction partenaires'   },
+  { icon: <Award size={26} />,         value: 12,    suffix: ' ans', label: "D'expertise média"          },
 ];
 
 // ─── Section principale ───────────────────────────────────────────────────────
@@ -73,13 +74,16 @@ const ContactCTASection = () => {
       />
 
       {/* Lumière émeraude ambiante */}
-      <div className="absolute top-0 left-0 w-1/2 h-full opacity-20" style={{ background: 'radial-gradient(ellipse at 0% 50%, #1A5C43 0%, transparent 70%)' }} />
-      <div className="absolute bottom-0 right-0 w-1/2 h-1/2 opacity-15" style={{ background: 'radial-gradient(ellipse at 100% 100%, #B85C38 0%, transparent 70%)' }} />
+      <div className="absolute top-0 left-0 w-1/2 h-full opacity-20"
+        style={{ background: 'radial-gradient(ellipse at 0% 50%, #1A5C43 0%, transparent 70%)' }} />
+      <div className="absolute bottom-0 right-0 w-1/2 h-1/2 opacity-15"
+        style={{ background: 'radial-gradient(ellipse at 100% 100%, #B85C38 0%, transparent 70%)' }} />
 
       <div ref={sectionRef} className="relative z-10 max-w-[1300px] mx-auto px-6 py-12 md:py-18">
 
         {/* ── Stats row ── */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-px mb-16 overflow-hidden rounded-2xl" style={{ background: 'rgba(255,255,255,0.06)' }}>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-px mb-16 overflow-hidden rounded-2xl"
+          style={{ background: 'rgba(255,255,255,0.06)' }}>
           {STATS.map((stat, i) => (
             <div
               key={i}
@@ -91,7 +95,8 @@ const ContactCTASection = () => {
                 transform: visible ? 'none' : 'translateY(20px)',
               }}
             >
-              <div className="w-10 h-10 rounded-xl flex items-center justify-center text-white" style={{ background: '#1A5C43' }}>
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center text-white"
+                style={{ background: '#1A5C43' }}>
                 {stat.icon}
               </div>
               <p className="text-2xl md:text-3xl font-black text-white leading-none">
@@ -107,23 +112,25 @@ const ContactCTASection = () => {
           className="flex flex-col items-center text-center transition-all duration-700 delay-300"
           style={{ opacity: visible ? 1 : 0, transform: visible ? 'none' : 'translateY(28px)' }}
         >
-          {/* Eyebrow */}
           <div className="flex items-center gap-3 mb-6">
             <div className="h-px w-12" style={{ background: '#C8A84B' }} />
-            <span className="text-[11px] font-bold uppercase tracking-[0.25em]" style={{ color: '#C8A84B' }}>Rejoignez-nous</span>
+            <span className="text-[11px] font-bold uppercase tracking-[0.25em]" style={{ color: '#C8A84B' }}>
+              Rejoignez-nous
+            </span>
             <div className="h-px w-12" style={{ background: '#C8A84B' }} />
           </div>
 
-          <h2 className="text-3xl md:text-4xl font-bold text-white leading-tight mb-6" style={{ letterSpacing: '-0.02em' }}>
+          <h2 className="text-3xl md:text-4xl font-bold text-white leading-tight mb-6"
+            style={{ letterSpacing: '-0.02em' }}>
             Devenez Partenaire<br />
             <span style={{ color: '#C8A84B' }}>de la Voix Africaine</span>
           </h2>
 
           <p className="max-w-xl text-white/55 text-lg leading-relaxed mb-10">
-            Rejoignez notre réseau de partenaires et bénéficiez d&apos;une visibilité unique auprès des professionnels du tourisme africain et international.
+            Rejoignez notre réseau de partenaires et bénéficiez d&apos;une visibilité unique
+            auprès des professionnels du tourisme africain et international.
           </p>
 
-          {/* Boutons CTA */}
           <div className="flex flex-wrap justify-center gap-4">
             <button
               onClick={() => setIsModalOpen(true)}
@@ -137,7 +144,7 @@ const ContactCTASection = () => {
             </button>
 
             <a
-              href="https://wa.me/229XXXXXXXX"
+              href="https://wa.me/22901974480097"
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-2 font-bold text-sm px-8 py-4 rounded-full text-white transition-all hover:shadow-xl active:scale-95"
@@ -145,7 +152,8 @@ const ContactCTASection = () => {
               onMouseEnter={e => (e.currentTarget.style.background = '#179443')}
               onMouseLeave={e => (e.currentTarget.style.background = '#1DB954')}
             >
-              <MessageCircle size={16} />
+              {/* WaveMark remplace MessageCircle */}
+              <WaveMark size={20} />
               WhatsApp
             </a>
           </div>

@@ -4,7 +4,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Search, MapPin, FileText, ChevronDown, SlidersHorizontal, Loader2 } from 'lucide-react';
+import { Search, FileText, ChevronDown, SlidersHorizontal, Loader2 } from 'lucide-react';
+import { LocaleMark } from '@/components/icons/CustomIcons';
 import { AxiosError } from 'axios';
 import api from '@/lib/api';
 
@@ -107,7 +108,7 @@ function DestinationCard({ dest, delay = 0 }: { dest: Destination; delay?: numbe
             className="absolute top-3 left-3 flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[9px] font-bold uppercase tracking-wider text-white backdrop-blur-sm z-10"
             style={{ background: 'rgba(26,92,67,0.88)' }}
           >
-            <MapPin size={9} />
+            <LocaleMark size={12} />
             <span className="hidden sm:inline">{dest.continent}</span>
           </span>
         )}
@@ -236,7 +237,7 @@ const DestinationGrid = () => {
             className="w-9 h-9 sm:w-11 sm:h-11 rounded-xl flex items-center justify-center shrink-0"
             style={{ background: '#1A5C43' }}
           >
-            <MapPin size={16} className="text-white" />
+            <LocaleMark size={32} className="shrink-0 text-white" />
           </div>
           <div>
             <p className="text-[10px] sm:text-[11px] font-bold uppercase tracking-[0.2em] mb-0.5" style={{ color: '#B85C38' }}>
