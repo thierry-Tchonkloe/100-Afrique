@@ -1,3 +1,4 @@
+// src/hooks/useAdvertising.public.ts
 "use client";
 
 import api from "@/lib/api";
