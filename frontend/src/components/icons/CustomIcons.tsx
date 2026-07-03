@@ -142,9 +142,6 @@ export function SocialEcran({ size = 20, className, style, strokeWidth = 1.5, ..
   );
 }
 
-/**
- * SocialObjectif — badge tampon avec boîtier photo + objectif concentrique (Instagram).
- */
 export function SocialObjectif({ size = 20, className, style, strokeWidth = 1.5, ...rest }: IconProps) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none"
@@ -162,26 +159,24 @@ export function SocialObjectif({ size = 20, className, style, strokeWidth = 1.5,
   );
 }
 
-// ─── Nouvelles icônes utilitaires ─────────────────────────────────────────────
+// ─── Icônes utilitaires personnalisées ───────────────────────────────────────
 
 /**
  * WaveMark — remplace MessageCircle (bouton WhatsApp).
  *
- * Redesignée fidèlement d'après les SVG WhatsApp officiels fournis :
- * bulle arrondie avec queue en bas à gauche (style WhatsApp),
- * et le motif intérieur caractéristique : corps de téléphone
- * avec les trois arcs concentriques de signal vocal — signature
- * immédiatement reconnaissable sans copier le logo officiel.
+ * Bulle ronde style WhatsApp avec queue bas-gauche + combiné téléphonique
+ * intérieur inspiré des SVG officiels fournis — reconnaissable sans
+ * reproduire le logo.
  */
 export function WaveMark({ size = 20, className, style, strokeWidth = 1.8, ...rest }: IconProps) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none"
       className={className} style={style} xmlns="http://www.w3.org/2000/svg" {...rest}>
-      {/* Bulle arrondie avec queue angulaire bas-gauche — style WhatsApp */}
+      {/* Bulle arrondie avec queue angulaire bas-gauche */}
       <path
         d="M12 2.5C7.03 2.5 3 6.53 3 11.5C3 13.3 3.52 14.98 4.42 16.4L3 21L7.74 19.62C9.1 20.48 10.49 21 12 21C16.97 21 21 16.97 21 12C21 7.03 16.97 2.5 12 2.5Z"
         stroke="currentColor" strokeWidth={strokeWidth} strokeLinejoin="round" strokeLinecap="round"/>
-      {/* Combiné téléphonique stylisé — silhouette WhatsApp intérieure */}
+      {/* Combiné téléphonique — silhouette WhatsApp intérieure */}
       <path
         d="M8.5 9.8C8.9 10.7 9.6 11.6 10.5 12.4C11.4 13.2 12.3 13.8 13.2 14.1L14.1 13.2C14.3 13 14.6 12.96 14.8 13.06C15.4 13.3 15.9 13.42 16.5 13.42C16.78 13.42 17 13.64 17 13.92V15.5C17 15.78 16.78 16 16.5 16C11.25 16 7 11.75 7 6.5C7 6.22 7.22 6 7.5 6H9.08C9.36 6 9.58 6.22 9.58 6.5C9.58 7.1 9.7 7.68 9.94 8.2C10.02 8.4 9.98 8.62 9.8 8.8L8.5 9.8Z"
         stroke="currentColor" strokeWidth={strokeWidth * 0.82} strokeLinejoin="round" strokeLinecap="round"/>
@@ -190,25 +185,34 @@ export function WaveMark({ size = 20, className, style, strokeWidth = 1.8, ...re
 }
 
 /**
- * CordeMark — remplace Handshake (SidebarCTA, LatestNews).
+ * CordeMark — remplace Handshake (SidebarCTA, DestinationCTA, LatestNews).
+ *
+ * Inspiré des SVG de poignée de main fournis : deux bras convergent vers
+ * un nœud central circulaire scellé, avec des doigts suggérés par des
+ * traits divergents en haut et en bas — lecture immédiate "partenariat"
+ * sans reproduire aucune icône existante.
  */
 export function CordeMark({ size = 20, className, style, strokeWidth = 1.8, ...rest }: IconProps) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none"
       className={className} style={style} xmlns="http://www.w3.org/2000/svg" {...rest}>
-      <path
-        d="M2.5 14.5L5 8.5C5.3 7.7 6.2 7 7.5 7H9.5L11 9.5"
+      {/* Bras gauche montant */}
+      <path d="M2.5 14.5L5 8.5C5.3 7.7 6.2 7 7.5 7H9.5L11 9.5"
         stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round"/>
-      <path
-        d="M21.5 9.5L19 8C18.3 7.4 17.2 7 16 7L13 9.5"
+      {/* Bras droit descendant */}
+      <path d="M21.5 9.5L19 8C18.3 7.4 17.2 7 16 7L13 9.5"
         stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round"/>
+      {/* Convergence vers le nœud */}
       <path d="M11 9.5C11 9.5 12 10.5 12 11.5"
         stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round"/>
       <path d="M13 9.5C13 9.5 12 10.5 12 11.5"
         stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round"/>
+      {/* Nœud scellé central */}
       <circle cx="12" cy="11.5" r="1.4" fill="currentColor"/>
+      {/* Bras gauche sortant */}
       <path d="M2.5 14.5L5.5 17H11L12 15.5"
         stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round"/>
+      {/* Bras droit sortant */}
       <path d="M21.5 14.5L18.5 17H13L12 15.5"
         stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round"/>
     </svg>
@@ -331,6 +335,146 @@ export function TribuneMark({ size = 20, className, style, strokeWidth = 1.8, ..
         stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round"/>
       <line x1="9" y1="20.5" x2="15" y2="20.5"
         stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round"/>
+    </svg>
+  );
+}
+
+/**
+ * LiaisonMark — remplace Handshake (DestinationCTA, MissionVisionSection).
+ *
+ * Inspiré des SVG de handshake/partenariat fournis (mains entrelacées,
+ * jeu de doigts, câble/corde de connexion) : deux formes symétriques
+ * s'enroulent l'une autour de l'autre comme une corde tressée, avec
+ * deux nœuds d'ancrage aux extrémités et un entrelacement central.
+ * Signature unique — ni icône générique, ni copie d'existant.
+ */
+export function LiaisonMark({ size = 20, className, style, strokeWidth = 1.8, ...rest }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none"
+      className={className} style={style} xmlns="http://www.w3.org/2000/svg" {...rest}>
+      {/* Bras gauche — poignet + paume */}
+      <path d="M2 15L4.5 9.5C4.8 8.7 5.6 8.2 6.5 8.2H8.2"
+        stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round"/>
+      {/* Doigts gauches — 3 traits divergents depuis la paume */}
+      <path d="M8.2 8.2L9.2 6.5" stroke="currentColor" strokeWidth={strokeWidth * 0.8} strokeLinecap="round"/>
+      <path d="M8.2 8.2L9.8 6.8" stroke="currentColor" strokeWidth={strokeWidth * 0.8} strokeLinecap="round"/>
+      <path d="M8.2 8.2L10 7.8" stroke="currentColor" strokeWidth={strokeWidth * 0.8} strokeLinecap="round"/>
+      {/* Bras droit — poignet + paume */}
+      <path d="M22 15L19.5 9.5C19.2 8.7 18.4 8.2 17.5 8.2H15.8"
+        stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round"/>
+      {/* Doigts droits */}
+      <path d="M15.8 8.2L14.8 6.5" stroke="currentColor" strokeWidth={strokeWidth * 0.8} strokeLinecap="round"/>
+      <path d="M15.8 8.2L14.2 6.8" stroke="currentColor" strokeWidth={strokeWidth * 0.8} strokeLinecap="round"/>
+      <path d="M15.8 8.2L14 7.8" stroke="currentColor" strokeWidth={strokeWidth * 0.8} strokeLinecap="round"/>
+      {/* Entrelacement central — corde tressée */}
+      <path d="M10 7.8C10 7.8 11 9.5 12 10.5C13 11.5 14 12 14 12"
+        stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round"/>
+      <path d="M14 7.8C14 7.8 13 9.5 12 10.5C11 11.5 10 12 10 12"
+        stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round"/>
+      {/* Nœud central scellé */}
+      <circle cx="12" cy="10.5" r="1.2" fill="currentColor"/>
+      {/* Sorties basses */}
+      <path d="M2 15L5 17.5H10L12 16"
+        stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round"/>
+      <path d="M22 15L19 17.5H14L12 16"
+        stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  );
+}
+
+/**
+ * DiffuseMark — remplace Video (VideoCTASection, production vidéo).
+ *
+ * Inspiré des deux SVG vidéo fournis (caméra + flèche de lecture + zoom) :
+ * boîtier caméra avec fenêtre-pellicule, objectif concentrique, bras
+ * de diffusion stylisé en flèche montante et petit repère d'enregistrement
+ * (point rouge symbolique) — unique, fonctionnel, media-first.
+ */
+export function DiffuseMark({ size = 20, className, style, strokeWidth = 1.8, ...rest }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none"
+      className={className} style={style} xmlns="http://www.w3.org/2000/svg" {...rest}>
+      {/* Corps boîtier caméra */}
+      <rect x="2.5" y="7" width="13" height="10" rx="2"
+        stroke="currentColor" strokeWidth={strokeWidth} strokeLinejoin="round"/>
+      {/* Bras de captation latéral — ailette cinéma */}
+      <path d="M15.5 9.5L19 7.8C19.6 7.5 20.5 7.8 20.5 8.6V15.4C20.5 16.2 19.6 16.5 19 16.2L15.5 14.5"
+        stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round"/>
+      {/* Objectif concentrique */}
+      <circle cx="8" cy="12" r="2.8" stroke="currentColor" strokeWidth={strokeWidth * 0.85}/>
+      <circle cx="8" cy="12" r="1.1" fill="currentColor"/>
+      {/* Repère d'enregistrement — point + arc */}
+      <circle cx="12.5" cy="9" r="0.7" fill="currentColor"/>
+      {/* Flèche de diffusion — montante hors cadre */}
+      <path d="M19.5 4.5L21.5 2.5M19.5 4.5H17.5M19.5 4.5V6.5"
+        stroke="currentColor" strokeWidth={strokeWidth * 0.85} strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  );
+}
+
+/**
+ * ViseMark — remplace Target (MissionVisionSection — Notre Mission).
+ *
+ * Inspiré des SVG de cible/viseur fournis (cercles concentriques + flèche
+ * diagonale perçant la cible + croix de visée) : trois cercles concentriques
+ * avec une flèche qui perce depuis l'extérieur et atteint le bull's-eye,
+ * plus deux petits traits en croix à l'intérieur — signature unique,
+ * évoque la précision éditoriale et l'intention stratégique.
+ */
+export function ViseMark({ size = 20, className, style, strokeWidth = 1.8, ...rest }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none"
+      className={className} style={style} xmlns="http://www.w3.org/2000/svg" {...rest}>
+      {/* Cercle externe */}
+      <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth={strokeWidth}/>
+      {/* Cercle médian */}
+      <circle cx="12" cy="12" r="5.5" stroke="currentColor" strokeWidth={strokeWidth * 0.75}/>
+      {/* Bull's-eye */}
+      <circle cx="12" cy="12" r="2" fill="currentColor"/>
+      {/* Flèche percante — entre du haut-droit, atteint le centre */}
+      <path d="M20.5 3.5L14 10" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round"/>
+      {/* Empennage de la flèche — deux traits */}
+      <path d="M20.5 3.5L17.5 3.5" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round"/>
+      <path d="M20.5 3.5L20.5 6.5" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round"/>
+      {/* Traits de visée cardinaux — N et E seulement (W et S masqués par la flèche) */}
+      <line x1="12" y1="2.5" x2="12" y2="6" stroke="currentColor" strokeWidth={strokeWidth * 0.7} strokeLinecap="round" opacity="0.5"/>
+      <line x1="18" y1="12" x2="21.5" y2="12" stroke="currentColor" strokeWidth={strokeWidth * 0.7} strokeLinecap="round" opacity="0.5"/>
+      <line x1="12" y1="18" x2="12" y2="21.5" stroke="currentColor" strokeWidth={strokeWidth * 0.7} strokeLinecap="round" opacity="0.5"/>
+      <line x1="2.5" y1="12" x2="6" y2="12" stroke="currentColor" strokeWidth={strokeWidth * 0.7} strokeLinecap="round" opacity="0.5"/>
+    </svg>
+  );
+}
+
+/**
+ * HorizonMark — remplace Eye (MissionVisionSection — Notre Vision).
+ *
+ * Inspiré des SVG d'œil/vision fournis (amande oculaire, pupille, iris,
+ * antennes de vision directionnelle) : œil horizontal en amande avec iris
+ * concentrique et pupille pleine, flanqué de deux petits traits en antenne
+ * qui évoquent la vision élargie et le regard panafricain du média.
+ */
+export function HorizonMark({ size = 20, className, style, strokeWidth = 1.8, ...rest }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none"
+      className={className} style={style} xmlns="http://www.w3.org/2000/svg" {...rest}>
+      {/* Paupière supérieure — arc doux */}
+      <path d="M3 12C3 12 6.5 6 12 6C17.5 6 21 12 21 12"
+        stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round"/>
+      {/* Paupière inférieure — arc plus plat */}
+      <path d="M3 12C3 12 6.5 17.5 12 17.5C17.5 17.5 21 12 21 12"
+        stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round"/>
+      {/* Iris */}
+      <circle cx="12" cy="12" r="3.2" stroke="currentColor" strokeWidth={strokeWidth * 0.85}/>
+      {/* Pupille */}
+      <circle cx="12" cy="12" r="1.3" fill="currentColor"/>
+      {/* Reflet — petit arc intérieur haut-gauche */}
+      <path d="M10.8 10.8C11.1 10.3 11.6 10 12.2 10"
+        stroke="currentColor" strokeWidth={strokeWidth * 0.65} strokeLinecap="round" opacity="0.6"/>
+      {/* Antennes de vision — gauche et droite */}
+      <path d="M3 12L1 10.5M3 12L1 13.5"
+        stroke="currentColor" strokeWidth={strokeWidth * 0.75} strokeLinecap="round" opacity="0.7"/>
+      <path d="M21 12L23 10.5M21 12L23 13.5"
+        stroke="currentColor" strokeWidth={strokeWidth * 0.75} strokeLinecap="round" opacity="0.7"/>
     </svg>
   );
 }
