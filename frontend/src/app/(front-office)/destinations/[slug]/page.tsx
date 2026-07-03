@@ -29,7 +29,6 @@ interface ArticleCard {
   createdAt: string;
   type?: 'ARTICLE' | 'VIDEO';
   views?: number;
-  readingTime?: number;
   category: { name: string; color?: string };
   author: { name: string };
 }
@@ -42,7 +41,6 @@ interface Destination {
   coverImage: string;
   continent?: string;
   articleCount?: number;
-  // Infos pratiques
   capital?: string;
   currency?: string;
   language?: string;
@@ -50,9 +48,7 @@ interface Destination {
   climate?: string;
   bestPeriod?: string;
   visaRequired?: boolean;
-  // Contenu éditorial
   content?: ContentBlock[];
-  // Relations
   articles?: ArticleCard[];
   tags?: { id: number; name: string; slug: string }[];
 }
@@ -62,11 +58,6 @@ interface ApiResponse {
   data: Destination;
 }
 
-// ✅ CORRIGÉ — GET /mag/articles renvoie une réponse PLATE via
-// paginatedResponse() : { success, data: ArticleCard[], pagination: {...} }
-// et non { success, data: { data: [...], pagination: {...} } }.
-// La pagination utilise déjà des booléens calculés (hasNextPage), pas
-// un couple currentPage/totalPages à recalculer côté client.
 interface ArticlesApiResponse {
   success: boolean;
   data: ArticleCard[];
@@ -78,6 +69,24 @@ interface ArticlesApiResponse {
     hasNextPage: boolean;
     hasPrevPage: boolean;
   };
+}
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+/**
+ * ✅ Résout l'URL de détail selon le type de contenu :
+ *   - VIDEO  → /videos/[slug]
+ *   - ARTICLE (et tout autre type) → /actualites/[slug]
+ *
+ * Sans ce helper, tous les liens pointaient vers /articles/[slug],
+ * une route qui n'existe pas dans le front-office, provoquant un 404
+ * ou une page blanche au clic.
+ */
+function getContentHref(article: ArticleCard): string {
+  if (article.type === 'VIDEO') {
+    return `/videos/${article.slug}`;
+  }
+  return `/actualites/${article.slug}`;
 }
 
 // ─── Content Renderer ─────────────────────────────────────────────────────────
@@ -156,69 +165,89 @@ const InfoBadge = ({
   </div>
 );
 
-// ─── Article Card ─────────────────────────────────────────────────────────────
+// ─── Article/Video Card ───────────────────────────────────────────────────────
 
-const ArticleCard = ({ article }: { article: ArticleCard }) => (
-  <Link
-    href={`/articles/${article.slug}`}
-    className="group flex flex-col bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100 hover:shadow-lg transition-all duration-300 hover:-translate-y-1"
-  >
-    <div className="relative aspect-[16/10] overflow-hidden">
-      <img
-        src={article.coverImage || '/images/placeholder.jpg'}
-        alt={article.title}
-        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-      />
-      {/* Type badge */}
-      <span className="absolute top-3 left-3 bg-[#F19300] text-white text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wide flex items-center gap-1">
-        {article.type === 'VIDEO' ? (
-          <>
-            <Play size={9} fill="white" />
-            Vidéo
-          </>
-        ) : (
-          <>
-            <Newspaper size={9} />
-            Article
-          </>
-        )}
-      </span>
-      {/* Category */}
-      <span className="absolute bottom-3 left-3 bg-[#001A4D]/80 backdrop-blur-sm text-white text-[10px] font-semibold px-3 py-1 rounded-full uppercase tracking-wide">
-        {article.category.name}
-      </span>
-    </div>
-    <div className="p-5 flex flex-col flex-1">
-      <h3 className="text-base font-bold text-[#001A4D] leading-snug mb-2 group-hover:text-[#F19300] transition-colors line-clamp-2">
-        {article.title}
-      </h3>
-      <p className="text-gray-500 text-sm line-clamp-2 mb-4 flex-1">{article.excerpt}</p>
-      <div className="flex items-center justify-between text-[11px] text-gray-400 mt-auto pt-3 border-t border-gray-50">
-        <div className="flex items-center gap-1.5">
-          <User size={11} className="text-[#F19300]" />
-          <span className="font-medium text-gray-500">{article.author.name}</span>
-        </div>
-        <div className="flex items-center gap-3">
-          {article.views !== undefined && (
-            <div className="flex items-center gap-1">
-              <Eye size={11} />
-              <span>{article.views.toLocaleString('fr-FR')}</span>
+const ArticleCard = ({ article }: { article: ArticleCard }) => {
+  const isVideo = article.type === 'VIDEO';
+  // ✅ CORRIGÉ — route correcte selon le type :
+  //   - VIDEO  → /videos/[slug]   (VideoDetailPage)
+  //   - ARTICLE → /actualites/[slug]  (ArticleDetailPage)
+  const href = getContentHref(article);
+
+  return (
+    <Link
+      href={href}
+      className="group flex flex-col bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100 hover:shadow-lg transition-all duration-300 hover:-translate-y-1"
+    >
+      <div className="relative aspect-[16/10] overflow-hidden">
+        <img
+          src={article.coverImage || '/images/placeholder.jpg'}
+          alt={article.title}
+          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+        />
+
+        {/* Overlay play pour les vidéos */}
+        {isVideo && (
+          <div className="absolute inset-0 flex items-center justify-center bg-black/20 group-hover:bg-black/10 transition-colors">
+            <div className="w-12 h-12 bg-[#F19300] rounded-full flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+              <Play size={20} fill="white" className="text-white ml-0.5" />
             </div>
+          </div>
+        )}
+
+        {/* Type badge */}
+        <span className="absolute top-3 left-3 bg-[#F19300] text-white text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wide flex items-center gap-1">
+          {isVideo ? (
+            <>
+              <Play size={9} fill="white" />
+              Vidéo
+            </>
+          ) : (
+            <>
+              <Newspaper size={9} />
+              Article
+            </>
           )}
-          <div className="flex items-center gap-1">
-            <Calendar size={11} />
-            <span>
-              {new Date(article.createdAt).toLocaleDateString('fr-FR', {
-                day: 'numeric',
-                month: 'short',
-              })}
-            </span>
+        </span>
+
+        {/* Category */}
+        <span className="absolute bottom-3 left-3 bg-[#001A4D]/80 backdrop-blur-sm text-white text-[10px] font-semibold px-3 py-1 rounded-full uppercase tracking-wide">
+          {article.category.name}
+        </span>
+      </div>
+
+      <div className="p-5 flex flex-col flex-1">
+        <h3 className="text-base font-bold text-[#001A4D] leading-snug mb-2 group-hover:text-[#F19300] transition-colors line-clamp-2">
+          {article.title}
+        </h3>
+        <p className="text-gray-500 text-sm line-clamp-2 mb-4 flex-1">{article.excerpt}</p>
+        <div className="flex items-center justify-between text-[11px] text-gray-400 mt-auto pt-3 border-t border-gray-50">
+          <div className="flex items-center gap-1.5">
+            <User size={11} className="text-[#F19300]" />
+            <span className="font-medium text-gray-500">{article.author.name}</span>
+          </div>
+          <div className="flex items-center gap-3">
+            {article.views !== undefined && (
+              <div className="flex items-center gap-1">
+                <Eye size={11} />
+                <span>{article.views.toLocaleString('fr-FR')}</span>
+              </div>
+            )}
+            <div className="flex items-center gap-1">
+              <Calendar size={11} />
+              <span>
+                {new Date(article.createdAt).toLocaleDateString('fr-FR', {
+                  day: 'numeric',
+                  month: 'short',
+                })}
+              </span>
+            </div>
           </div>
         </div>
       </div>
-    </div>
-  </Link>
-);
+    </Link>
+  );
+};
 
 // ─── Stat Pill ────────────────────────────────────────────────────────────────
 
@@ -257,7 +286,6 @@ const DestinationDetailPage = () => {
         },
       });
 
-      // ✅ Réponse plate : res.data.data est directement le tableau d'articles
       const newArticles: ArticleCard[] = res.data.data ?? [];
       const pagination = res.data.pagination;
 
@@ -267,7 +295,6 @@ const DestinationDetailPage = () => {
         setArticles(newArticles);
       }
 
-      // ✅ Le backend calcule déjà ce booléen, pas besoin de le recalculer
       setHasMoreArticles(pagination?.hasNextPage ?? false);
       setArticlesPage(page + 1);
     } catch {
@@ -285,8 +312,6 @@ const DestinationDetailPage = () => {
         const res = await api.get<ApiResponse>(`/destinations/${slug}`);
         const data: Destination = res.data.data ?? res.data;
         setDestination(data);
-
-        // Charger les articles associés
         await fetchArticles(data.id, 1, false);
       } catch (error) {
         const axiosError = error as { response?: { status?: number } };
@@ -354,7 +379,7 @@ const DestinationDetailPage = () => {
   return (
     <main className="min-h-screen bg-white">
 
-      {/* ── Hero Cover Image ───────────────────────────────────────── */}
+      {/* ── Hero Cover Image ── */}
       <div className="relative w-full h-[500px] md:h-[620px]">
         <Image
           src={destination.coverImage || '/images/placeholder-dest.jpg'}
@@ -363,10 +388,8 @@ const DestinationDetailPage = () => {
           className="object-cover"
           priority
         />
-        {/* Gradient overlay */}
         <div className="absolute inset-0 bg-gradient-to-t from-[#001A4D]/95 via-[#001A4D]/40 to-transparent" />
 
-        {/* Back button */}
         <div className="absolute top-6 left-6 z-10">
           <button
             onClick={() => router.back()}
@@ -377,7 +400,6 @@ const DestinationDetailPage = () => {
           </button>
         </div>
 
-        {/* Continent badge */}
         {destination.continent && (
           <div className="absolute top-6 right-6 z-10">
             <span className="flex items-center gap-1.5 bg-white/20 backdrop-blur-sm text-white border border-white/30 px-4 py-2 rounded-full text-sm font-bold">
@@ -387,9 +409,7 @@ const DestinationDetailPage = () => {
           </div>
         )}
 
-        {/* Hero text overlay */}
         <div className="absolute bottom-0 left-0 right-0 p-8 md:p-14 max-w-6xl mx-auto w-full">
-          {/* Icone décorative */}
           <div className="flex items-center gap-3 mb-4">
             <div className="w-8 h-0.5 bg-[#F19300]" />
             <span className="text-[#F19300] text-xs font-bold uppercase tracking-[0.25em]">
@@ -407,7 +427,6 @@ const DestinationDetailPage = () => {
             </p>
           )}
 
-          {/* Stats Hero */}
           {destination.articleCount !== undefined && destination.articleCount > 0 && (
             <div className="mt-8 flex items-center gap-8">
               <StatPill value={destination.articleCount} label="Articles & Vidéos" />
@@ -416,7 +435,7 @@ const DestinationDetailPage = () => {
         </div>
       </div>
 
-      {/* ── Infos Pratiques ───────────────────────────────────────── */}
+      {/* ── Infos Pratiques ── */}
       {hasPracticalInfo && (
         <section className="bg-gradient-to-r from-[#001A4D] to-[#1D3A8A] py-12">
           <div className="max-w-6xl mx-auto px-4 md:px-8">
@@ -447,7 +466,6 @@ const DestinationDetailPage = () => {
               )}
             </div>
 
-            {/* Visa */}
             {destination.visaRequired !== undefined && (
               <div className="mt-4">
                 <span
@@ -466,10 +484,9 @@ const DestinationDetailPage = () => {
         </section>
       )}
 
-      {/* ── Corps de l'article ─────────────────────────────────────── */}
+      {/* ── Corps éditorial ── */}
       {parsedContent.length > 0 && (
         <section className="max-w-4xl mx-auto px-4 md:px-8 py-14">
-          {/* Chapô / description longue */}
           {destination.description && (
             <p className="text-xl text-[#1A365D] font-medium leading-relaxed border-l-4 border-[#F19300] pl-6 mb-10 italic">
               {destination.description}
@@ -479,7 +496,6 @@ const DestinationDetailPage = () => {
         </section>
       )}
 
-      {/* Si pas de contenu éditorial, afficher la description seule */}
       {parsedContent.length === 0 && destination.description && (
         <section className="max-w-4xl mx-auto px-4 md:px-8 py-14">
           <p className="text-xl text-[#1A365D] font-medium leading-relaxed border-l-4 border-[#F19300] pl-6 italic">
@@ -488,7 +504,7 @@ const DestinationDetailPage = () => {
         </section>
       )}
 
-      {/* ── Tags ──────────────────────────────────────────────────── */}
+      {/* ── Tags ── */}
       {destination.tags && destination.tags.length > 0 && (
         <div className="max-w-4xl mx-auto px-4 md:px-8 pb-10">
           <div className="flex flex-wrap items-center gap-3 pt-6 border-t border-gray-100">
@@ -505,10 +521,9 @@ const DestinationDetailPage = () => {
         </div>
       )}
 
-      {/* ── Articles & Vidéos ─────────────────────────────────────── */}
+      {/* ── Articles & Vidéos ── */}
       <section className="bg-gray-50 py-16 px-4 md:px-8">
         <div className="max-w-6xl mx-auto">
-          {/* Header section */}
           <div className="flex items-center justify-between mb-10">
             <div>
               <div className="flex items-center gap-3 mb-2">
@@ -530,7 +545,6 @@ const DestinationDetailPage = () => {
             )}
           </div>
 
-          {/* Grille articles */}
           {articles.length > 0 ? (
             <>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -539,7 +553,6 @@ const DestinationDetailPage = () => {
                 ))}
               </div>
 
-              {/* Voir plus */}
               {hasMoreArticles && (
                 <div className="mt-12 flex justify-center">
                   <button
@@ -574,7 +587,7 @@ const DestinationDetailPage = () => {
         </div>
       </section>
 
-      {/* ── Back to destinations CTA ───────────────────────────────── */}
+      {/* ── Back to destinations CTA ── */}
       <div className="py-12 flex justify-center bg-white border-t border-gray-100">
         <Link
           href="/destinations"
