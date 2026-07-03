@@ -48,9 +48,9 @@ function SalonCard({ salon, delay = 0 }: { salon: Salon; delay?: number }) {
     >
       <Link
         href={`/evenements/${salon.slug}`}
-        className="group flex gap-4 p-4 rounded-2xl border border-transparent hover:border-[#1A5C43]/15 hover:bg-[#F0FAF5] transition-all duration-200"
+        className="group flex items-start gap-4 p-5 min-h-[128px] rounded-2xl border border-transparent hover:border-[#1A5C43]/15 hover:bg-[#F0FAF5] transition-all duration-200"
       >
-        <div className="shrink-0 flex flex-col items-center justify-center w-14 h-14 rounded-xl text-white" style={{ background: '#1A5C43' }}>
+        <div className="shrink-0 flex flex-col items-center justify-center w-14 h-14 rounded-xl text-white mt-0.5" style={{ background: '#1A5C43' }}>
           {salon.startDate && (
             <>
               <span className="text-lg font-black leading-none">
@@ -85,7 +85,7 @@ function SalonCard({ salon, delay = 0 }: { salon: Salon; delay?: number }) {
           </div>
 
           {salon.excerpt && (
-            <p className="text-[12px] text-gray-400 mt-1.5 line-clamp-1">{salon.excerpt}</p>
+            <p className="text-[12px] text-gray-400 mt-2 leading-relaxed line-clamp-2">{salon.excerpt}</p>
           )}
         </div>
 
@@ -184,7 +184,7 @@ const EventsDestinationsSection = ({ salons, destinations }: EventsDestinationsS
             {salons.length === 0
               ? <p className="text-gray-400 text-sm italic px-4">Aucun événement pour le moment.</p>
               : (
-                <div className="flex flex-col gap-1">
+                <div className="flex flex-col gap-2">
                   {salons.map((salon, i) => <SalonCard key={salon.id} salon={salon} delay={i * 60} />)}
                 </div>
               )
