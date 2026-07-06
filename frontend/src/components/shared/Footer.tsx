@@ -19,7 +19,14 @@ const SECTEURS = [
   { label: 'Tourisme Durable',   slug: 'tourisme-durable' },
 ];
 
-const SOCIAL_ICONS = [SocialFacette, SocialEnvol, SocialNoeud, SocialEcran, SocialObjectif];
+// Chaque icône est maintenant associée à un nom de réseau, affiché en tooltip au survol
+const SOCIAL_ICONS = [
+  { Icon: SocialFacette,  label: 'Facebook'  },
+  { Icon: SocialEnvol,    label: 'Twitter'   },
+  { Icon: SocialNoeud,    label: 'LinkedIn'  },
+  { Icon: SocialObjectif, label: 'Instagram' },
+  { Icon: SocialEcran,    label: 'YouTube' },
+];
 
 const Footer = () => {
   return (
@@ -36,15 +43,27 @@ const Footer = () => {
               Une plateforme interactive pour les professionnels et passionnés du secteur.
             </p>
             <div className="flex gap-4">
-              {SOCIAL_ICONS.map((Icon, i) => (
-                <Icon
-                  key={i}
-                  size={30}
-                  className="cursor-pointer transition-colors"
-                  style={{ color: '#D4EDE5' }}
-                  onMouseEnter={e => (e.currentTarget.style.color = '#C8A84B')}
-                  onMouseLeave={e => (e.currentTarget.style.color = '#D4EDE5')}
-                />
+              {SOCIAL_ICONS.map(({ Icon, label }, i) => (
+                <div key={i} className="relative group">
+                  <Icon
+                    size={30}
+                    className="cursor-pointer transition-colors"
+                    style={{ color: '#D4EDE5' }}
+                    aria-label={label}
+                    onMouseEnter={e => (e.currentTarget.style.color = '#C8A84B')}
+                    onMouseLeave={e => (e.currentTarget.style.color = '#D4EDE5')}
+                  />
+                  {/* Tooltip affiché au survol */}
+                  <span
+                    className="pointer-events-none absolute left-1/2 -translate-x-1/2 -top-9 whitespace-nowrap
+                               rounded-md px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wider
+                               opacity-0 scale-95 transition-all duration-200
+                               group-hover:opacity-100 group-hover:scale-100"
+                    style={{ background: '#0D1A10', color: '#C8A84B' }}
+                  >
+                    {label}
+                  </span>
+                </div>
               ))}
             </div>
           </div>

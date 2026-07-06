@@ -38,6 +38,15 @@ const getExternalLink = (url: string): string => {
   return url;
 };
 
+// ─── Réseaux de partage — icône + nom affiché en tooltip au survol ────────────
+
+const SHARE_NETWORKS = [
+  { id: 'facebook', bg: '#3B5998', Icon: SocialFacette, label: 'Facebook' },
+  { id: 'twitter',  bg: '#000000', Icon: SocialEnvol,   label: 'Twitter'  },
+  { id: 'linkedin', bg: '#0077B5', Icon: SocialNoeud,   label: 'LinkedIn' },
+  { id: 'whatsapp', bg: '#25D366', Icon: WaveMark,      label: 'WhatsApp' },
+];
+
 // ─── Hook reveal ──────────────────────────────────────────────────────────────
 
 function useReveal(threshold = 0.08) {
@@ -305,21 +314,27 @@ const VideoHeroSection = ({ featuredVideo }: VideoHeroSectionProps) => {
                 Partager :
               </span>
               <div className="flex gap-2 sm:gap-3">
-                {[
-                  { id: 'facebook', bg: '#3B5998', Icon: SocialFacette },
-                  { id: 'twitter',  bg: '#000000', Icon: SocialEnvol  },
-                  { id: 'linkedin', bg: '#0077B5', Icon: SocialNoeud },
-                  { id: 'whatsapp', bg: '#25D366', Icon: WaveMark },
-                ].map(({ id, bg, Icon }) => (
-                  <button
-                    key={id}
-                    onClick={() => handleShare(id)}
-                    className="w-8 h-8 rounded-full flex items-center justify-center text-white hover:opacity-80 transition-all hover:scale-110 active:scale-95"
-                    style={{ background: bg }}
-                    aria-label={`Partager sur ${id}`}
-                  >
-                    <Icon size={24} />
-                  </button>
+                {SHARE_NETWORKS.map(({ id, bg, Icon, label }) => (
+                  <div key={id} className="relative group/social">
+                    <button
+                      onClick={() => handleShare(id)}
+                      className="cursor-pointer w-8 h-8 rounded-full flex items-center justify-center text-white hover:opacity-80 transition-all hover:scale-110 active:scale-95"
+                      style={{ background: bg }}
+                      aria-label={`Partager sur ${label}`}
+                    >
+                      <Icon size={24} />
+                    </button>
+                    {/* Tooltip affiché au survol */}
+                    <span
+                      className="pointer-events-none absolute left-1/2 -translate-x-1/2 -top-9 whitespace-nowrap
+                                 rounded-md px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wider
+                                 opacity-0 scale-95 transition-all duration-200
+                                 group-hover/social:opacity-100 group-hover/social:scale-100"
+                      style={{ background: '#0D1A10', color: '#C8A84B' }}
+                    >
+                      {label}
+                    </span>
+                  </div>
                 ))}
               </div>
             </div>
