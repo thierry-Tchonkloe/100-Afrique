@@ -1,3 +1,4 @@
+// src/controllers/admin/advertising.controller.ts
 import { Request, Response } from "express";
 import { advertisingService, bannerService, thirdPartyService } from "../../services/admin/advertising.service";
 

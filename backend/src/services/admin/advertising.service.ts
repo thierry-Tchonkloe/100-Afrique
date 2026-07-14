@@ -1,3 +1,4 @@
+// src/services/admin/advertising.service.ts
 import { BannerStatus } from "@prisma/client";
 import { v2 as cloudinary } from "cloudinary";
 import slugify from "slugify";
