@@ -6,12 +6,11 @@ import { fetchVitrine } from '@/services/vitrine.service';
 import { useRecruteurContext } from '@/context/RecruteurContext';
 import type { VitrineData } from '@/types/vitrine.types';
 
-// ── Vitrine vide — utilisée uniquement si l'API échoue
-// Pas de fausses données : l'utilisateur part d'une page blanche propre
 function makeEmptyVitrine(etablissementId = ''): VitrineData {
   return {
     id:              '',
     etablissementId,
+    companyName:     '',
     logoUrl:         undefined,
     bannerUrl:       undefined,
     slogan:          '',
@@ -24,6 +23,11 @@ function makeEmptyVitrine(etablissementId = ''): VitrineData {
     photos:          [],
     videos:          [],
     socials:         { linkedin: '', instagram: '', facebook: '', website: '' },
+    // NOUVEAU
+    phone:           '',
+    email:           '',
+    certifications:  [],
+    moments:         [],
   };
 }
 
@@ -35,13 +39,11 @@ interface UseVitrineReturn {
 }
 
 export function useVitrine(): UseVitrineReturn {
-  // Source de vérité de l'établissement actif : le contexte
   const { profile } = useRecruteurContext();
 
   const [vitrine, setVitrine] = useState<VitrineData | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Ref stable pour l'etablissementId
   const activeEtabRef = useRef<string | undefined>(undefined);
 
   useEffect(() => {
@@ -56,14 +58,12 @@ export function useVitrine(): UseVitrineReturn {
       const data = await fetchVitrine(activeEtabRef.current);
       setVitrine(data);
     } catch {
-      // En cas d'erreur : vitrine vide avec le vrai etablissementId
       setVitrine(makeEmptyVitrine(activeEtabRef.current));
     } finally {
       setLoading(false);
     }
   }, []);
 
-  // Charger dès que le profil est disponible ou change d'établissement
   useEffect(() => {
     if (profile !== null) {
       if (profile.activeEtablissementId) {
@@ -75,6 +75,190 @@ export function useVitrine(): UseVitrineReturn {
 
   return { vitrine, loading, setVitrine, refetch: load };
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// // src/hooks/useVitrine.ts
+// 'use client';
+
+// import { useState, useEffect, useCallback, useRef } from 'react';
+// import { fetchVitrine } from '@/services/vitrine.service';
+// import { useRecruteurContext } from '@/context/RecruteurContext';
+// import type { VitrineData } from '@/types/vitrine.types';
+
+// // ── Vitrine vide — utilisée uniquement si l'API échoue
+// // Pas de fausses données : l'utilisateur part d'une page blanche propre
+// function makeEmptyVitrine(etablissementId = ''): VitrineData {
+//   return {
+//     id:              '',
+//     etablissementId,
+//     companyName:     '', // NOUVEAU
+//     logoUrl:         undefined,
+//     bannerUrl:       undefined,
+//     slogan:          '',
+//     kpis:            [],
+//     location:        '',
+//     sector:          '',
+//     aboutUs:         '',
+//     values:          [],
+//     perks:           [],
+//     photos:          [],
+//     videos:          [],
+//     socials:         { linkedin: '', instagram: '', facebook: '', website: '' },
+//   };
+// }
+
+// interface UseVitrineReturn {
+//   vitrine: VitrineData | null;
+//   loading: boolean;
+//   setVitrine: React.Dispatch<React.SetStateAction<VitrineData | null>>;
+//   refetch: () => void;
+// }
+
+// export function useVitrine(): UseVitrineReturn {
+//   // Source de vérité de l'établissement actif : le contexte
+//   const { profile } = useRecruteurContext();
+
+//   const [vitrine, setVitrine] = useState<VitrineData | null>(null);
+//   const [loading, setLoading] = useState(true);
+
+//   // Ref stable pour l'etablissementId
+//   const activeEtabRef = useRef<string | undefined>(undefined);
+
+//   useEffect(() => {
+//     if (profile?.activeEtablissementId) {
+//       activeEtabRef.current = profile.activeEtablissementId;
+//     }
+//   }, [profile?.activeEtablissementId]);
+
+//   const load = useCallback(async () => {
+//     setLoading(true);
+//     try {
+//       const data = await fetchVitrine(activeEtabRef.current);
+//       setVitrine(data);
+//     } catch {
+//       // En cas d'erreur : vitrine vide avec le vrai etablissementId
+//       setVitrine(makeEmptyVitrine(activeEtabRef.current));
+//     } finally {
+//       setLoading(false);
+//     }
+//   }, []);
+
+//   // Charger dès que le profil est disponible ou change d'établissement
+//   useEffect(() => {
+//     if (profile !== null) {
+//       if (profile.activeEtablissementId) {
+//         activeEtabRef.current = profile.activeEtablissementId;
+//       }
+//       load();
+//     }
+//   }, [profile?.activeEtablissementId, load]);
+
+//   return { vitrine, loading, setVitrine, refetch: load };
+// }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// // src/hooks/useVitrine.ts
+// 'use client';
+
+// import { useState, useEffect, useCallback, useRef } from 'react';
+// import { fetchVitrine } from '@/services/vitrine.service';
+// import { useRecruteurContext } from '@/context/RecruteurContext';
+// import type { VitrineData } from '@/types/vitrine.types';
+
+// // ── Vitrine vide — utilisée uniquement si l'API échoue
+// // Pas de fausses données : l'utilisateur part d'une page blanche propre
+// function makeEmptyVitrine(etablissementId = ''): VitrineData {
+//   return {
+//     id:              '',
+//     etablissementId,
+//     logoUrl:         undefined,
+//     bannerUrl:       undefined,
+//     slogan:          '',
+//     kpis:            [],
+//     location:        '',
+//     sector:          '',
+//     aboutUs:         '',
+//     values:          [],
+//     perks:           [],
+//     photos:          [],
+//     videos:          [],
+//     socials:         { linkedin: '', instagram: '', facebook: '', website: '' },
+//   };
+// }
+
+// interface UseVitrineReturn {
+//   vitrine: VitrineData | null;
+//   loading: boolean;
+//   setVitrine: React.Dispatch<React.SetStateAction<VitrineData | null>>;
+//   refetch: () => void;
+// }
+
+// export function useVitrine(): UseVitrineReturn {
+//   // Source de vérité de l'établissement actif : le contexte
+//   const { profile } = useRecruteurContext();
+
+//   const [vitrine, setVitrine] = useState<VitrineData | null>(null);
+//   const [loading, setLoading] = useState(true);
+
+//   // Ref stable pour l'etablissementId
+//   const activeEtabRef = useRef<string | undefined>(undefined);
+
+//   useEffect(() => {
+//     if (profile?.activeEtablissementId) {
+//       activeEtabRef.current = profile.activeEtablissementId;
+//     }
+//   }, [profile?.activeEtablissementId]);
+
+//   const load = useCallback(async () => {
+//     setLoading(true);
+//     try {
+//       const data = await fetchVitrine(activeEtabRef.current);
+//       setVitrine(data);
+//     } catch {
+//       // En cas d'erreur : vitrine vide avec le vrai etablissementId
+//       setVitrine(makeEmptyVitrine(activeEtabRef.current));
+//     } finally {
+//       setLoading(false);
+//     }
+//   }, []);
+
+//   // Charger dès que le profil est disponible ou change d'établissement
+//   useEffect(() => {
+//     if (profile !== null) {
+//       if (profile.activeEtablissementId) {
+//         activeEtabRef.current = profile.activeEtablissementId;
+//       }
+//       load();
+//     }
+//   }, [profile?.activeEtablissementId, load]);
+
+//   return { vitrine, loading, setVitrine, refetch: load };
+// }
 
 
 

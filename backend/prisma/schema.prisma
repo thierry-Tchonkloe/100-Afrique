@@ -673,6 +673,18 @@ model Vitrine {
   photos          Json          @default("[]")
   videos          Json          @default("[]")
   socials         Json          @default("{}")
+
+  // ── NOUVEAU : infos pratiques + certifications + moments de vie d'équipe ──
+  // Ces 4 champs manquaient entièrement : la page publique affichait un
+  // téléphone/email/certifications/moments codés en dur (identiques pour
+  // toutes les entreprises), faute de tout champ éditable côté recruteur.
+  // Désormais renseignables depuis l'onglet "Infos & Certifications" du
+  // dashboard vitrine (voir InfosSection dans VitrineSections.tsx).
+  phone           String?       @default("")
+  email           String?       @default("")
+  certifications  Json          @default("[]") // string[] — labels/certifications libres
+  moments         Json          @default("[]") // { id, title, description, photoUrl }[]
+
   completionScore Int           @default(0)
   views           Int           @default(0)
   createdAt       DateTime      @default(now())
