@@ -9,12 +9,14 @@ import {
   useCallback,
   type ReactNode,
 } from 'react';
+import { useRouter } from 'next/navigation';
 import { fetchRecruteurProfile, switchEtablissement } from '@/services/recruteur.service';
+import { clearAuth, getAuthToken, getAuthUser } from '@/services/emploi-auth.service';
 import type { RecruteurProfile } from '@/types/recruteur.types';
 
-// ── Le MOCK ne sert QUE si l'API est totalement inaccessible en dev.
-// En production, si l'API échoue, `profile` reste null et le loading spinner
-// est maintenu — on n'affiche jamais un faux nom.
+// ── Le MOCK ne sert QUE si l'API est totalement inaccessible en dev, ET
+// qu'un token RECRUITER existe déjà (donc pas un simple visiteur). En
+// production, si l'API échoue, `profile` reste null et on redirige.
 const IS_DEV = process.env.NODE_ENV === 'development';
 
 const DEV_MOCK_PROFILE: RecruteurProfile = {
@@ -42,6 +44,8 @@ const RecruteurContext = createContext<RecruteurContextValue | null>(null);
 
 // ── Provider ──────────────────────────────────────────────────────────────────
 export function RecruteurContextProvider({ children }: { children: ReactNode }) {
+  const router = useRouter();
+
   const [profile,               setProfile]               = useState<RecruteurProfile | null>(null);
   const [newCandidaturesCount,  setNewCandidaturesCount]  = useState(0);
   const [loading,               setLoading]               = useState(true);
@@ -49,21 +53,53 @@ export function RecruteurContextProvider({ children }: { children: ReactNode }) 
   useEffect(() => {
     let cancelled = false;
 
+    function redirectToAuth() {
+      clearAuth();
+      const current = typeof window !== 'undefined' ? window.location.pathname : '/recruteur/dashboard';
+      router.replace(`/auth?redirect=${encodeURIComponent(current)}`);
+    }
+
     async function load() {
+      // ── FIX SÉCURITÉ : double vérification côté client, en complément du
+      // middleware serveur (src/middleware.ts). Le middleware protège déjà
+      // la navigation initiale, mais ce garde-fou couvre les cas où il
+      // serait contourné (cookies désactivés, certaines navigations client)
+      // et évite un appel API inutile si l'on sait déjà qu'il n'y a pas de
+      // session recruteur valide.
+      const token = getAuthToken();
+      const user  = getAuthUser();
+      if (!token || !user || user.role !== 'RECRUITER') {
+        redirectToAuth();
+        return;
+      }
+
       setLoading(true);
       try {
         // Charge le vrai profil du recruteur connecté depuis /api/emploi/recruteur/profile
         const data = await fetchRecruteurProfile();
         if (!cancelled) setProfile(data);
-      } catch (err) {
-        if (!cancelled) {
-          if (IS_DEV) {
-            // En dev uniquement : fallback visible "[Dev] Mode" pour ne pas bloquer l'UI
-            console.warn('[RecruteurContext] API inaccessible — mode dev actif', err);
-            setProfile(DEV_MOCK_PROFILE);
-          }
-          // En production : on laisse profile = null → les pages affichent un loader
+      } catch (err: any) {
+        if (cancelled) return;
+
+        const status = err?.response?.status;
+        if (status === 401 || status === 403) {
+          // Token invalide, expiré, ou rôle refusé côté backend → déconnexion
+          // forcée et retour à l'écran de connexion.
+          redirectToAuth();
+          return;
         }
+
+        if (IS_DEV) {
+          // En dev uniquement, et seulement si un token RECRUITER existe
+          // déjà (donc pas un simple visiteur non connecté) : fallback
+          // visible "[Dev] Mode" pour ne pas bloquer le travail en local si
+          // l'API backend n'est pas démarrée.
+          console.warn('[RecruteurContext] API inaccessible — mode dev actif', err);
+          setProfile(DEV_MOCK_PROFILE);
+        }
+        // En production, pour une erreur réseau (pas 401/403) : on laisse
+        // profile = null → le layout affiche un loader, jamais de fausses
+        // données ni le contenu recruteur.
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -71,6 +107,7 @@ export function RecruteurContextProvider({ children }: { children: ReactNode }) 
 
     load();
     return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // charge une seule fois au montage
 
   const switchEtab = useCallback(async (id: string) => {
@@ -105,104 +142,3 @@ export function useRecruteurContext(): RecruteurContextValue {
   if (!ctx) throw new Error('useRecruteurContext must be used within RecruteurContextProvider');
   return ctx;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// // src/context/RecruteurContext.tsx
-// 'use client';
-// // src/context/RecruteurContext.tsx
-
-// import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react';
-// import axios from 'axios';
-// import type { RecruteurProfile } from '@/types/recruteur.types';
-// import { switchEtablissement } from '@/services/recruteur.service';
-
-// // ── Mock profile (used when API not available) ────────────────────────────────
-// const MOCK_PROFILE: RecruteurProfile = {
-//   id: 'rec-001',
-//   firstName: 'Marie',
-//   lastName: 'Dubois',
-//   email: 'marie.dubois@grandhotel.fr',
-//   role: 'RECRUITER',
-//   etablissements: [
-//     { id: 'etab-001', name: 'Grand Hôtel de Paris',   sector: 'Hôtellerie',  city: 'Paris' },
-//     { id: 'etab-002', name: "Spa Resort Côte d'Azur", sector: 'Bien-être',   city: 'Nice'  },
-//   ],
-//   activeEtablissementId: 'etab-001',
-// };
-
-// // ── Context type ──────────────────────────────────────────────────────────────
-// interface RecruteurContextValue {
-//   profile: RecruteurProfile | null;
-//   newCandidaturesCount: number;
-//   setNewCandidaturesCount: (n: number) => void;
-//   switchEtab: (id: string) => void;
-//   loading: boolean;
-// }
-
-// const RecruteurContext = createContext<RecruteurContextValue | null>(null);
-
-// // ── Provider ──────────────────────────────────────────────────────────────────
-// export function RecruteurContextProvider({ children }: { children: ReactNode }) {
-//   const [profile, setProfile] = useState<RecruteurProfile | null>(null);
-//   const [newCandidaturesCount, setNewCandidaturesCount] = useState(0);
-//   const [loading, setLoading] = useState(true);
-
-//   useEffect(() => {
-//     async function load() {
-//       try {
-//         const base  = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:5000/api';
-//         const token = typeof window !== 'undefined' ? localStorage.getItem('emploi_token') : null;
-//         const { data } = await axios.get<RecruteurProfile>(
-//           `${base}/emploi/recruteur/profile`,
-//           { headers: token ? { Authorization: `Bearer ${token}` } : {} }
-//         );
-//         setProfile(data);
-//       } catch {
-//         setProfile(MOCK_PROFILE);
-//         setNewCandidaturesCount(5);
-//       } finally {
-//         setLoading(false);
-//       }
-//     }
-//     load();
-//   }, []);
-
-//   const switchEtab = useCallback(async (id: string) => {
-//     setProfile((prev) => prev ? { ...prev, activeEtablissementId: id } : prev);
-//     try { await switchEtablissement(id); } catch {}
-//   }, []);
-
-//   return (
-//     <RecruteurContext.Provider value={{
-//       profile,
-//       newCandidaturesCount,
-//       setNewCandidaturesCount,
-//       switchEtab,
-//       loading,
-//     }}>
-//       {children}
-//     </RecruteurContext.Provider>
-//   );
-// }
-
-// // ── Hook ──────────────────────────────────────────────────────────────────────
-// export function useRecruteurContext(): RecruteurContextValue {
-//   const ctx = useContext(RecruteurContext);
-//   if (!ctx) throw new Error('useRecruteurContext must be used within RecruteurContextProvider');
-//   return ctx;
-// }
