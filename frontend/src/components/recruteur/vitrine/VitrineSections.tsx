@@ -1,12 +1,4 @@
 // src/components/recruteur/vitrine/VitrineSections.tsx
-// CORRECTION : IdentiteSection — après upload Cloudinary réussi, on appelle
-// onChange({ logoUrl }) avec l'URL finale. Le state local n'est utilisé QUE
-// comme prévisualisation pendant l'upload en cours (blob temporaire).
-// NOUVEAU : IdentiteSection expose un champ "Nom de l'entreprise" éditable
-// (vitrine.companyName), synchronisé côté backend vers Etablissement.name.
-// NOUVEAU : InfosSection (téléphone, email, certifications, moments de vie
-// d'équipe) — ces informations étaient auparavant codées en dur sur la page
-// publique, sans aucun moyen de les renseigner depuis le dashboard.
 'use client';
 
 import { useRef, useState, useEffect } from 'react';

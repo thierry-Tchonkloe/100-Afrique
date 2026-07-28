@@ -1,5 +1,14 @@
 // src/types/candidatures.types.ts
-// ─── Application Status ───────────────────────────────────────────────────────
+//
+// Source UNIQUE de vérité pour tout ce qui touche aux candidatures et
+// notifications. AVANT : emploi.types.ts redéfinissait sa propre version
+// plus étroite d'ApplicationStatus (5 valeurs : pending/in_progress/
+// accepted/refused/interview) alors que celle-ci en a 9 (elle correspond
+// exactement aux valeurs renvoyées par le backend — voir
+// candidatures.service.ts côté API, fonction toFrontStatus). Deux unions
+// différentes pour le même concept forçaient des `as any` disséminés
+// dans les composants pour faire taire TypeScript — ce n'est jamais un
+// vrai fix, juste un silence. emploi.types.ts importe désormais ce type.
 
 export type ApplicationStatus =
   | 'pending'
@@ -12,16 +21,12 @@ export type ApplicationStatus =
   | 'refused'
   | 'archived';
 
-// ─── Timeline Event ───────────────────────────────────────────────────────────
-
 export interface TimelineEvent {
   id: string;
   status: ApplicationStatus;
   date: string; // ISO
   note?: string;
 }
-
-// ─── Application ─────────────────────────────────────────────────────────────
 
 export interface Application {
   id: string;
@@ -35,20 +40,16 @@ export interface Application {
   appliedAt: string;  // ISO - date d'envoi
   status: ApplicationStatus;
   timeline: TimelineEvent[];
-  cvSent?: string;    // nom du fichier CV
+  cvSent?: string;
   coverLetterSent?: boolean;
   hasChat?: boolean;
 }
-
-// ─── Stats ────────────────────────────────────────────────────────────────────
 
 export interface CandidaturesStats {
   total: number;
   inProgress: number;
   interviews: number;
 }
-
-// ─── Notification (shared type) ───────────────────────────────────────────────
 
 export type NotificationType =
   | 'new_offer'
@@ -65,12 +66,10 @@ export interface CandidatNotification {
   read: boolean;
 }
 
-// ─── Filter ───────────────────────────────────────────────────────────────────
-
 export type FilterTab = 'all' | 'active' | 'archived';
 
 export const FILTER_LABELS: Record<FilterTab, string> = {
-  all:      'Toutes',
-  active:   'Actives',
+  all: 'Toutes',
+  active: 'Actives',
   archived: 'Archives',
 };

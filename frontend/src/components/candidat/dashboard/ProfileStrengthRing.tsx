@@ -1,4 +1,4 @@
-// src/components/emploi/ProfileStrengthRing.tsx
+// src/components/candidat/dashboard/ProfileStrengthRing.tsx
 'use client';
 
 interface ProfileStrengthRingProps {
@@ -13,11 +13,7 @@ export default function ProfileStrengthRing({ percentage }: ProfileStrengthRingP
   return (
     <div className="relative w-16 h-16 flex-shrink-0">
       <svg className="w-full h-full -rotate-90" viewBox="0 0 72 72">
-        <circle
-          cx="36" cy="36" r={radius}
-          fill="none" stroke="#F3F4F6" strokeWidth="5"
-          strokeDasharray="4 4"
-        />
+        <circle cx="36" cy="36" r={radius} fill="none" stroke="#F3F4F6" strokeWidth="5" strokeDasharray="4 4" />
         <circle
           cx="36" cy="36" r={radius}
           fill="none" stroke="#E8622A" strokeWidth="5"

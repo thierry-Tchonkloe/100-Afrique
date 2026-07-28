@@ -1,10 +1,12 @@
 // src/hooks/useProfil.ts
 'use client';
-import { useState, useEffect, useCallback } from 'react';
-import axios from 'axios';
+
+import { useState, useEffect } from 'react';
+import { useApiResource } from './useApiResource';
+import { fetchProfil } from '@/services/profil.service';
 import type { CandidatProfil, LanguageLevel, AvailabilityOption } from '@/types/profil.types';
 
-const MOCK_PROFIL: CandidatProfil = {
+const DEV_MOCK: CandidatProfil = {
   id: 'cand-001',
   firstName: 'Marie',
   lastName: 'Dubois',
@@ -25,14 +27,12 @@ const MOCK_PROFIL: CandidatProfil = {
       missions: ['Accueil et enregistrement des clients VIP', 'Gestion des réservations'],
     },
   ],
-  formations: [
-    { id: 'form-001', diploma: 'BTS Tourisme', school: 'Lycée Paul Augier', year: '2018' },
-  ],
+  formations: [{ id: 'form-001', diploma: 'BTS Tourisme', school: 'Lycée Paul Augier', year: '2018' }],
   hardSkills: ['PMS Opera', 'Booking.com'],
   softSkills: ["Sens du service", "Esprit d'équipe"],
   languages: [
     { id: 'l1', name: 'Français', level: 'Natif' as LanguageLevel },
-    { id: 'l2', name: 'Anglais',  level: 'B2'    as LanguageLevel },
+    { id: 'l2', name: 'Anglais', level: 'B2' as LanguageLevel },
   ],
   cvFile: { name: 'CV_Marie_Dubois.pdf', updatedAt: '15 janvier 2024' },
   isVisible: true,
@@ -41,43 +41,24 @@ const MOCK_PROFIL: CandidatProfil = {
 };
 
 export function useProfil() {
-  // ← Initialisé avec MOCK_PROFIL, jamais null
-  const [profil, setProfil]   = useState<CandidatProfil>(MOCK_PROFIL);
-  const [loading, setLoading] = useState(true);
+  const resource = useApiResource<CandidatProfil>({ fetcher: fetchProfil, devFallback: DEV_MOCK });
 
-  const load = useCallback(async () => {
-    setLoading(true);
-    try {
-      const base  = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:5000/api';
-      const token = typeof window !== 'undefined' ? localStorage.getItem('emploi_token') : null;
+  // La page profil édite localement (Identité, Expériences, ...) avant
+  // sauvegarde section par section — elle a besoin d'un objet TOUJOURS
+  // défini. On sépare donc "donnée réseau" (peut être null pendant le
+  // chargement ou en cas d'erreur) et "état éditable local", synchronisé
+  // uniquement quand le chargement réussit réellement.
+  const [localProfil, setLocalProfil] = useState<CandidatProfil>(DEV_MOCK);
 
-      const { data } = await axios.get<{ success: boolean; data: CandidatProfil }>(
-        `${base}/emploi/candidat/profil`,
-        { headers: token ? { Authorization: `Bearer ${token}` } : {} }
-      );
+  useEffect(() => {
+    if (resource.data) setLocalProfil(resource.data);
+  }, [resource.data]);
 
-      // L'API retourne { success, data } — unwrap
-      const p = data.data ?? data as unknown as CandidatProfil;
-
-      setProfil({
-        ...MOCK_PROFIL, // base de sécurité si l'API renvoie des champs manquants
-        ...p,
-        firstName:    p.firstName    || MOCK_PROFIL.firstName,
-        lastName:     p.lastName     || MOCK_PROFIL.lastName,
-        availability: (p.availability ?? 'immediate') as AvailabilityOption,
-        languages:    (p.languages   ?? []).map((l) => ({ ...l, level: l.level as LanguageLevel })),
-        experiences:  p.experiences  ?? [],
-        formations:   p.formations   ?? [],
-        hardSkills:   p.hardSkills   ?? [],
-        softSkills:   p.softSkills   ?? [],
-      });
-    } catch {
-      setProfil(MOCK_PROFIL);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => { load(); }, [load]);
-  return { profil, loading, setProfil, refetch: load };
+  return {
+    profil: localProfil,
+    loading: resource.loading,
+    error: resource.error,
+    setProfil: setLocalProfil,
+    refetch: resource.refetch,
+  };
 }
