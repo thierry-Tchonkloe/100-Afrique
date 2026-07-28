@@ -1,4 +1,4 @@
-// src/components/emploi/KpiCard.tsx
+// src/components/candidat/dashboard/KpiCard.tsx
 import { type ReactNode } from 'react';
 
 interface KpiCardProps {

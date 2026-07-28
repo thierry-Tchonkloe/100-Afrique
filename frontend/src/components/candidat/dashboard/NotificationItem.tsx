@@ -1,4 +1,4 @@
-// src/components/emploi/NotificationItem.tsx
+// src/components/candidat/dashboard/NotificationItem.tsx
 import type { CandidatNotification, NotificationType } from '@/types/candidatures.types';
 import { Bell, Eye, CheckCircle, XCircle } from 'lucide-react';
 import clsx from 'clsx';

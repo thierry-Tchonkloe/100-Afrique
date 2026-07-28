@@ -1,9 +1,6 @@
 // src/utils/response.ts
 import type { Response } from 'express';
 
-/**
- * Interface pour les réponses paginées
- */
 export interface PaginationMeta {
   page: number;
   pageSize: number;
@@ -13,14 +10,8 @@ export interface PaginationMeta {
   hasPrevPage: boolean;
 }
 
-/**
- * Type pour les erreurs de validation
- */
 export type ValidationErrors = Record<string, unknown> | unknown[];
 
-/**
- * Réponse de succès standardisée
- */
 export function successResponse<T>(
   res: Response,
   data: T,
@@ -34,9 +25,6 @@ export function successResponse<T>(
   });
 }
 
-/**
- * Réponse de succès avec pagination
- */
 export function paginatedResponse<T>(
   res: Response,
   data: T[],
@@ -52,31 +40,27 @@ export function paginatedResponse<T>(
 }
 
 /**
- * Réponse d'erreur standardisée
+ * @param code Code machine-readable stable (ex: 'DUPLICATE_ENTRY',
+ * 'VALIDATION_ERROR'). Permet au frontend de brancher sa logique sur
+ * `error.code` plutôt que de parser un message humain qui peut changer.
  */
 export function errorResponse(
   res: Response,
   message: string,
   statusCode: number = 500,
-  errors?: ValidationErrors
+  errors?: ValidationErrors,
+  code?: string
 ): void {
   res.status(statusCode).json({
     success: false,
     message,
+    ...(code && { code }),
     ...(errors && { errors }),
   });
 }
 
-/**
- * Calcule les métadonnées de pagination
- */
-export function calculatePagination(
-  page: number,
-  pageSize: number,
-  totalItems: number
-): PaginationMeta {
+export function calculatePagination(page: number, pageSize: number, totalItems: number): PaginationMeta {
   const totalPages = Math.ceil(totalItems / pageSize);
-
   return {
     page,
     pageSize,

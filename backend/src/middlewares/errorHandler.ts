@@ -5,148 +5,129 @@ import { logger } from '../utils/logger';
 import { errorResponse } from '../utils/response';
 
 /**
- * Classe d'erreur personnalisée pour les erreurs métier
+ * Classe d'erreur de base. Les erreurs métier concrètes vivent dans
+ * src/errors/http-errors.ts (BadRequestError, NotFoundError, ...) et
+ * héritent de celle-ci. Les services ne doivent JAMAIS lancer un
+ * `new Error("...")` brut : toujours une sous-classe d'AppError, sinon
+ * on retombe dans le "tout en 500" repéré en revue.
  */
 export class AppError extends Error {
+  public code?: string;
   constructor(
     public message: string,
     public statusCode: number = 500,
     public isOperational: boolean = true
   ) {
     super(message);
-    Object.setPrototypeOf(this, AppError.prototype);
+    // FIX : `new.target` référence la classe réellement instanciée
+    // (ForbiddenError, ConflictError, ...), pas AppError elle-même.
+    // L'ancienne version faisait `Object.setPrototypeOf(this, AppError.prototype)`
+    // en dur, ce qui écrasait le prototype de TOUTE sous-classe et cassait
+    // `instanceof ForbiddenError` (seul `instanceof AppError` restait vrai).
+    // C'est exactement le bug révélé par les tests unitaires.
+    Object.setPrototypeOf(this, new.target.prototype);
   }
 }
 
-/**
- * Interface pour les erreurs Prisma
- */
 interface PrismaError extends Error {
   code: string;
-  meta?: {
-    target?: string[];
-  };
-  clientVersion?: string;
+  meta?: { target?: string[]; cause?: string; field_name?: string };
 }
 
-/**
- * Middleware de gestion centralisée des erreurs
- */
 export const errorHandler = (
   err: Error,
   req: Request,
   res: Response,
   _next: NextFunction
 ): void => {
-  // Log de l'erreur
-  logger.error(`Erreur sur ${req.method} ${req.path}:`, err);
+  // Toujours logger avec le chemin + la méthode : c'est ce qui permet de
+  // "retrouver rapidement" un flux quand ça casse, comme demandé en revue.
+  logger.error(`[${req.method} ${req.originalUrl}]`, err);
 
-  // Erreur Zod (validation)
   if (err instanceof ZodError) {
-    errorResponse(res, 'Erreur de validation des données', 400, err.issues);
+    const details = err.issues.map((i) => ({ field: i.path.join('.'), message: i.message }));
+    errorResponse(res, 'Certaines données envoyées sont invalides', 400, details, 'VALIDATION_ERROR');
     return;
   }
 
-  // Erreur Prisma (base de données)
   if (isPrismaError(err)) {
     handlePrismaError(err, res);
     return;
   }
 
-  // Erreur applicative personnalisée
   if (err instanceof AppError) {
-    errorResponse(res, err.message, err.statusCode);
+    errorResponse(res, err.message, err.statusCode, undefined, err.code);
     return;
   }
 
-  // Erreur JWT
   if (err.name === 'JsonWebTokenError') {
-    errorResponse(res, 'Token invalide', 401);
+    errorResponse(res, 'Token invalide', 401, undefined, 'INVALID_TOKEN');
     return;
   }
-
   if (err.name === 'TokenExpiredError') {
-    errorResponse(res, 'Token expiré', 401);
+    errorResponse(res, 'Session expirée, merci de vous reconnecter', 401, undefined, 'TOKEN_EXPIRED');
     return;
   }
 
-  // Erreur inconnue (ne pas exposer les détails en production)
+  // Erreur vraiment non prévue : on ne masque rien en dev, on ne fuite
+  // rien en prod, mais surtout on log tout pour pouvoir la classer plus
+  // tard (ajouter une AppError dédiée si le cas se reproduit).
   const isDevelopment = process.env.NODE_ENV === 'development';
-  
   errorResponse(
     res,
-    isDevelopment ? err.message : 'Une erreur interne est survenue',
+    isDevelopment ? err.message : 'Une erreur interne est survenue. Contactez le support si ça persiste.',
     500,
-    isDevelopment ? { stack: err.stack, name: err.name } : undefined
+    isDevelopment ? { stack: err.stack, name: err.name } : undefined,
+    'INTERNAL_ERROR'
   );
 };
 
-/**
- * Vérifie si l'erreur est une erreur Prisma
- */
 function isPrismaError(err: Error): err is PrismaError {
-  return (
-    typeof err === 'object' &&
-    err !== null &&
-    'code' in err &&
-    typeof (err as PrismaError).code === 'string'
-  );
+  return typeof err === 'object' && err !== null && 'code' in err && typeof (err as PrismaError).code === 'string';
 }
 
-/**
- * Gestion spécifique des erreurs Prisma
- */
 function handlePrismaError(err: PrismaError, res: Response): void {
   switch (err.code) {
-    case 'P2002':
-      // Violation de contrainte d'unicité
+    case 'P2002': {
       const field = (err.meta?.target as string[])?.join(', ') || 'champ';
-      errorResponse(res, `Ce ${field} existe déjà`, 409);
+      errorResponse(res, `Cette valeur pour "${field}" est déjà utilisée`, 409, undefined, 'DUPLICATE_ENTRY');
       break;
-
+    }
     case 'P2025':
-      // Enregistrement non trouvé
-      errorResponse(res, 'Ressource non trouvée', 404);
+      errorResponse(res, 'La ressource demandée est introuvable', 404, undefined, 'NOT_FOUND');
       break;
-
     case 'P2003':
-      // Violation de clé étrangère
-      errorResponse(res, 'Référence invalide', 400);
+      errorResponse(res, 'La référence fournie ne correspond à aucune ressource existante', 400, undefined, 'INVALID_REFERENCE');
       break;
-
     case 'P2014':
-      // Relation requise manquante
-      errorResponse(res, 'Relation requise manquante', 400);
+      errorResponse(res, 'Cette opération violerait une relation requise entre deux ressources', 400, undefined, 'RELATION_VIOLATION');
       break;
-
     case 'P2021':
-      // Table inexistante
-      errorResponse(res, 'Erreur de configuration de la base de données', 500);
+      errorResponse(res, 'Erreur de configuration de la base de données', 500, undefined, 'DB_CONFIG_ERROR');
       break;
-
     default:
-      // ✅ CORRECTION : Combiner les infos dans un seul message
-      logger.error(`Erreur Prisma non gérée - Code: ${err.code}`, err);
+      logger.error(`Erreur Prisma non gérée explicitement — Code: ${err.code}`, err);
       errorResponse(
         res,
         'Erreur de base de données',
         500,
-        process.env.NODE_ENV === 'development' ? { code: err.code, meta: err.meta } : undefined
+        process.env.NODE_ENV === 'development' ? { code: err.code, meta: err.meta } : undefined,
+        'DATABASE_ERROR'
       );
   }
 }
 
-/**
- * Middleware pour gérer les routes non trouvées
- */
 export const notFoundHandler = (req: Request, res: Response): void => {
-  errorResponse(res, `Route ${req.originalUrl} non trouvée`, 404);
+  errorResponse(res, `Route ${req.originalUrl} introuvable`, 404, undefined, 'ROUTE_NOT_FOUND');
 };
 
 /**
- * Wrapper async pour capturer les erreurs dans les routes async
+ * Wrapper obligatoire pour TOUT contrôleur async. Élimine le besoin du
+ * try/catch répété dans chaque fonction (c'est ce qui rendait les
+ * contrôleurs longs) : toute exception (y compris venant du service ou
+ * du repository) remonte automatiquement à errorHandler.
  */
-export const asyncHandler = (fn: Function) => {
+export const asyncHandler = (fn: (...args: any[]) => Promise<any>) => {
   return (req: Request, res: Response, next: NextFunction): void => {
     Promise.resolve(fn(req, res, next)).catch(next);
   };

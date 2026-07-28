@@ -5,12 +5,13 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { LayoutDashboard, FileText, Building2, Inbox, LogOut, X, Briefcase } from 'lucide-react';
 import clsx from 'clsx';
+import { clearAuth } from '@/services/emploi-auth.service';
 
 const NAV_ITEMS = [
-  { href: '/recruteur/dashboard',      label: 'Tableau de bord',     icon: LayoutDashboard },
-  { href: '/recruteur/offres',         label: 'Gérer mes offres',    icon: FileText },
-  { href: '/recruteur/vitrine',        label: 'Ma Vitrine Entreprise', icon: Building2 },
-  { href: '/recruteur/candidatures',   label: 'Candidatures reçues', icon: Inbox, badge: true },
+  { href: '/recruteur/dashboard',    label: 'Tableau de bord',       icon: LayoutDashboard },
+  { href: '/recruteur/offres',       label: 'Gérer mes offres',      icon: FileText },
+  { href: '/recruteur/vitrine',      label: 'Ma Vitrine Entreprise', icon: Building2 },
+  { href: '/recruteur/candidatures', label: 'Candidatures reçues',   icon: Inbox, badge: true },
 ];
 
 interface RecruteurSidebarProps {
@@ -19,19 +20,22 @@ interface RecruteurSidebarProps {
   newCandidaturesCount?: number;
 }
 
-export default function RecruteurSidebar({
-  isOpen,
-  onClose,
-  newCandidaturesCount = 0,
-}: RecruteurSidebarProps) {
+export default function RecruteurSidebar({ isOpen, onClose, newCandidaturesCount = 0 }: RecruteurSidebarProps) {
   const pathname = usePathname();
+
+  // FIX : même bug que côté candidat — l'ancienne version ne supprimait
+  // que localStorage('emploi_token'), jamais les cookies emploi_token/
+  // emploi_role posés par saveAuthToken/saveAuthUser. Le middleware
+  // serveur continuait de voir une session recruteur "active" après
+  // clic sur Déconnexion. clearAuth() nettoie les deux.
+  function handleLogout() {
+    clearAuth();
+    window.location.href = '/emploi';
+  }
 
   return (
     <>
-      {/* Mobile overlay */}
-      {isOpen && (
-        <div className="fixed inset-0 bg-black/40 z-30 lg:hidden" onClick={onClose} />
-      )}
+      {isOpen && <div className="fixed inset-0 bg-black/40 z-30 lg:hidden" onClick={onClose} />}
 
       <aside
         className={clsx(
@@ -41,7 +45,6 @@ export default function RecruteurSidebar({
           isOpen ? 'translate-x-0' : '-translate-x-full'
         )}
       >
-        {/* Logo */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
           <Link href="/emploi" className="flex items-center gap-2">
             <div className="w-7 h-7 rounded-lg bg-[#1E2A3A] flex items-center justify-center">
@@ -59,7 +62,6 @@ export default function RecruteurSidebar({
           </button>
         </div>
 
-        {/* Nav */}
         <nav className="flex-1 px-3 py-4 space-y-0.5">
           {NAV_ITEMS.map(({ href, label, icon: Icon, badge }) => {
             const isActive = pathname === href || pathname.startsWith(href + '/');
@@ -78,8 +80,7 @@ export default function RecruteurSidebar({
                 <Icon size={17} className={isActive ? 'text-[#E8622A]' : 'text-gray-400'} />
                 <span className="flex-1">{label}</span>
                 {badge && newCandidaturesCount > 0 && (
-                  <span className="bg-red-500 text-white text-[10px] font-bold w-5 h-5 rounded-full
-                                   flex items-center justify-center flex-shrink-0">
+                  <span className="bg-red-500 text-white text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0">
                     {newCandidaturesCount > 9 ? '9+' : newCandidaturesCount}
                   </span>
                 )}
@@ -90,14 +91,8 @@ export default function RecruteurSidebar({
           <div className="my-3 border-t border-gray-100" />
 
           <button
-            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium
-                       text-red-500 hover:bg-red-50 transition-colors"
-            onClick={() => {
-              if (typeof window !== 'undefined') {
-                localStorage.removeItem('emploi_token');
-                window.location.href = '/emploi';
-              }
-            }}
+            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-red-500 hover:bg-red-50 transition-colors"
+            onClick={handleLogout}
           >
             <LogOut size={17} />
             Déconnexion
