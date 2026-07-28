@@ -2,19 +2,14 @@
 import { Router } from 'express';
 import { register, login, me, changePassword } from '../../controllers/emploi/auth.controller';
 import { emploiAuth } from '../../middlewares/emploi-auth.middleware';
+import { validate } from '../../middlewares/validate';
+import { registerSchema, loginSchema, changePasswordSchema } from '../../validators/emploi/auth.validator';
 
 const router = Router();
 
-// POST /api/emploi/auth/register
-router.post('/register', register);
-
-// POST /api/emploi/auth/login
-router.post('/login', login);
-
-// GET /api/emploi/auth/me  (protégé)
+router.post('/register', validate(registerSchema), register);
+router.post('/login', validate(loginSchema), login);
 router.get('/me', emploiAuth, me);
-
-// PATCH /api/emploi/auth/password  (protégé)
-router.patch('/password', emploiAuth, changePassword);
+router.patch('/password', emploiAuth, validate(changePasswordSchema), changePassword);
 
 export default router;

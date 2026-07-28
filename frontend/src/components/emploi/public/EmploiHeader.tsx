@@ -5,6 +5,8 @@ import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { ChevronLeft, User, ChevronDown, Briefcase, LayoutDashboard, LogOut } from 'lucide-react';
+import { useAuthUser } from '@/hooks/useAuthUser';
+import { clearAuth } from '@/services/emploi-auth.service';
 
 function useClickOutside(ref: React.RefObject<HTMLElement | null>, cb: () => void) {
   useEffect(() => {
@@ -18,17 +20,18 @@ function AccountDropdown({ onClose }: { onClose: () => void }) {
   const ref = useRef<HTMLDivElement>(null);
   useClickOutside(ref, onClose);
   const router = useRouter();
+  const { user, hydrated } = useAuthUser();
 
+  // FIX : même bug que côté candidat/recruteur — l'ancienne version ne
+  // supprimait que localStorage, jamais les cookies emploi_token/emploi_role
+  // lus par le middleware serveur. clearAuth() nettoie les deux.
   function handleLogout() {
-    localStorage.removeItem('emploi_token');
-    localStorage.removeItem('emploi_user');
+    clearAuth();
     onClose();
     router.push('/emploi');
   }
 
-  const token = typeof window !== 'undefined' ? localStorage.getItem('emploi_token') : null;
-  const userRaw = typeof window !== 'undefined' ? localStorage.getItem('emploi_user') : null;
-  const user = userRaw ? JSON.parse(userRaw) : null;
+  if (!hydrated) return null;
 
   return (
     <div
@@ -36,7 +39,7 @@ function AccountDropdown({ onClose }: { onClose: () => void }) {
       className="absolute right-0 top-full mt-2 w-56 bg-white rounded-2xl shadow-2xl
                  border border-gray-100 z-50 overflow-hidden py-1"
     >
-      {token && user ? (
+      {user ? (
         <>
           <div className="px-4 py-3 border-b border-gray-50">
             <p className="text-xs text-gray-400">Connecté en tant que</p>
@@ -77,7 +80,7 @@ function AccountDropdown({ onClose }: { onClose: () => void }) {
 
 export default function EmploiHeader() {
   const [showAccount, setShowAccount] = useState(false);
-  const [scrolled,    setScrolled]    = useState(false);
+  const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
     const h = () => setScrolled(window.scrollY > 10);
@@ -87,50 +90,32 @@ export default function EmploiHeader() {
 
   return (
     <>
-      {/* ── Top bar ─────────────────────────────────────────────────────── */}
       <div className="bg-[#1E2A3A] h-8 flex items-center px-6">
-        <Link
-          href="/"
-          className="flex items-center gap-1.5 text-xs text-gray-400 hover:text-white transition group"
-        >
+        <Link href="/" className="flex items-center gap-1.5 text-xs text-gray-400 hover:text-white transition group">
           <ChevronLeft size={12} className="group-hover:-translate-x-0.5 transition-transform" />
           Retour au Mag i Tourisme Nomade
         </Link>
       </div>
 
-      {/* ── Main header ─────────────────────────────────────────────────── */}
-      <header
-        className={`sticky top-0 z-40 bg-white transition-shadow duration-200 ${
-          scrolled ? 'shadow-md' : 'border-b border-gray-100'
-        }`}
-      >
+      <header className={`sticky top-0 z-40 bg-white transition-shadow duration-200 ${scrolled ? 'shadow-md' : 'border-b border-gray-100'}`}>
         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center gap-8">
-
-          {/* Logo */}
           <Link href="/emploi" className="flex items-center gap-0 flex-shrink-0">
-            <span className="text-xl font-bold text-[#1E2A3A] tracking-tight">
-              i Tourisme{' '}
-            </span>
+            <span className="text-xl font-bold text-[#1E2A3A] tracking-tight">i Tourisme{' '}</span>
             <span className="text-xl font-bold text-[#E8622A] tracking-tight ml-1">Emploi</span>
           </Link>
 
-          {/* Nav */}
           <nav className="hidden md:flex items-center gap-6 flex-1">
-            <Link href="/emploi/jobs"
-              className="text-sm font-medium text-gray-600 hover:text-[#E8622A] transition-colors">
+            <Link href="/emploi/jobs" className="text-sm font-medium text-gray-600 hover:text-[#E8622A] transition-colors">
               Trouver un Job
             </Link>
-            <Link href="/emploi/entreprises"
-              className="text-sm font-medium text-gray-600 hover:text-[#E8622A] transition-colors">
+            <Link href="/emploi/entreprises" className="text-sm font-medium text-gray-600 hover:text-[#E8622A] transition-colors">
               Découvrir les Entreprises
             </Link>
-            <Link href="/emploi/conseils"
-              className="text-sm font-medium text-gray-600 hover:text-[#E8622A] transition-colors">
+            <Link href="/emploi/conseils" className="text-sm font-medium text-gray-600 hover:text-[#E8622A] transition-colors">
               Conseils Carrière
             </Link>
           </nav>
 
-          {/* Actions */}
           <div className="flex items-center gap-3 ml-auto flex-shrink-0">
             <Link
               href="/auth"
@@ -141,7 +126,6 @@ export default function EmploiHeader() {
               Recruter
             </Link>
 
-            {/* Account dropdown */}
             <div className="relative">
               <button
                 onClick={() => setShowAccount((v) => !v)}

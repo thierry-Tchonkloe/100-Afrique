@@ -1,4 +1,8 @@
 // src/types/emploi.types.ts
+import type { ApplicationStatus, CandidatNotification } from './candidatures.types';
+
+export type { CandidatNotification, NotificationType } from './candidatures.types';
+
 // ─── Candidat ────────────────────────────────────────────────────────────────
 
 export interface CandidatProfile {
@@ -7,8 +11,8 @@ export interface CandidatProfile {
   lastName: string;
   email: string;
   avatar?: string;
-  title?: string;        // ex: "Réceptionniste Hôtellerie"
-  sector?: string;       // ex: "Hôtellerie"
+  title?: string;
+  sector?: string;
   profileStrength: number; // 0–100
   profileStrengthMessage?: string;
 }
@@ -22,22 +26,20 @@ export interface CandidatStats {
   activeAlertsCount: number;
 }
 
-// ─── Candidature ─────────────────────────────────────────────────────────────
-
-export type ApplicationStatus =
-  | 'pending'
-  | 'in_progress'
-  | 'accepted'
-  | 'refused'
-  | 'interview';
-
-export interface Application {
+// ─── Résumé de candidature (tableau de bord uniquement) ──────────────────────
+// NOTE : le endpoint /candidat/dashboard renvoie un résumé allégé (pas de
+// location/contractType/timeline...), contrairement à /candidat/applications
+// qui renvoie l'objet `Application` complet (voir candidatures.types.ts).
+// Ce sont légitimement deux formes différentes — mais elles PARTAGENT le
+// même statut, d'où l'import de `ApplicationStatus` plutôt qu'une union
+// redéfinie (c'était la source des `as any` disséminés dans les composants).
+export interface RecentApplicationSummary {
   id: string;
   jobTitle: string;
   companyName: string;
   companyLogo?: string;
-  sector: string;        // 'hotel' | 'restaurant' | 'transport' …
-  appliedAt: string;     // ISO date string
+  sector: string;
+  appliedAt: string; // ISO
   status: ApplicationStatus;
 }
 
@@ -49,22 +51,9 @@ export interface JobSuggestion {
   companyName: string;
   companyLogo?: string;
   location: string;
-  contractType: string; // CDI, CDD, Stage …
-  publishedAt: string;  // ISO date string
+  contractType: string;
+  publishedAt: string;
   sector: string;
-}
-
-// ─── Notification ────────────────────────────────────────────────────────────
-
-export type NotificationType = 'new_offer' | 'profile_viewed' | 'application_accepted' | 'application_refused';
-
-export interface CandidatNotification {
-  id: string;
-  type: NotificationType;
-  title: string;
-  description: string;
-  createdAt: string;
-  read: boolean;
 }
 
 // ─── Dashboard Response ───────────────────────────────────────────────────────
@@ -72,7 +61,7 @@ export interface CandidatNotification {
 export interface DashboardData {
   profile: CandidatProfile;
   stats: CandidatStats;
-  recentApplications: Application[];
+  recentApplications: RecentApplicationSummary[];
   suggestions: JobSuggestion[];
   notifications: CandidatNotification[];
 }

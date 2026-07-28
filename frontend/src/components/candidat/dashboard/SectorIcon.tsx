@@ -1,4 +1,4 @@
-// src/components/emploi/SectorIcon.tsx
+// src/components/candidat/dashboard/SectorIcon.tsx
 import { Hotel, Utensils, Car, Music, Globe, Bed, Wine } from 'lucide-react';
 
 const SECTOR_MAP: Record<string, { icon: typeof Hotel; bg: string; color: string }> = {
