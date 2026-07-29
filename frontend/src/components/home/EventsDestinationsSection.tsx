@@ -107,7 +107,7 @@ function DestinationCard({ dest, index = 0 }: { dest: DestinationArticle; index?
       style={{ transitionDelay: `${index * 100}ms`, opacity: visible ? 1 : 0, transform: visible ? 'none' : 'translateY(20px)' }}
     >
       <Link
-        href={`/articles/${dest.slug}`}
+        href={`/destinations/${dest.slug}`}
         className="group relative block overflow-hidden rounded-2xl"
         style={{ aspectRatio: index === 0 ? '16/7' : '16/6' }}
       >

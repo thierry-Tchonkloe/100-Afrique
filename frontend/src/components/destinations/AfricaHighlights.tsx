@@ -50,7 +50,7 @@ function HighlightCard({ item, delay = 0 }: { item: Highlight; delay?: number })
       }}
     >
       <Link
-        href={`/actualites/${item.slug}`}
+        href={`/destinations/${item.slug}`}
         className="block rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-shadow duration-500"
         style={{ background: '#F8FAF9' }}
       >
