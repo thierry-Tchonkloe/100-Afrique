@@ -9,10 +9,10 @@
 // explicitement. Si quelqu'un réintroduit ce bug par erreur, ce test
 // doit échouer.
 
-jest.mock('../../src/repositories/emploi/etablissement.repository');
+jest.mock('../../src/modules/emploi/repositories/etablissement.repository');
 
-import { etablissementRepository } from '../../src/repositories/emploi/etablissement.repository';
-import { resolveActiveEtablissementId, assertOffreAccess } from '../../src/services/emploi/etablissement-access.service';
+import { etablissementRepository } from '../../src/modules/emploi/repositories/etablissement.repository';
+import { resolveActiveEtablissementId, assertOffreAccess } from '../../src/modules/emploi/services/etablissement-access.service';
 import { ForbiddenError, NotFoundError } from '../../src/errors/http-errors';
 
 const mockedEtabRepo = etablissementRepository as jest.Mocked<typeof etablissementRepository>;

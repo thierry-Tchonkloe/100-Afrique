@@ -11,28 +11,28 @@ import {
   createFormation, updateFormation, deleteFormation,
   getApplications, applyToJob, withdrawApplication, getSuggestions,
   getNotifications, markNotifRead, markAllNotifsRead,
-} from '../../controllers/emploi/candidat.controller';
+} from '../../modules/emploi/candidat-profil/candidat.controller';
 
-import { getAlertes, createAlerte, updateAlerte, toggleAlerte, deleteAlerte } from '../../controllers/emploi/alertes.controller';
+import { getAlertes, createAlerte, updateAlerte, toggleAlerte, deleteAlerte } from '../../modules/emploi/alertes/alertes.controller';
 
 import {
   getSettings, updateEmail, updatePrivacy, updateNotifications,
   updateTwoFactor, linkLinkedIn, pauseAccount, exportData, deleteAccount,
-} from '../../controllers/emploi/settings.controller';
+} from '../../modules/emploi/settings/settings.controller';
 
 import {
   updateIdentitySchema, updateSkillsSchema, updateVisibilitySchema,
   createExperienceSchema, updateExperienceSchema,
   createFormationSchema, updateFormationSchema,
   applyToJobSchema, idParamSchema,
-} from '../../validators/emploi/candidat.validator';
+} from '../../modules/emploi/candidat-profil/candidat.validator';
 
-import { createAlerteSchema, updateAlerteSchema, toggleAlerteSchema, alerteIdParamSchema } from '../../validators/emploi/alerte.validator';
+import { createAlerteSchema, updateAlerteSchema, toggleAlerteSchema, alerteIdParamSchema } from '../../modules/emploi/alertes/alerte.validator';
 
 import {
   updateEmailSchema, updatePrivacySchema, updateNotificationsSchema,
   updateTwoFactorSchema, deleteAccountSchema,
-} from '../../validators/emploi/settings.validator';
+} from '../../modules/emploi/settings/settings.validator';
 
 const router = Router();
 

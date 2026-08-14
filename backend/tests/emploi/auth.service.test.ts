@@ -8,9 +8,9 @@
 // base de données réelle — c'est justement l'intérêt de la séparation
 // service/repository.
 
-jest.mock('../../src/repositories/emploi/emploiUser.repository');
-jest.mock('../../src/repositories/emploi/etablissement.repository');
-jest.mock('../../src/repositories/emploi/vitrine.repository');
+jest.mock('../../src/modules/emploi/repositories/emploiUser.repository');
+jest.mock('../../src/modules/emploi/repositories/etablissement.repository');
+jest.mock('../../src/modules/emploi/vitrine/vitrine.repository');
 jest.mock('bcrypt', () => ({
   hash: jest.fn().mockResolvedValue('hashed-password'),
   compare: jest.fn(),
@@ -18,10 +18,10 @@ jest.mock('bcrypt', () => ({
 jest.mock('jsonwebtoken', () => ({ sign: jest.fn().mockReturnValue('fake-jwt-token') }));
 
 import bcrypt from 'bcrypt';
-import { authService } from '../../src/services/emploi/auth.service';
-import { emploiUserRepository } from '../../src/repositories/emploi/emploiUser.repository';
-import { etablissementRepository } from '../../src/repositories/emploi/etablissement.repository';
-import { vitrineRepository } from '../../src/repositories/emploi/vitrine.repository';
+import { authService } from '../../src/modules/emploi/auth/auth.service';
+import { emploiUserRepository } from '../../src/modules/emploi/repositories/emploiUser.repository';
+import { etablissementRepository } from '../../src/modules/emploi/repositories/etablissement.repository';
+import { vitrineRepository } from '../../src/modules/emploi/vitrine/vitrine.repository';
 import { ConflictError, UnauthorizedError } from '../../src/errors/http-errors';
 
 const mockedUserRepo = emploiUserRepository as jest.Mocked<typeof emploiUserRepository>;

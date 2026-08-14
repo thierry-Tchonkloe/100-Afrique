@@ -19,6 +19,12 @@ interface RelatedContent {
 
 interface SalonForm {
     title: string;
+    // ✅ NOUVEAU — résumé court destiné aux cartes d'agenda (page d'accueil
+    // EventsDestinationsSection/SalonCard, et AgendaSection sur /salons).
+    // Distinct de `description` (contenu long éditorial) : c'est CE champ
+    // qui est envoyé au backend dans `excerpt`, seul champ réellement lu
+    // par ces deux composants d'affichage.
+    excerpt: string;
     location: string;
     startDate: string;
     endDate: string;
@@ -526,6 +532,11 @@ function SalonEditorContent({ salon, onClose, onSubmit }: {
 
     const [form, setForm] = useState<SalonForm>({
         title:             salon.title ?? "",
+        // ✅ NOUVEAU — hydraté depuis l'article existant. C'est ce champ,
+        // et non `description`, qui est lu par l'Agenda (server-data.ts
+        // → Salon.excerpt, consommé par AgendaSection.tsx et
+        // EventsDestinationsSection.tsx → SalonCard).
+        excerpt:           salon.excerpt ?? "",
         location:          salon.location ?? "",
         startDate:         salon.startDate ? salon.startDate.slice(0, 10) : "",
         endDate:           salon.endDate   ? salon.endDate.slice(0, 10)   : "",
@@ -574,6 +585,12 @@ function SalonEditorContent({ salon, onClose, onSubmit }: {
             status:            apiStatus,
             content:           contentBlocks,
             coverImage:        form.coverImage             || undefined,
+            // ✅ CORRIGÉ — auparavant absent du payload : le résumé saisi
+            // n'était jamais transmis au backend, donc `Article.excerpt`
+            // restait `null` en base pour tout salon, et l'Agenda
+            // (AgendaSection / SalonCard) n'avait jamais rien à afficher
+            // comme description.
+            excerpt:           form.excerpt.trim()         || undefined,
             location:          form.location.trim()        || undefined,
             startDate:         new Date(form.startDate)              || undefined,
             endDate:           new Date(form.endDate)                || undefined,
@@ -601,6 +618,7 @@ function SalonEditorContent({ salon, onClose, onSubmit }: {
 
     const metaTitleLen = form.metaTitle.length;
     const metaDescLen  = form.metaDescription.length;
+    const excerptLen   = form.excerpt.length;
 
     return (
         <div className="flex flex-col h-full max-h-[90vh]">
@@ -674,6 +692,30 @@ function SalonEditorContent({ salon, onClose, onSubmit }: {
                     placeholder="Ex: Salon International du Tourisme"
                     className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-800 font-semibold shadow-sm focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-transparent transition"
                     />
+                </div>
+
+                {/* ✅ NOUVEAU — Résumé pour l'Agenda (excerpt) */}
+                <div className="space-y-1.5">
+                    <div className="flex items-center justify-between">
+                    <FieldLabel>
+                        Résumé pour l&apos;Agenda{" "}
+                        <span className="text-slate-400 normal-case font-normal">(affiché sur la page d&apos;accueil et l&apos;agenda)</span>
+                    </FieldLabel>
+                    <span className={`text-xs font-medium tabular-nums ${excerptLen > 220 ? "text-red-500" : "text-slate-400"}`}>
+                        {excerptLen}/220
+                    </span>
+                    </div>
+                    <textarea
+                    value={form.excerpt}
+                    onChange={(e) => update("excerpt", e.target.value.slice(0, 240))}
+                    maxLength={240}
+                    rows={2}
+                    placeholder="Ex: Le rendez-vous incontournable des professionnels du tourisme africain, réunissant offices de tourisme, hôteliers et transporteurs."
+                    className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-700 leading-relaxed resize-none shadow-sm focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-transparent transition"
+                    />
+                    <p className="text-xs text-slate-400">
+                    Ce court résumé est distinct de la description détaillée ci-dessous : c&apos;est lui qui apparaît sur les cartes d&apos;agenda.
+                    </p>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -838,7 +880,8 @@ function SalonEditorContent({ salon, onClose, onSubmit }: {
                     </div>
                     <input
                     value={form.metaTitle}
-                    onChange={(e) => update("metaTitle", e.target.value)}
+                    onChange={(e) => update("metaTitle", e.target.value.slice(0, 70))}
+                    maxLength={70}
                     className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-800 shadow-sm focus:outline-none focus:ring-2 focus:ring-orange-400 transition"
                     />
                     <div className="h-1 rounded-full bg-slate-100 overflow-hidden">
@@ -859,7 +902,8 @@ function SalonEditorContent({ salon, onClose, onSubmit }: {
                     </div>
                     <textarea
                     value={form.metaDescription}
-                    onChange={(e) => update("metaDescription", e.target.value)}
+                    onChange={(e) => update("metaDescription", e.target.value.slice(0, 180))}
+                    maxLength={180}
                     rows={4}
                     className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-700 leading-relaxed shadow-sm focus:outline-none focus:ring-2 focus:ring-orange-400 transition resize-none"
                     />

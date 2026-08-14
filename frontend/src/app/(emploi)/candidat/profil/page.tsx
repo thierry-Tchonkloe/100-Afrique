@@ -1,47 +1,30 @@
 'use client';
 // src/app/(emploi)/candidat/profil/page.tsx
 
-import { useState, useEffect, useRef } from 'react';
-import { Save } from 'lucide-react';
+import { useRef } from 'react';
 import { useProfil } from '@/hooks/useProfil';
-import SectionNav, { SECTIONS } from '@/components/candidat/profil/SectionNav';
+import { useProfilSectionSync } from '@/hooks/useProfilSectionSync';
+import SectionNav from '@/components/candidat/profil/SectionNav';
 import IdentiteSection from '@/components/candidat/profil/IdentiteSection';
 import ExperiencesSection from '@/components/candidat/profil/ExperiencesSection';
 import FormationsSection from '@/components/candidat/profil/FormationsSection';
 import CompetencesSection from '@/components/candidat/profil/CompetencesSection';
 import { CvSection, VisibilitySection } from '@/components/candidat/profil/CvVisibilitySection';
+import ProfilMobileSaveButton from '@/components/candidat/profil/ProfilMobileSaveButton';
 import type { CandidatProfil } from '@/types/profil.types';
 
 export default function MonProfilPage() {
   const { profil, loading, setProfil } = useProfil();
-  const [activeSection, setActiveSection] = useState('identite');
   const mainRef = useRef<HTMLDivElement>(null);
 
-  // ── Tous les hooks AVANT tout return conditionnel ──────────────────────────
-  useEffect(() => {
-    if (loading) return; // ← le guard est DANS le hook, pas avant lui
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        const visible = entries.find((e) => e.isIntersecting);
-        if (visible) setActiveSection(visible.target.id);
-      },
-      { threshold: 0.3, rootMargin: '-80px 0px -60% 0px' }
-    );
-
-    SECTIONS.forEach(({ id }) => {
-      const el = document.getElementById(id);
-      if (el) observer.observe(el);
-    });
-
-    return () => observer.disconnect();
-  }, [loading]); // ← se relance quand loading passe à false
+  // Tous les hooks AVANT tout return conditionnel — le hook gère lui-même
+  // le cas "pas encore prêt" en interne.
+  const activeSection = useProfilSectionSync(!loading);
 
   function update(patch: Partial<CandidatProfil>) {
     setProfil((prev) => ({ ...prev, ...patch }));
   }
 
-  // ── Returns conditionnels APRÈS tous les hooks ─────────────────────────────
   if (loading) {
     return (
       <div className="flex items-center justify-center h-full">
@@ -67,10 +50,7 @@ export default function MonProfilPage() {
           </p>
         </div>
 
-        <IdentiteSection
-          profil={profil}
-          onChange={(patch) => update(patch)}
-        />
+        <IdentiteSection profil={profil} onChange={(patch) => update(patch)} />
 
         <ExperiencesSection
           experiences={profil.experiences}
@@ -101,12 +81,7 @@ export default function MonProfilPage() {
         />
       </div>
 
-      <div className="lg:hidden fixed bottom-5 left-0 right-0 flex justify-center z-20 pointer-events-none">
-        <button className="pointer-events-auto flex items-center gap-2 bg-[#E8622A] text-white text-sm font-semibold px-6 py-3 rounded-2xl shadow-lg shadow-[#E8622A]/30">
-          <Save size={16} />
-          Enregistrer les modifications
-        </button>
-      </div>
+      <ProfilMobileSaveButton />
     </div>
   );
 }
