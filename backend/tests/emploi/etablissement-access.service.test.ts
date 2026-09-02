@@ -1,14 +1,4 @@
 // tests/emploi/etablissement-access.service.test.ts
-//
-// Flux critique #2 : accès aux données sensibles. Ce test verrouille
-// EXACTEMENT le bug de sécurité repéré en revue : un recruteur pouvait
-// passer un `etablissementId` arbitraire (via ?etablissementId=... sur
-// GET /recruteur/candidatures) et consulter les candidatures d'une autre
-// entreprise, car l'ancienne implémentation ne vérifiait jamais que le
-// lien recruteur ↔ établissement existait réellement pour un id fourni
-// explicitement. Si quelqu'un réintroduit ce bug par erreur, ce test
-// doit échouer.
-
 jest.mock('../../src/modules/emploi/repositories/etablissement.repository');
 
 import { etablissementRepository } from '../../src/modules/emploi/repositories/etablissement.repository';
@@ -24,10 +14,10 @@ describe('resolveActiveEtablissementId', () => {
     mockedEtabRepo.findVerifiedLink.mockResolvedValue(null);
 
     await expect(resolveActiveEtablissementId(1, 999)).rejects.toBeInstanceOf(ForbiddenError);
-    expect(mockedEtabRepo.findVerifiedLink).toHaveBeenCalledWith(1, 999);
+    expect(mockedEtabRepo.findVerifiedLink).toHaveBeenCalledWith(1, 999); // on vérifie que la fonction a été appelée avec les bons arguments
   });
 
-  it("retourne l'id demandé uniquement si le lien recruteur↔établissement est vérifié", async () => {
+  it("retourne l'id demandé uniquement si le lien recruteur-établissement est vérifié", async () => {
     mockedEtabRepo.findVerifiedLink.mockResolvedValue({ etablissementId: 5 } as any);
 
     const result = await resolveActiveEtablissementId(1, 5);

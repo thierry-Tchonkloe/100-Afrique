@@ -27,9 +27,6 @@ async function ensureRecruiterEtablissement(userId: number, input: RegisterInput
   }
 
   if (!etabId) {
-    // `companyName` est garanti non-vide ici grâce à la validation du
-    // schéma Zod (registerSchema.refine) : on ne crée plus jamais
-    // d'établissement placeholder générique comme avant.
     const newEtab = await etablissementRepository.create({
       name: input.companyName!,
       sector: input.etablissementSector ?? '',
@@ -40,8 +37,6 @@ async function ensureRecruiterEtablissement(userId: number, input: RegisterInput
 
   await etablissementRepository.linkRecruiter(userId, etabId, true);
 
-  // Non-bloquant : l'absence de vitrine ne doit pas faire échouer
-  // l'inscription, mais on log si ça arrive pour investigation.
   await vitrineRepository.upsertEmpty(etabId).catch((err) => {
     logger.error(`[auth.service] Échec création vitrine pour établissement ${etabId}`, err);
   });
