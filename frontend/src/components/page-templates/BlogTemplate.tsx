@@ -1,3 +1,4 @@
+// src/components/page-templates/BlogTemplate.tsx
 "use client";
 
 import { useState } from "react";

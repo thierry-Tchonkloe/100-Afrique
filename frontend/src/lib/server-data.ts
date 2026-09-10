@@ -1,3 +1,4 @@
+// src/lib/server-data.ts
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
 const FETCH_TIMEOUT_MS = 25000;

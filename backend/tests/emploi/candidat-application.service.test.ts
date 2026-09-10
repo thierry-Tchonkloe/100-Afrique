@@ -1,13 +1,4 @@
 // tests/emploi/candidat-application.service.test.ts
-//
-// Flux critique #4 : candidature côté candidat. Deux points verrouillés :
-//   1. `applyToJob` doit refuser une double candidature (ConflictError) —
-//      c'est une règle métier invisible si on ne la teste pas explicitement,
-//      un refactor du repository pourrait la faire disparaître sans que
-//      rien ne plante à la compilation.
-//   2. `applyToJob` doit notifier TOUS les recruteurs liés à l'établissement
-//      (et aucun s'il n'y en a pas) — un oubli ici = les recruteurs ne
-//      savent jamais qu'une nouvelle candidature est arrivée.
 
 jest.mock('../../src/modules/emploi/candidatures/application.repository');
 jest.mock('../../src/modules/emploi/offres/offre.repository');

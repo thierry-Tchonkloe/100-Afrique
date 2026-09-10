@@ -1,3 +1,4 @@
+// src/components/page-templates/types.ts
 // Types partagés entre l'éditeur et les templates de rendu
 
 export type PageStatus = "Brouillon" | "Publié" | "Archivé" | "En Révision";

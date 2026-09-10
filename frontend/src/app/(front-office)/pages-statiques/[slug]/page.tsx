@@ -1,4 +1,4 @@
-// app/pages/[slug]/page.tsx
+// app/(front-office)/pages-statiques/[slug]/page.tsx
 import { getPageOrRedirect } from "@/lib/pages/getPageOrRedirect";
 import PagePreview from "@/components/page-templates/PagePreview";
 import { toPageData } from "@/lib/pages/toPageData";

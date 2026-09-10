@@ -1,3 +1,4 @@
+// src/components/shared/NewsletterButton.tsx
 "use client";
 
 import React, { useState } from "react";
