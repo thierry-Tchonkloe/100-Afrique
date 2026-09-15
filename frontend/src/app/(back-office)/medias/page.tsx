@@ -1,3 +1,4 @@
+// src/app/(back-office)/medias/page.tsx
 import MediaLibrary from "@/components/Dashboard/MediaLibrary";
 import { ProtectedRoute } from "@/components/Dashboard/ProtectedRoute";
 // ou dans une page :

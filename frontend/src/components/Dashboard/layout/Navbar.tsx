@@ -1,3 +1,4 @@
+// src/components/Dashboard/layout/Navbar.tsx
 "use client";
 
 import { Bell, HelpCircle, Search, ChevronDown, Menu } from "lucide-react";

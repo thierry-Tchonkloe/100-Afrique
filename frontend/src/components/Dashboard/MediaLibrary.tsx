@@ -1,3 +1,4 @@
+// src/components/Dashboard/MediaLibrary.tsx
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
