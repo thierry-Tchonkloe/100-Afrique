@@ -56,11 +56,20 @@ function BannerSlide({
         img.src = banner.imageUrl;
     }, [banner.id, banner.type, banner.imageUrl, onImageError]);
 
+    // FIX : dangerouslySetInnerHTML n'exécute JAMAIS les balises <script>
+    // injectées dans le DOM (limitation du navigateur, pas un bug React).
+    // Pour un code tiers (tag Google Ad Manager, pixel, etc.), on isole donc
+    // le code dans une iframe sandboxée via srcDoc, ce qui exécute bien les
+    // scripts tout en isolant le code tiers du reste de l'application.
     if (banner.type === "HTML_JS" && banner.htmlCode) {
         return (
-            <div
+            <iframe
                 className={baseClass}
-                dangerouslySetInnerHTML={{ __html: banner.htmlCode }}
+                srcDoc={banner.htmlCode}
+                style={{ border: "none", width: "100%", height: "100%" }}
+                sandbox="allow-scripts allow-popups allow-same-origin"
+                title={`${banner.advertiser} — ${banner.campaign}`}
+                scrolling="no"
             />
         );
     }
@@ -240,6 +249,17 @@ export function AdvertisingBanner({
     }
 
     if (!zone || !zone.isEnabled || activeBanners.length === 0) {
+        // FIX : en développement, on affiche un placeholder explicite quand
+        // la zone est introuvable — au lieu d'un simple <div/> vide qui rend
+        // le débogage très difficile ("pourquoi rien ne s'affiche ?").
+        if (process.env.NODE_ENV === "development" && !zone) {
+            return (
+                <div className="flex-1 min-h-[60px] border-2 border-dashed border-red-300 bg-red-50 text-red-500 text-[11px] flex items-center justify-center p-2 text-center">
+                    Zone pub introuvable ou désactivée : "{zoneSlug}"<br />
+                    Vérifiez le slug dans l&apos;admin /publicites
+                </div>
+            );
+        }
         return <div className="flex-1" />;
     }
 

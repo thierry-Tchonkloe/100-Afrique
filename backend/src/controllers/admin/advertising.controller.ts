@@ -46,7 +46,6 @@ export const advertisingController = {
 
     async create(req: Request, res: Response) {
         try {
-            console.log("BODY REÇU 👉", req.body);
             const zone = await advertisingService.create(req.body);
             ok(res, zone, 201);
         } catch (e) {
@@ -99,8 +98,6 @@ export const bannerController = {
 
     async create(req: Request, res: Response) {
         try {
-            console.log("BODY 👉", req.body);
-            console.log("FILE 👉", req.file);
         const banner = await bannerService.create(req.body, req.file);
         ok(res, banner, 201);
         } catch (e) {

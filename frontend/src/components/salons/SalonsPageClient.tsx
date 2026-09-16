@@ -11,6 +11,7 @@ import SalonsSidebar from '@/components/salons/SalonsSidebar';
 import SalonsHero from '@/components/salons/hero/SalonsHero';
 import SalonsStatsBar from '@/components/salons/hero/SalonsStatsBar';
 import { AdvertisingBanner } from '@/components/AdvertisingBanner';
+import { AD_ZONES } from '@/lib/adZoneSlugs';
 import type { Salon, SalonInterview } from '@/lib/server-data';
 
 interface SalonsPageClientProps {
@@ -47,7 +48,7 @@ const SalonsPageClient = ({ salons, interview }: SalonsPageClientProps) => {
       {/* Leaderboard pub */}
       <div className="max-w-[1300px] mx-auto px-6 mb-10">
         <div className="rounded-2xl overflow-hidden">
-          <AdvertisingBanner zoneSlug="leaderboard-salons-top" showDots className="" />
+          <AdvertisingBanner zoneSlug={AD_ZONES.LEADERBOARD_SALONS_TOP} showDots className="" />
         </div>
       </div>
 

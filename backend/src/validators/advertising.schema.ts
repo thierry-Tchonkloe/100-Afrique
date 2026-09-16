@@ -1,4 +1,14 @@
+// src/validators/advertising.schema.ts
 import { z } from "zod";
+
+// ───────────────────────────────────────────────────────────────
+// 🔧 Helper : transforme les chaînes vides ("") en undefined
+// avant validation, pour que .optional() fonctionne correctement
+// avec des champs FormData toujours envoyés (même vides).
+// ───────────────────────────────────────────────────────────────
+
+const emptyToUndefined = <T extends z.ZodTypeAny>(schema: T) =>
+    z.preprocess((v) => (v === "" ? undefined : v), schema);
 
 // ───────────────────────────────────────────────────────────────
 // 🧱 AdZone
@@ -12,7 +22,6 @@ export const createAdZoneSchema = z.object({
     isEnabled: z.boolean().optional().default(true),
 });
 
-
 export const updateAdZoneSchema = createAdZoneSchema.partial();
 
 // ───────────────────────────────────────────────────────────────
@@ -21,20 +30,20 @@ export const updateAdZoneSchema = createAdZoneSchema.partial();
 
 // ✅ Base schema (SANS refine)
 const baseBannerSchema = z.object({
-    description: z.string().min(3,"Description requise").optional(),
-    officialWebSite: z.string().url("URL du site officiel invalide").optional(),
+    description: emptyToUndefined(z.string().min(3, "Description requise").optional()),
+    officialWebSite: emptyToUndefined(z.string().url("URL du site officiel invalide").optional()),
     advertiser: z.string().min(2, "Annonceur requis"),
     campaign: z.string().min(2, "Campagne requise"),
     type: z.enum(["IMAGE_JPG", "HTML_JS"]),
-    htmlCode: z.string().optional(),
+    htmlCode: emptyToUndefined(z.string().optional()),
     startDate: z.string().datetime({
         message: "Date de début invalide (ISO 8601)",
     }),
     endDate: z.string().datetime({
         message: "Date de fin invalide (ISO 8601)",
     }),
-    advertisingId: z.coerce.number().int().positive("ID zone invalide"), // ✅ corrigé
-    imageUrl: z.string().url("URL de l'image invalide").optional(),
+    advertisingId: z.coerce.number().int().positive("ID zone invalide"),
+    imageUrl: emptyToUndefined(z.string().url("URL de l'image invalide").optional()),
 });
 
 // ✅ CREATE
@@ -54,11 +63,9 @@ export const createBannerSchema = baseBannerSchema
         }
     );
 
-
-
 // ✅ UPDATE (propre et flexible)
 export const updateBannerSchema = baseBannerSchema
-    .omit({ advertisingId: true }) // ❗ maintenant OK
+    .omit({ advertisingId: true })
     .partial()
     .refine(
         (d) =>
@@ -71,10 +78,10 @@ export const updateBannerSchema = baseBannerSchema
         }
     )
     .refine(
-        (d) =>
-            d.type === "HTML_JS"
-                ? !!d.htmlCode
-                : true,
+        // ⚠️ Contrairement à CREATE, on ne force le htmlCode que si le type
+        // est explicitement envoyé comme HTML_JS dans CETTE requête.
+        // Si `type` n'est pas fourni en update, on ne bloque pas.
+        (d) => (d.type === "HTML_JS" ? !!d.htmlCode : true),
         {
             message: "Le code HTML/JS est requis pour ce type",
             path: ["htmlCode"],

@@ -1,3 +1,4 @@
+// src/routes/admin/advertising.routes.ts
 import { Router } from "express";
 import { advertisingController, bannerController, thirdPartyController } from "../../controllers/admin/advertising.controller";
 import { uploadSingle } from "../../middlewares/upload";
