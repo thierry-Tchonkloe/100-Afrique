@@ -1,3 +1,4 @@
+// src/components/page-templates/StandardTemplate.tsx
 "use client";
 
 import { PageData, parseContent, formatDate, STATUS_BADGE } from "./types";

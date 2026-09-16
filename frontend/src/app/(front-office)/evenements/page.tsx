@@ -1,4 +1,4 @@
-// src/app/(front-office)/salons/page.tsx
+// src/app/(front-office)/evenements/page.tsx
 import { getPageSalons, getPageSalonInterview } from '@/lib/server-data';
 import type { Salon, SalonInterview } from '@/lib/server-data';
 import SalonsPageClient from '@/components/salons/SalonsPageClient';

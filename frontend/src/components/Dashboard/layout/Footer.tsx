@@ -1,3 +1,4 @@
+// src/components/Dashboard/layout/Footer.tsx
 "use client";
 
 type FooterProps = {

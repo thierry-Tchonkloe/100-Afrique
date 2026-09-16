@@ -1,3 +1,4 @@
+// src/components/page-templates/FullWidthTemplate.tsx
 "use client";
 
 import { PageData, parseContent, formatDate, STATUS_BADGE, ContentBlock } from "./types";

@@ -1,9 +1,9 @@
 // src/routes/emploi/auth.routes.ts
 import { Router } from 'express';
-import { register, login, me, changePassword } from '../../controllers/emploi/auth.controller';
+import { register, login, me, changePassword } from '../../modules/emploi/auth/auth.controller';
 import { emploiAuth } from '../../middlewares/emploi-auth.middleware';
 import { validate } from '../../middlewares/validate';
-import { registerSchema, loginSchema, changePasswordSchema } from '../../validators/emploi/auth.validator';
+import { registerSchema, loginSchema, changePasswordSchema } from '../../modules/emploi/auth/auth.validator';
 
 const router = Router();
 

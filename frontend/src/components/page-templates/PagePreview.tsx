@@ -1,3 +1,4 @@
+// src/components/page-templates/PagePreview.tsx
 "use client";
 
 import { PageData } from "./types";

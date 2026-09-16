@@ -1,4 +1,4 @@
-// src/app/(front-office)/partenaires-annonceurs/page.tsx
+// src/app/(front-office)/partenaires/page.tsx
 "use client";
 
 import React, { useState, useEffect } from 'react';

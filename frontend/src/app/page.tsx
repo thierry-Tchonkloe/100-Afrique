@@ -1,4 +1,4 @@
-// src/app/(front-office)/page.tsx
+// src/app/page.tsx
 import HeroSlider from '@/components/home/HeroSlider';
 import NewsSection from '@/components/home/NewsSection';
 import VideoSection from '@/components/home/VideoSection';

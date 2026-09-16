@@ -15,7 +15,7 @@ const AboutPage = () => {
       <EditorialTeamSection />
       <AboutCTASection />
     </main>
-  );
+  ); 
 };
 
 export default AboutPage;

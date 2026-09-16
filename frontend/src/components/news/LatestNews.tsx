@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import api from '@/lib/api';
 import { AdvertisingBanner } from '@/components/AdvertisingBanner';
+import { AD_ZONES } from '@/lib/adZoneSlugs';
 import MagazineImage from '@/components/shared/MagazineImage';
 import type { Magazine, SidebarArticle } from '@/lib/server-data';
 
@@ -414,7 +415,7 @@ const LatestNews = ({ searchFilters, sidebarAnalyses, sidebarInterview }: Latest
       {/* ── Mobile sidebar ── */}
       <div className="lg:hidden space-y-6 mb-12">
         <div className="rounded-2xl overflow-hidden border border-gray-100">
-          <AdvertisingBanner zoneSlug="skyscraper-sidebar" showDots className="w-full" />
+          <AdvertisingBanner zoneSlug={AD_ZONES.SKYSCRAPER_SIDEBAR} showDots className="w-full" />
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
           <div className="bg-gray-50 rounded-2xl p-5">
@@ -473,7 +474,7 @@ const LatestNews = ({ searchFilters, sidebarAnalyses, sidebarInterview }: Latest
         {/* Sidebar desktop — données SSR, aucun loader */}
         <aside className="hidden lg:flex flex-col gap-8">
           <div className="rounded-2xl overflow-hidden border border-gray-100">
-            <AdvertisingBanner zoneSlug="skyscraper-sidebar" showDots className="w-full" />
+            <AdvertisingBanner zoneSlug={AD_ZONES.SKYSCRAPER_SIDEBAR} showDots className="w-full" />
           </div>
           <SidebarInterview interview={sidebarInterview} />
           <SidebarAnalyses analyses={sidebarAnalyses} />

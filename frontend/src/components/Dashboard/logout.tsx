@@ -1,3 +1,4 @@
+// src/components/Dashboard/logout.tsx
 'use client';
 
 import { useAuth } from "@/lib/AuthContext";

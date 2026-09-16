@@ -4,32 +4,32 @@ import { emploiAuth, requireRecruiter } from '../../middlewares/emploi-auth.midd
 import { uploadImage, cloudinaryMiddleware } from '../../middlewares/emploi-upload.middleware';
 import { validate } from '../../middlewares/validate';
 
-import { getProfile, switchEtablissement, getDashboard } from '../../controllers/emploi/recruteur.controller';
+import { getProfile, switchEtablissement, getDashboard } from '../../modules/emploi/recruteur/recruteur.controller';
 
 import {
   getOffres, createOffre, updateOffre, updateOffreStatus, duplicateOffre, archiveOffre,
-} from '../../controllers/emploi/offres.controller';
+} from '../../modules/emploi/offres/offres.controller';
 
 import {
   getVitrine, updateVitrine, uploadLogo, uploadBanner, uploadPhoto, deletePhoto, addVideo, deleteVideo,
-} from '../../controllers/emploi/vitrine.controller';
+} from '../../modules/emploi/vitrine/vitrine.controller';
 
 import {
   getCandidatures, updateStatus, markRead, toggleFavorite, saveNotes, sendMessage, toggleStar,
-} from '../../controllers/emploi/candidatures-rec.controller';
+} from '../../modules/emploi/candidatures/candidatures-rec.controller';
 
-import { proxyCandidatCv } from '../../controllers/emploi/cv-proxy.controller';
+import { proxyCandidatCv } from '../../modules/emploi/cv-proxy/cv-proxy.controller';
 
 import {
   createOffreSchema, updateOffreSchema, updateOffreStatusSchema, offreIdParamSchema,
-} from '../../validators/emploi/offre.validator';
+} from '../../modules/emploi/offres/offre.validator';
 
-import { updateVitrineSchema, addVideoSchema, videoIdParamSchema, photoIdParamSchema } from '../../validators/emploi/vitrine.validator';
+import { updateVitrineSchema, addVideoSchema, videoIdParamSchema, photoIdParamSchema } from '../../modules/emploi/vitrine/vitrine.validator';
 
 import {
   updateCandidatureStatusSchema, toggleFavoriteSchema, toggleStarSchema,
   saveNotesSchema, sendMessageSchema, candidatureIdParamSchema,
-} from '../../validators/emploi/candidature.validator';
+} from '../../modules/emploi/candidatures/candidature.validator';
 
 import { z } from 'zod';
 

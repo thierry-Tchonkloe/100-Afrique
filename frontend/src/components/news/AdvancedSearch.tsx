@@ -1,107 +1,21 @@
-// // src/components/news/AdvancedSearch.tsx
+// src/components/news/AdvancedSearch.tsx
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
-import { Search, MapPin, Globe, Tag, X, SlidersHorizontal, ChevronDown } from 'lucide-react';
-
-interface SearchFilters {
-  query: string;
-  region: string;
-  country: string;
-  topic: string;
-}
+import { useEffect, useRef, useState } from 'react';
+import { Search, MapPin, Globe, Tag, X, SlidersHorizontal } from 'lucide-react';
+import FilterSelect from './search/FilterSelect';
+import SearchChip from './search/SearchChip';
+import { EMPTY_FILTERS, REGIONS, COUNTRIES, TOPICS, type SearchFilters } from './search/searchConstants';
 
 interface AdvancedSearchProps {
   onSearch: (filters: SearchFilters) => void;
   loading?: boolean;
 }
 
-const regions = [
-  "Afrique de l'Ouest", "Afrique de l'Est", "Afrique Centrale",
-  "Afrique Australe", "Afrique du Nord", "Europe", "Asie", "Amériques", "Monde",
-];
-
-const countries = [
-  'Sénégal', "Côte d'Ivoire", 'Mali', 'Burkina Faso', 'Niger', 'Bénin', 'Togo', 'Guinée',
-  'Sierra Leone', 'Libéria', 'Gambie', 'Guinée-Bissau', 'Cap Vert', 'Nigeria', 'Ghana',
-  'Cameroun', 'Tchad', 'Congo', 'RDC', 'Gabon', 'Kenya', 'Tanzanie', 'Ouganda', 'Rwanda',
-  'Burundi', 'Afrique du Sud', 'Namibie', 'Botswana', 'Zimbabwe', 'Zambie', 'Malawi',
-  'Maroc', 'Algérie', 'Tunisie', 'Libye', 'Égypte', 'Mauritanie', 'France', 'Belgique',
-  'Suisse', 'Canada', 'USA',
-];
-
-const topics = [
-  'Tourisme durable', 'Éco-tourisme', "Tourisme d'affaires", 'Tourisme religieux',
-  'Tourisme culturel', 'Tourisme sportif', 'Tourisme gastronomique', 'Tourisme médical',
-  'Hôtellerie', 'Transport aérien', 'Croisières', 'Tourisme technologique',
-  'Événements', 'Festivals', 'Salons professionnels', 'Sécurité touristique',
-  'Investissements', 'Développement', 'Emploi', 'Formation',
-];
-
-const EMPTY: SearchFilters = { query: '', region: '', country: '', topic: '' };
-
-// ─── Select stylisé ───────────────────────────────────────────────────────────
-
-function FilterSelect({
-  value,
-  onChange,
-  options,
-  placeholder,
-  icon,
-}: {
-  value: string;
-  onChange: (v: string) => void;
-  options: string[];
-  placeholder: string;
-  icon: React.ReactNode;
-}) {
-  const isActive = !!value;
-  return (
-    <div className="relative">
-      <div className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" style={{ color: isActive ? '#1A5C43' : '#9CA3AF' }}>
-        {icon}
-      </div>
-      <select
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        className="w-full pl-9 pr-8 py-2.5 rounded-xl text-sm outline-none appearance-none font-medium transition-all"
-        style={{
-          border: `1.5px solid ${isActive ? '#1A5C43' : '#E5E7EB'}`,
-          background: isActive ? 'rgba(26,92,67,0.05)' : '#fff',
-          color: isActive ? '#1A5C43' : '#374151',
-        }}
-      >
-        <option value="">{placeholder}</option>
-        {options.map((o) => <option key={o} value={o}>{o}</option>)}
-      </select>
-      <ChevronDown size={13} className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400" />
-    </div>
-  );
-}
-
-// ─── Chip filtre actif ────────────────────────────────────────────────────────
-
-function Chip({ label, icon, onRemove }: { label: string; icon: React.ReactNode; onRemove: () => void }) {
-  return (
-    <span
-      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-semibold"
-      style={{ background: 'rgba(26,92,67,0.08)', color: '#1A5C43', border: '1px solid rgba(26,92,67,0.15)' }}
-    >
-      <span className="opacity-70">{icon}</span>
-      <span className="max-w-[120px] truncate">{label}</span>
-      <button onClick={onRemove} className="ml-0.5 hover:text-[#B85C38] transition-colors">
-        <X size={11} />
-      </button>
-    </span>
-  );
-}
-
-// ─── Composant principal ──────────────────────────────────────────────────────
-
 export default function AdvancedSearch({ onSearch, loading = false }: AdvancedSearchProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const [filters, setFilters] = useState<SearchFilters>(EMPTY);
-  const [draft, setDraft] = useState<SearchFilters>(EMPTY);
+  const [filters, setFilters] = useState<SearchFilters>(EMPTY_FILTERS);
+  const [draft, setDraft] = useState<SearchFilters>(EMPTY_FILTERS);
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => { if (isOpen) setDraft(filters); }, [isOpen]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -116,9 +30,9 @@ export default function AdvancedSearch({ onSearch, loading = false }: AdvancedSe
   };
 
   const handleReset = () => {
-    setFilters(EMPTY);
-    setDraft(EMPTY);
-    onSearch(EMPTY);
+    setFilters(EMPTY_FILTERS);
+    setDraft(EMPTY_FILTERS);
+    onSearch(EMPTY_FILTERS);
     setIsOpen(false);
   };
 
@@ -134,7 +48,6 @@ export default function AdvancedSearch({ onSearch, loading = false }: AdvancedSe
       {/* ── Barre principale ── */}
       <div className="flex gap-2 p-3 sm:p-4">
 
-        {/* Champ texte */}
         <div className="flex-1 relative">
           <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
           <input
@@ -159,7 +72,6 @@ export default function AdvancedSearch({ onSearch, loading = false }: AdvancedSe
           )}
         </div>
 
-        {/* Filtres avancés toggle */}
         <button
           onClick={() => setIsOpen((o) => !o)}
           className="flex items-center gap-2 px-3 sm:px-4 py-2.5 rounded-xl font-semibold text-sm transition-all shrink-0"
@@ -176,7 +88,6 @@ export default function AdvancedSearch({ onSearch, loading = false }: AdvancedSe
           )}
         </button>
 
-        {/* Bouton rechercher */}
         <button
           onClick={() => applyFilters(filters)}
           disabled={loading}
@@ -192,7 +103,6 @@ export default function AdvancedSearch({ onSearch, loading = false }: AdvancedSe
           <span className="hidden sm:inline">Rechercher</span>
         </button>
 
-        {/* Reset */}
         {hasActive && (
           <button
             onClick={handleReset}
@@ -207,38 +117,35 @@ export default function AdvancedSearch({ onSearch, loading = false }: AdvancedSe
       {/* ── Chips filtres actifs ── */}
       {hasActive && (
         <div className="flex flex-wrap gap-2 px-4 pb-3">
-          {filters.query && <Chip label={`"${filters.query}"`} icon={<Search size={10} />} onRemove={() => removeFilter('query')} />}
-          {filters.region && <Chip label={filters.region} icon={<MapPin size={10} />} onRemove={() => removeFilter('region')} />}
-          {filters.country && <Chip label={filters.country} icon={<Globe size={10} />} onRemove={() => removeFilter('country')} />}
-          {filters.topic && <Chip label={filters.topic} icon={<Tag size={10} />} onRemove={() => removeFilter('topic')} />}
+          {filters.query && <SearchChip label={`"${filters.query}"`} icon={<Search size={10} />} onRemove={() => removeFilter('query')} />}
+          {filters.region && <SearchChip label={filters.region} icon={<MapPin size={10} />} onRemove={() => removeFilter('region')} />}
+          {filters.country && <SearchChip label={filters.country} icon={<Globe size={10} />} onRemove={() => removeFilter('country')} />}
+          {filters.topic && <SearchChip label={filters.topic} icon={<Tag size={10} />} onRemove={() => removeFilter('topic')} />}
         </div>
       )}
 
       {/* ── Panneau filtres avancés ── */}
       {isOpen && (
-        <div
-          className="border-t border-gray-100 px-4 pb-4 pt-4"
-          style={{ background: '#FAFAFA' }}
-        >
+        <div className="border-t border-gray-100 px-4 pb-4 pt-4" style={{ background: '#FAFAFA' }}>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
             <FilterSelect
               value={draft.region}
               onChange={(v) => setDraft((d) => ({ ...d, region: v }))}
-              options={regions}
+              options={REGIONS}
               placeholder="Toutes les régions"
               icon={<MapPin size={13} />}
             />
             <FilterSelect
               value={draft.country}
               onChange={(v) => setDraft((d) => ({ ...d, country: v }))}
-              options={countries}
+              options={COUNTRIES}
               placeholder="Tous les pays"
               icon={<Globe size={13} />}
             />
             <FilterSelect
               value={draft.topic}
               onChange={(v) => setDraft((d) => ({ ...d, topic: v }))}
-              options={topics}
+              options={TOPICS}
               placeholder="Tous les sujets"
               icon={<Tag size={13} />}
             />

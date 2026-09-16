@@ -1,7 +1,7 @@
 // src/services/admin/advertising.service.ts
 import { BannerStatus } from "@prisma/client";
-import { v2 as cloudinary } from "cloudinary";
 import slugify from "slugify";
+import cloudinary from "../../config/cloudinary"; // ✅ instance unique et déjà configurée
 import {
     CreateAdZoneInput,
     UpdateAdZoneInput,
@@ -13,12 +13,9 @@ import {
 import { prisma } from '../../config/database';
 
 // ─── Cloudinary ───────────────────────────────────────────────────────────────
-
-cloudinary.config({
-    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-    api_key: process.env.CLOUDINARY_API_KEY,
-    api_secret: process.env.CLOUDINARY_API_SECRET,
-});
+// ⚠️ Ne PAS reconfigurer cloudinary.config(...) ici : c'est déjà fait une seule
+// fois dans src/config/cloudinary.ts. Une double configuration est une source
+// de divergence si l'un des deux fichiers change sans l'autre.
 
 async function uploadToCloudinary(
     buffer: Buffer,
@@ -102,7 +99,13 @@ export const advertisingService = {
     },
 
     async delete(id: number) {
-        await advertisingService.findById(id);
+        const zone = await advertisingService.findById(id);
+
+        // Nettoyage Cloudinary des images des bannières de la zone,
+        // pour éviter des fichiers orphelins facturés indéfiniment.
+        const publicIds = zone.banners.map((b) => b.publicId).filter(Boolean) as string[];
+        await Promise.all(publicIds.map((pid) => cloudinary.uploader.destroy(pid).catch(() => null)));
+
         return prisma.advertising.delete({ where: { id: Number(id) } });
     },
 
@@ -171,7 +174,8 @@ export const bannerService = {
             advertiser: data.advertiser,
             campaign: data.campaign,
             type: data.type,
-            htmlCode: data.htmlCode,
+            // On ne garde le htmlCode que pour le type HTML_JS
+            htmlCode: data.type === "HTML_JS" ? data.htmlCode ?? null : null,
             imageUrl,
             publicId,
             startDate,
@@ -188,18 +192,38 @@ export const bannerService = {
         file?: Express.Multer.File
     ) {
         const existing = await bannerService.findById(id);
+        const newType = data.type ?? existing.type;
 
-        let imageUrl = existing.imageUrl ?? undefined;
-        let publicId = existing.publicId ?? undefined;
+        let imageUrl: string | null = existing.imageUrl;
+        let publicId: string | null = existing.publicId;
+        let htmlCode: string | null = existing.htmlCode;
 
-        if (file) {
-        // Supprimer l'ancienne image Cloudinary si existante
-        if (existing.publicId) {
-            await cloudinary.uploader.destroy(existing.publicId);
-        }
-        const uploaded = await uploadToCloudinary(file.buffer, file.originalname);
-        imageUrl = uploaded.url;
-        publicId = uploaded.publicId;
+        if (newType === "IMAGE_JPG") {
+            // On bascule (ou on reste) en image → on nettoie tout code JS résiduel
+            htmlCode = null;
+
+            if (file) {
+                // Nouvelle image fournie : on supprime l'ancienne sur Cloudinary
+                if (existing.publicId) {
+                    await cloudinary.uploader.destroy(existing.publicId).catch(() => null);
+                }
+                const uploaded = await uploadToCloudinary(file.buffer, file.originalname);
+                imageUrl = uploaded.url;
+                publicId = uploaded.publicId;
+            } else if (!imageUrl) {
+                // Pas de nouvelle image ET pas d'image existante (ex: on vient de HTML_JS)
+                throw new Error("Une image est requise pour ce type de bannière");
+            }
+        } else {
+            // newType === "HTML_JS" → on nettoie toute image résiduelle
+            if (existing.publicId) {
+                await cloudinary.uploader.destroy(existing.publicId).catch(() => null);
+            }
+            imageUrl = null;
+            publicId = null;
+
+            htmlCode = data.htmlCode ?? existing.htmlCode;
+            if (!htmlCode) throw new Error("Le code HTML/JS est requis pour ce type");
         }
 
         const officialWebSite = data.officialWebSite ?? existing.officialWebSite ?? null;
@@ -212,15 +236,17 @@ export const bannerService = {
         return prisma.banner.update({
         where: { id: Number(id) },
         data: {
-            ...data,
+            advertiser: data.advertiser ?? existing.advertiser,
+            campaign: data.campaign ?? existing.campaign,
+            type: newType,
             officialWebSite,
             description,
             startDate,
             endDate,
             status,
-            imageUrl: imageUrl ?? existing.imageUrl ?? null,
+            imageUrl,
             publicId,
-            htmlCode: data.htmlCode ?? existing.htmlCode ?? null, // permet de supprimer le code si type change
+            htmlCode,
         },
         });
     },
@@ -229,12 +255,15 @@ export const bannerService = {
         const banner = await bannerService.findById(id);
         // Supprimer l'image Cloudinary
         if (banner.publicId) {
-        await cloudinary.uploader.destroy(banner.publicId);
+        await cloudinary.uploader.destroy(banner.publicId).catch(() => null);
         }
         return prisma.banner.delete({ where: { id: Number(id) } });
     },
 
-    // Cron-compatible: rafraîchit les statuts selon les dates
+    // Cron-compatible: rafraîchit les statuts selon les dates.
+    // ⚠️ Ce champ `status` sert désormais uniquement à l'affichage ADMIN
+    // (tableaux, fillRate, stats) — l'affichage PUBLIC ne dépend plus de lui,
+    // il filtre directement sur les dates (voir advertising.public.service.ts).
     async refreshStatuses() {
         const banners = await prisma.banner.findMany();
         const updates = banners.map((b) => {
@@ -253,7 +282,6 @@ export const bannerService = {
 
 export const thirdPartyService = {
     async get() {
-        // On ne garde qu'un seul enregistrement (upsert)
         return prisma.thirdPartyCode.findFirst();
     },
 

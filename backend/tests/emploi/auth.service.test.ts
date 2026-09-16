@@ -1,16 +1,8 @@
 // tests/emploi/auth.service.test.ts
-//
-// Flux critique #1 : authentification. Couvre les cas qui, en revue de
-// code, étaient justement identifiés comme mal gérés (email déjà utilisé
-// renvoyant une 500 générique au lieu d'un message clair).
-//
-// On mocke les repositories : le service est testé en isolation, sans
-// base de données réelle — c'est justement l'intérêt de la séparation
-// service/repository.
 
-jest.mock('../../src/repositories/emploi/emploiUser.repository');
-jest.mock('../../src/repositories/emploi/etablissement.repository');
-jest.mock('../../src/repositories/emploi/vitrine.repository');
+jest.mock('../../src/modules/emploi/repositories/emploiUser.repository');
+jest.mock('../../src/modules/emploi/repositories/etablissement.repository');
+jest.mock('../../src/modules/emploi/vitrine/vitrine.repository');
 jest.mock('bcrypt', () => ({
   hash: jest.fn().mockResolvedValue('hashed-password'),
   compare: jest.fn(),
@@ -18,10 +10,10 @@ jest.mock('bcrypt', () => ({
 jest.mock('jsonwebtoken', () => ({ sign: jest.fn().mockReturnValue('fake-jwt-token') }));
 
 import bcrypt from 'bcrypt';
-import { authService } from '../../src/services/emploi/auth.service';
-import { emploiUserRepository } from '../../src/repositories/emploi/emploiUser.repository';
-import { etablissementRepository } from '../../src/repositories/emploi/etablissement.repository';
-import { vitrineRepository } from '../../src/repositories/emploi/vitrine.repository';
+import { authService } from '../../src/modules/emploi/auth/auth.service';
+import { emploiUserRepository } from '../../src/modules/emploi/repositories/emploiUser.repository';
+import { etablissementRepository } from '../../src/modules/emploi/repositories/etablissement.repository';
+import { vitrineRepository } from '../../src/modules/emploi/vitrine/vitrine.repository';
 import { ConflictError, UnauthorizedError } from '../../src/errors/http-errors';
 
 const mockedUserRepo = emploiUserRepository as jest.Mocked<typeof emploiUserRepository>;
@@ -29,10 +21,10 @@ const mockedEtabRepo = etablissementRepository as jest.Mocked<typeof etablisseme
 const mockedVitrineRepo = vitrineRepository as jest.Mocked<typeof vitrineRepository>;
 
 describe('authService.register', () => {
-  beforeEach(() => jest.clearAllMocks());
+  beforeEach(() => jest.clearAllMocks()); // remet à zéro tous les mocks
 
   it('refuse une inscription avec un email déjà utilisé (ConflictError, pas une 500 générique)', async () => {
-    mockedUserRepo.findByEmail.mockResolvedValue({ id: 1 } as any);
+    mockedUserRepo.findByEmail.mockResolvedValue({ id: 1 } as any); // Ça simule le cas où un utilisateur avec cet email existe déjà en base.
 
     await expect(
       authService.register({
@@ -42,7 +34,7 @@ describe('authService.register', () => {
         lastName: 'B',
         role: 'CANDIDAT',
       }),
-    ).rejects.toBeInstanceOf(ConflictError);
+    ).rejects.toBeInstanceOf(ConflictError); // vérifie que l'erreur reçue est bien une instance de la classe ConflictError
   });
 
   it('crée un établissement + le lien recruteur par défaut quand role=RECRUITER et companyName fourni', async () => {
@@ -63,12 +55,10 @@ describe('authService.register', () => {
     });
 
     expect(mockedEtabRepo.create).toHaveBeenCalledWith(
-      expect.objectContaining({ name: 'Hôtel Test' }),
-    );
-    // Le lien doit être marqué par défaut (isDefault=true) — c'est ce qui
-    // manquait dans le bug historique "getEtabId() retourne null".
-    expect(mockedEtabRepo.linkRecruiter).toHaveBeenCalledWith(42, 7, true);
-    expect(result.token).toBe('fake-jwt-token');
+      expect.objectContaining({ name: 'Hôtel Test' }), // on vérifie que create a été appelé avec l'objet contenant le nom de l'établissement
+    ); //  on vérifie comment un mock a été appelé
+    expect(mockedEtabRepo.linkRecruiter).toHaveBeenCalledWith(42, 7, true); // on vérifie que le recruteur a été lié à l'établissement créé
+    expect(result.token).toBe('fake-jwt-token'); // vérifie que le token retourné est bien celui du mock de jwt.sign
   });
 });
 

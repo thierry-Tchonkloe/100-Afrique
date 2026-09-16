@@ -1,15 +1,4 @@
 // src/errors/http-errors.ts
-//
-// Hiérarchie d'erreurs métier. Les services lèvent CES erreurs (jamais de
-// throw générique), le contrôleur ne les attrape pas lui-même : il délègue
-// à `asyncHandler` (voir middlewares/errorHandler.ts) qui transmet à
-// `errorHandler`, seul point central qui décide du statut HTTP + du corps
-// de réponse. Ça règle le "tout en 500" pointé en revue de code.
-//
-// Règle : chaque erreur DOIT avoir un message explicite pour la personne
-// qui regarde l'onglet Network / les logs, et un `code` machine-readable
-// stable pour le frontend (permet de faire du if (error.code === '...')
-// sans parser un message humain qui peut changer).
 
 import { AppError } from '../middlewares/errorHandler';
 
