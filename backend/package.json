@@ -16,7 +16,8 @@
     "seed": "node dist/prisma/seed.js",
     "db:reset": "prisma migrate reset --force",
     "db:setup": "prisma generate && prisma migrate deploy && npm run seed",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "test:integration": "jest --config jest.integration.config.js"
   },
   "keywords": [
     "itourisme",

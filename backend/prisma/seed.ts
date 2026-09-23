@@ -11,11 +11,11 @@ async function main() {
   // ========================================
   // NETTOYAGE DES ANCIENS ARTICLES
   // ========================================
-//   console.log('🧹 Nettoyage des anciens articles...');
+  console.log('🧹 Nettoyage des anciens articles...');
 
-//   await prisma.article.deleteMany({});
+  await prisma.article.deleteMany({});
 
-// console.log('✅ Anciens articles supprimés\n');
+console.log('✅ Anciens articles supprimés\n');
 
   // ========================================
   // 1. UTILISATEURS
@@ -1019,7 +1019,7 @@ console.log(`✅ ${salonArticles.length} salons/événements créés\n`);
 
   console.log('✅ Médias créés\n');
 
-  // ========================================
+    // ========================================
   // 10. PUBLICITÉS (Espaces, Bannières, Code tiers)
   // ========================================
   console.log('📢 Création des espaces publicitaires...');
@@ -1028,87 +1028,270 @@ console.log(`✅ ${salonArticles.length} salons/événements créés\n`);
   const daysAgo  = (n: number) => new Date(now.getTime() - n * 86_400_000);
   const daysFrom = (n: number) => new Date(now.getTime() + n * 86_400_000);
 
+  // ─────────────────────────────────────────────────────────────
+  // 🧱 Interface commune — force TypeScript à typer `type` comme
+  // l'union complète BannerType (et non un littéral figé par élément
+  // quand un tableau ne contient qu'une seule valeur d'enum).
+  // C'est cette annotation qui corrige l'erreur "no overlap".
+  // ─────────────────────────────────────────────────────────────
+  interface SeedBanner {
+    advertiser: string;
+    campaign: string;
+    type: BannerType;
+    imageUrl: string | null;
+    publicId: string | null;
+    htmlCode: string | null;
+    officialWebSite: string | null;
+    description: string | null;
+    startDate: Date;
+    endDate: Date;
+    status: BannerStatus;
+  }
+
+  interface SeedBannerGroup {
+    zoneSlug: string;
+    banners: SeedBanner[];
+  }
+
+  // ─────────────────────────────────────────────────────────────
+  // 🖼️ IMAGES Cloudinary — Bannières "Top Banner Accueil" (Waxeho)
+  // Remplacez chaque URL par celle renvoyée par
+  // `npm run upload:seed-images`.
+  // ─────────────────────────────────────────────────────────────
+  const WAXEHO_IMAGES = {
+    namibie:       'https://res.cloudinary.com/dh0xwwyal/image/upload/v1789636469/Aventure_dans_les_Dunes_de_Sossusvlei_Namibie_dufrka.png',
+    marrakech:     'https://res.cloudinary.com/dh0xwwyal/image/upload/v1789636469/Escapade_Culturelle_%C3%A0_Marrakech_Maroc_lxyw17.png',
+    zanzibar:      'https://res.cloudinary.com/dh0xwwyal/image/upload/v1789636471/Gastronomie_et_Route_des_%C3%89pices_Zanzibar_sbbnrt.png',
+    coteivoire:    'https://res.cloudinary.com/dh0xwwyal/image/upload/v1789636473/Retraite_%C3%89co-Responsable_C%C3%B4te_d_Ivoire_yjpqqb.png',
+    kenyatanzanie: 'https://res.cloudinary.com/dh0xwwyal/image/upload/v1789636475/Safari_Photo_de_Luxe_Afrique_de_l_Est_g14ami.png',
+    capvilletown:  'https://res.cloudinary.com/dh0xwwyal/image/upload/v1789636471/S%C3%A9jour_Baln%C3%A9aire_de_Luxe_au_Cap_Afrique_du_Sud_p0cmnm.png',
+  };
+
+  // ─────────────────────────────────────────────────────────────
+  // 🖼️ IMAGES — Autres zones (à compléter avec vos propres uploads)
+  // ─────────────────────────────────────────────────────────────
+  const OTHER_ZONE_IMAGES = {
+    sidebar1: 'PASTE_CLOUDINARY_URL_SIDEBAR_1_ICI',
+    sidebar2: 'PASTE_CLOUDINARY_URL_SIDEBAR_2_ICI',
+    footer1:  'PASTE_CLOUDINARY_URL_FOOTER_1_ICI',
+    footer2:  'PASTE_CLOUDINARY_URL_FOOTER_2_ICI',
+    salon1:   'PASTE_CLOUDINARY_URL_SALON_1_ICI',
+    mobile1:  'PASTE_CLOUDINARY_URL_MOBILE_1_ICI',
+  };
+
   const adZonesData = [
-    { name: 'Top Banner Accueil',  slug: 'top-banner-accueil',  width: 728, height: 90,  path: '/accueil',        isEnabled: true  },
-    { name: 'Skyscraper Sidebar',  slug: 'skyscraper-sidebar',  width: 160, height: 600, path: '/articles/*',     isEnabled: true  },
-    { name: 'Rectangle Moyen',     slug: 'rectangle-moyen',     width: 300, height: 250, path: '/destinations/*', isEnabled: false },
-    { name: 'Leaderboard Footer',  slug: 'leaderboard-footer',  width: 728, height: 90,  path: '/',               isEnabled: true  },
-    { name: 'Large Rectangle',     slug: 'large-rectangle',     width: 336, height: 280, path: '/videos/*',       isEnabled: true  },
-    { name: 'Mobile Banner',       slug: 'mobile-banner',       width: 320, height: 50,  path: '/',               isEnabled: true  },
+    { name: 'Top Banner Accueil',     slug: 'top-banner-accueil',     width: 1920, height: 220, path: '/accueil',    isEnabled: true },
+    { name: 'Skyscraper Sidebar',     slug: 'skyscraper-sidebar',     width: 300,  height: 600, path: '/actualites', isEnabled: true },
+    { name: 'Leaderboard Salons Top', slug: 'leaderboard-salons-top', width: 970,  height: 250, path: '/salons',     isEnabled: true },
+    { name: 'Leaderboard Footer',     slug: 'leaderboard-footer',     width: 728,  height: 90,  path: '/',            isEnabled: true },
+    { name: 'Mobile Banner',          slug: 'mobile-banner',          width: 320,  height: 50,  path: '/',            isEnabled: true },
   ];
 
-  const bannersData = [
+  // ✅ Type explicite ici : SeedBannerGroup[] — c'est ce qui règle l'erreur
+  const bannersData: SeedBannerGroup[] = [
+    // ─── TOP BANNER ACCUEIL : 6 bannières Waxeho (rotation) ───────────────
     {
       zoneSlug: 'top-banner-accueil',
       banners: [
-        { advertiser: 'Agence Voyage Plus',        campaign: 'Campagne Été 2024',           type: BannerType.IMAGE_JPG, imageUrl: 'https://res.cloudinary.com/demo/image/upload/v1/ad-banners/agence_voyage_plus_728x90.jpg', publicId: 'ad-banners/agence_voyage_plus_728x90', htmlCode: null, startDate: daysAgo(30), endDate: daysFrom(62),  status: BannerStatus.ACTIF  },
-        { advertiser: 'Office de Tourisme du Bénin', campaign: 'Promotion Été 2024',        type: BannerType.IMAGE_JPG, imageUrl: 'https://res.cloudinary.com/demo/image/upload/v1/ad-banners/otb_728x90.jpg',              publicId: 'ad-banners/otb_728x90',              htmlCode: null, startDate: daysAgo(15), endDate: daysFrom(75),  status: BannerStatus.ACTIF  },
-        { advertiser: 'Google AdSense',             campaign: 'Code Automatique 2024',      type: BannerType.HTML_JS,  imageUrl: null, publicId: null, htmlCode: `<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX" crossorigin="anonymous"></script><ins class="adsbygoogle" style="display:inline-block;width:728px;height:90px" data-ad-client="ca-pub-XXXXXXXXXXXXXXXX" data-ad-slot="1234567890"></ins><script>(adsbygoogle = window.adsbygoogle || []).push({});</script>`, startDate: daysAgo(45), endDate: daysFrom(210), status: BannerStatus.ACTIF  },
-        { advertiser: 'Hôtel Babo Beach Resort',    campaign: 'Lancement Saison Sèche 2025', type: BannerType.IMAGE_JPG, imageUrl: 'https://res.cloudinary.com/demo/image/upload/v1/ad-banners/babo_beach_728x90.jpg',    publicId: 'ad-banners/babo_beach_728x90',       htmlCode: null, startDate: daysFrom(15), endDate: daysFrom(105), status: BannerStatus.FUTUR },
+        {
+          advertiser: 'Waxeho',
+          campaign: 'Namibie — Désert Rouge et Paysages Infinis',
+          type: BannerType.IMAGE_JPG,
+          imageUrl: WAXEHO_IMAGES.namibie,
+          publicId: null,
+          htmlCode: null,
+          officialWebSite: 'https://www.waxeho.com',
+          description: 'Aventure en 4x4 & logements éco-responsables — 1850€ tout compris, Waxeho Sélection.',
+          startDate: daysAgo(5),
+          endDate: daysFrom(85),
+          status: BannerStatus.ACTIF,
+        },
+        {
+          advertiser: 'Waxeho',
+          campaign: 'Maroc — Immersion dans les Souks et Riads de Marrakech',
+          type: BannerType.IMAGE_JPG,
+          imageUrl: WAXEHO_IMAGES.marrakech,
+          publicId: null,
+          htmlCode: null,
+          officialWebSite: 'https://www.waxeho.com',
+          description: 'Vols + hébergement en riad traditionnel — 450€ tout compris, Waxeho Sélection.',
+          startDate: daysAgo(5),
+          endDate: daysFrom(85),
+          status: BannerStatus.ACTIF,
+        },
+        {
+          advertiser: 'Waxeho',
+          campaign: 'Zanzibar — Gastronomie et Histoire des Épices',
+          type: BannerType.IMAGE_JPG,
+          imageUrl: WAXEHO_IMAGES.zanzibar,
+          publicId: null,
+          htmlCode: null,
+          officialWebSite: 'https://www.waxeho.com',
+          description: 'Circuits culinaires et hôtels de charme — 890€ demi-pension, Waxeho Sélection.',
+          startDate: daysAgo(5),
+          endDate: daysFrom(85),
+          status: BannerStatus.ACTIF,
+        },
+        {
+          advertiser: 'Waxeho',
+          campaign: "Côte d'Ivoire — Tourisme Vert et Détente Tropicale",
+          type: BannerType.IMAGE_JPG,
+          imageUrl: WAXEHO_IMAGES.coteivoire,
+          publicId: null,
+          htmlCode: null,
+          officialWebSite: 'https://www.waxeho.com',
+          description: 'Séjour éco-friendly en bungalow plage — 680€ pension complète, Waxeho Sélection.',
+          startDate: daysAgo(5),
+          endDate: daysFrom(85),
+          status: BannerStatus.ACTIF,
+        },
+        {
+          advertiser: 'Waxeho',
+          campaign: 'Kenya & Tanzanie — Grands Safaris Pionniers',
+          type: BannerType.IMAGE_JPG,
+          imageUrl: WAXEHO_IMAGES.kenyatanzanie,
+          publicId: null,
+          htmlCode: null,
+          officialWebSite: 'https://www.waxeho.com',
+          description: "Offre d'hébergement de luxe — 1400€ tout compris, Waxeho Sélection.",
+          startDate: daysAgo(5),
+          endDate: daysFrom(85),
+          status: BannerStatus.ACTIF,
+        },
+        {
+          advertiser: 'Waxeho',
+          campaign: 'Le Cap — Vie Urbaine et Plages Somptueuses',
+          type: BannerType.IMAGE_JPG,
+          imageUrl: WAXEHO_IMAGES.capvilletown,
+          publicId: null,
+          htmlCode: null,
+          officialWebSite: 'https://www.waxeho.com',
+          description: 'Hôtels 5 étoiles et tours de vignobles — 1550€ tout compris, Waxeho Sélection.',
+          startDate: daysAgo(5),
+          endDate: daysFrom(85),
+          status: BannerStatus.ACTIF,
+        },
       ],
     },
+
+    // ─── SKYSCRAPER SIDEBAR ─────────────────────────────────────────────
     {
       zoneSlug: 'skyscraper-sidebar',
       banners: [
-        { advertiser: 'Air Côte d\'Ivoire',  campaign: 'Vols Cotonou–Abidjan Printemps', type: BannerType.IMAGE_JPG, imageUrl: 'https://res.cloudinary.com/demo/image/upload/v1/ad-banners/air_ci_160x600.jpg',     publicId: 'ad-banners/air_ci_160x600',     htmlCode: null, startDate: daysAgo(20), endDate: daysFrom(40), status: BannerStatus.ACTIF },
-        { advertiser: 'Ecobank Bénin',       campaign: 'Prêt Tourisme & Loisirs',       type: BannerType.IMAGE_JPG, imageUrl: 'https://res.cloudinary.com/demo/image/upload/v1/ad-banners/ecobank_160x600.jpg',     publicId: 'ad-banners/ecobank_160x600',     htmlCode: null, startDate: daysAgo(10), endDate: daysFrom(80), status: BannerStatus.ACTIF },
-        { advertiser: 'Sèmè Beach Hôtel',   campaign: 'Forfait Week-end Détente',       type: BannerType.HTML_JS,  imageUrl: null, publicId: null, htmlCode: `<div style="width:160px;height:600px;overflow:hidden;"><iframe src="https://ads.seme-beach.bj/iframe/160x600" width="160" height="600" frameborder="0" scrolling="no"></iframe></div>`, startDate: daysAgo(5), endDate: daysFrom(55), status: BannerStatus.ACTIF },
+        {
+          advertiser: 'Waxeho',
+          campaign: 'Sidebar — Offre Découverte',
+          type: BannerType.IMAGE_JPG,
+          imageUrl: OTHER_ZONE_IMAGES.sidebar1,
+          publicId: null,
+          htmlCode: null,
+          officialWebSite: 'https://www.waxeho.com',
+          description: 'Bannière verticale de test pour la sidebar actualités.',
+          startDate: daysAgo(5),
+          endDate: daysFrom(85),
+          status: BannerStatus.ACTIF,
+        },
+        {
+          advertiser: 'Waxeho',
+          campaign: 'Sidebar — Offre Weekend',
+          type: BannerType.IMAGE_JPG,
+          imageUrl: OTHER_ZONE_IMAGES.sidebar2,
+          publicId: null,
+          htmlCode: null,
+          officialWebSite: 'https://www.waxeho.com',
+          description: 'Deuxième bannière verticale, pour tester la rotation.',
+          startDate: daysAgo(5),
+          endDate: daysFrom(85),
+          status: BannerStatus.ACTIF,
+        },
       ],
     },
+
+    // ─── LEADERBOARD SALONS TOP ─────────────────────────────────────────
     {
-      zoneSlug: 'rectangle-moyen',
+      zoneSlug: 'leaderboard-salons-top',
       banners: [
-        { advertiser: 'Bénin Marina Hôtel', campaign: 'Offre MICE 2024', type: BannerType.IMAGE_JPG, imageUrl: 'https://res.cloudinary.com/demo/image/upload/v1/ad-banners/marina_hotel_300x250.jpg', publicId: 'ad-banners/marina_hotel_300x250', htmlCode: null, startDate: daysAgo(90), endDate: daysAgo(1), status: BannerStatus.EXPIRE },
+        {
+          advertiser: 'Waxeho',
+          campaign: 'Salons — Partenaire Officiel',
+          type: BannerType.IMAGE_JPG,
+          imageUrl: OTHER_ZONE_IMAGES.salon1,
+          publicId: null,
+          htmlCode: null,
+          officialWebSite: 'https://www.waxeho.com',
+          description: 'Bannière large pour la page Salons.',
+          startDate: daysAgo(5),
+          endDate: daysFrom(85),
+          status: BannerStatus.ACTIF,
+        },
       ],
     },
+
+    // ─── LEADERBOARD FOOTER ─────────────────────────────────────────────
     {
       zoneSlug: 'leaderboard-footer',
       banners: [
-        { advertiser: 'MTN Bénin',       campaign: 'MTN Travel SIM – Roaming Afrique',  type: BannerType.IMAGE_JPG, imageUrl: 'https://res.cloudinary.com/demo/image/upload/v1/ad-banners/mtn_728x90.jpg', publicId: 'ad-banners/mtn_728x90', htmlCode: null, startDate: daysAgo(7),  endDate: daysFrom(53),  status: BannerStatus.ACTIF  },
-        { advertiser: 'Royal Air Maroc', campaign: 'Cotonou–Casablanca Connexion',       type: BannerType.IMAGE_JPG, imageUrl: 'https://res.cloudinary.com/demo/image/upload/v1/ad-banners/ram_728x90.jpg', publicId: 'ad-banners/ram_728x90', htmlCode: null, startDate: daysFrom(30), endDate: daysFrom(120), status: BannerStatus.FUTUR },
+        {
+          advertiser: 'Waxeho',
+          campaign: 'Footer — Offre du Moment',
+          type: BannerType.IMAGE_JPG,
+          imageUrl: OTHER_ZONE_IMAGES.footer1,
+          publicId: null,
+          htmlCode: null,
+          officialWebSite: 'https://www.waxeho.com',
+          description: 'Bannière de pied de page.',
+          startDate: daysAgo(5),
+          endDate: daysFrom(85),
+          status: BannerStatus.ACTIF,
+        },
+        {
+          advertiser: 'Waxeho',
+          campaign: 'Footer — Futur Lancement',
+          type: BannerType.IMAGE_JPG,
+          imageUrl: OTHER_ZONE_IMAGES.footer2,
+          publicId: null,
+          htmlCode: null,
+          officialWebSite: 'https://www.waxeho.com',
+          description: 'Bannière programmée dans le futur (pour tester le statut FUTUR).',
+          startDate: daysFrom(30),
+          endDate: daysFrom(120),
+          status: BannerStatus.FUTUR,
+        },
       ],
     },
-    {
-      zoneSlug: 'large-rectangle',
-      banners: [
-        { advertiser: 'Ganvié Éco-Tourisme', campaign: 'Découverte Village Lacustre',  type: BannerType.IMAGE_JPG, imageUrl: 'https://res.cloudinary.com/demo/image/upload/v1/ad-banners/ganvie_336x280.jpg',   publicId: 'ad-banners/ganvie_336x280',   htmlCode: null, startDate: daysAgo(12), endDate: daysFrom(48),  status: BannerStatus.ACTIF },
-        { advertiser: 'Songhaï Bénin',       campaign: 'Agro-Tourisme Porto-Novo',     type: BannerType.IMAGE_JPG, imageUrl: 'https://res.cloudinary.com/demo/image/upload/v1/ad-banners/songhai_336x280.jpg',  publicId: 'ad-banners/songhai_336x280',  htmlCode: null, startDate: daysAgo(3),  endDate: daysFrom(87),  status: BannerStatus.ACTIF },
-        { advertiser: 'Google AdSense',       campaign: 'Auto-placement Vidéo',         type: BannerType.HTML_JS,  imageUrl: null, publicId: null, htmlCode: `<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX" crossorigin="anonymous"></script><ins class="adsbygoogle" style="display:inline-block;width:336px;height:280px" data-ad-client="ca-pub-XXXXXXXXXXXXXXXX" data-ad-slot="9876543210"></ins><script>(adsbygoogle = window.adsbygoogle || []).push({});</script>`, startDate: daysAgo(60), endDate: daysFrom(300), status: BannerStatus.ACTIF },
-      ],
-    },
+
+    // ─── MOBILE BANNER ──────────────────────────────────────────────────
     {
       zoneSlug: 'mobile-banner',
       banners: [
-        { advertiser: 'Moov Africa Bénin',      campaign: 'Data Roaming – Forfait Voyageur', type: BannerType.IMAGE_JPG, imageUrl: 'https://res.cloudinary.com/demo/image/upload/v1/ad-banners/moov_320x50.jpg',   publicId: 'ad-banners/moov_320x50',   htmlCode: null, startDate: daysAgo(8),  endDate: daysFrom(22), status: BannerStatus.ACTIF },
-        { advertiser: 'Taxi-Bénin App',          campaign: 'Téléchargez l\'app – Été 2024',  type: BannerType.HTML_JS,  imageUrl: null, publicId: null, htmlCode: `<div id="taxi-benin-ad" style="width:320px;height:50px;background:#f97316;display:flex;align-items:center;justify-content:space-between;padding:0 12px;border-radius:6px;font-family:sans-serif;"><span style="color:#fff;font-size:13px;font-weight:600;">🚕 Taxi-Bénin — Réservez en 1 clic</span><a href="https://taxibenin.bj/app" style="color:#fff;font-size:11px;border:1px solid rgba(255,255,255,.6);padding:3px 8px;border-radius:4px;text-decoration:none;">Télécharger</a></div>`, startDate: daysAgo(2), endDate: daysFrom(28), status: BannerStatus.ACTIF },
-        { advertiser: 'Festival Vodoun Ouidah', campaign: 'Billetterie Festival 2025',       type: BannerType.IMAGE_JPG, imageUrl: 'https://res.cloudinary.com/demo/image/upload/v1/ad-banners/vodoun_320x50.jpg', publicId: 'ad-banners/vodoun_320x50', htmlCode: null, startDate: daysFrom(60), endDate: daysFrom(95), status: BannerStatus.FUTUR },
+        {
+          advertiser: 'Waxeho',
+          campaign: 'Mobile — Format Réduit',
+          type: BannerType.IMAGE_JPG,
+          imageUrl: OTHER_ZONE_IMAGES.mobile1,
+          publicId: null,
+          htmlCode: null,
+          officialWebSite: 'https://www.waxeho.com',
+          description: 'Bannière au format mobile 320×50.',
+          startDate: daysAgo(5),
+          endDate: daysFrom(85),
+          status: BannerStatus.ACTIF,
+        },
       ],
     },
   ];
 
-  const thirdPartyCodeData = { code:`<!-- Google Tag Manager -->
+  const thirdPartyCodeData = { code: `<!-- Google Tag Manager -->
     <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
       new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
       j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
       'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
       })(window,document,'script','dataLayer','GTM-XXXXXXX');</script>
-      <!-- End Google Tag Manager -->
-
-      <!-- Google Ad Manager (GPT) -->
-      <script async src="https://www.googletagservices.com/tag/js/gpt.js"></script>
-      <script>
-        window.googletag = window.googletag || {cmd: []};
-        googletag.cmd.push(function() {
-          googletag.defineSlot('/XXXXXXXX/itourisme_top_banner', [728, 90], 'div-gpt-ad-top').addService(googletag.pubads());
-          googletag.defineSlot('/XXXXXXXX/itourisme_sidebar', [160, 600], 'div-gpt-ad-sidebar').addService(googletag.pubads());
-          googletag.pubads().enableSingleRequest();
-          googletag.enableServices();
-        });
-    </script>`,
+      <!-- End Google Tag Manager -->`,
   };
 
-async function seedAdSpaces() {
-  console.log("🌱 Seed — Espaces Publicitaires...\n");
+  async function seedAdSpaces() {
+    console.log("🌱 Seed — Espaces Publicitaires...\n");
 
     await prisma.$transaction(async (tx) => {
 
@@ -1120,9 +1303,7 @@ async function seedAdSpaces() {
       for (const zone of adZonesData) {
         const created = await tx.advertising.upsert({
           where: { slug: zone.slug },
-
           update: {},
-
           create: {
             name: zone.name,
             slug: zone.slug,
@@ -1134,7 +1315,6 @@ async function seedAdSpaces() {
         });
 
         createdZones[zone.slug] = created.id;
-
         console.log(`✓ Zone upsert : ${zone.name}`);
       }
 
@@ -1144,9 +1324,9 @@ async function seedAdSpaces() {
       let totalBanners = 0;
 
       const computeStatus = (start: Date, end: Date): BannerStatus => {
-        const now = new Date();
-        if (end < now) return BannerStatus.EXPIRE;
-        if (start > now) return BannerStatus.FUTUR;
+        const nowLocal = new Date();
+        if (end < nowLocal) return BannerStatus.EXPIRE;
+        if (start > nowLocal) return BannerStatus.FUTUR;
         return BannerStatus.ACTIF;
       };
 
@@ -1159,14 +1339,19 @@ async function seedAdSpaces() {
         }
 
         for (const banner of group.banners) {
+          // 🔒 Garde-fou : URL placeholder non remplacée → on saute la
+          // bannière plutôt que de créer une entrée cassée en base.
+          if (banner.type === BannerType.IMAGE_JPG && banner.imageUrl?.startsWith("PASTE_")) {
+            console.warn(`⚠ Image non renseignée pour "${banner.campaign}" — bannière ignorée. Remplacez ${banner.imageUrl}.`);
+            continue;
+          }
 
-          // 🔒 Validation minimale
           if (new Date(banner.startDate) >= new Date(banner.endDate)) {
             console.warn(`⚠ Dates invalides pour ${banner.campaign}`);
             continue;
           }
 
-          if (banner.type === "HTML_JS" && !banner.htmlCode) {
+          if (banner.type === BannerType.HTML_JS && !banner.htmlCode) {
             console.warn(`⚠ HTML manquant pour ${banner.campaign}`);
             continue;
           }
@@ -1177,10 +1362,12 @@ async function seedAdSpaces() {
           const cleanData = {
             advertiser: banner.advertiser,
             campaign: banner.campaign,
+            officialWebSite: banner.officialWebSite ?? null,
+            description: banner.description ?? null,
             type: banner.type,
-            htmlCode: banner.type === "HTML_JS" ? banner.htmlCode : null,
-            imageUrl: banner.type === "IMAGE_JPG" ? banner.imageUrl : null,
-            publicId: banner.type === "IMAGE_JPG" ? banner.publicId : null,
+            htmlCode: banner.type === BannerType.HTML_JS ? banner.htmlCode : null,
+            imageUrl: banner.type === BannerType.IMAGE_JPG ? banner.imageUrl : null,
+            publicId: banner.type === BannerType.IMAGE_JPG ? banner.publicId : null,
             startDate,
             endDate,
             status: computeStatus(startDate, endDate),
@@ -1193,9 +1380,7 @@ async function seedAdSpaces() {
                 advertisingId: zoneId,
               },
             },
-
-            update: {},
-
+            update: cleanData,
             create: {
               ...cleanData,
               advertisingId: zoneId,
@@ -1205,7 +1390,7 @@ async function seedAdSpaces() {
           totalBanners++;
         }
 
-        console.log(`✓ ${group.banners.length} bannières (zone: ${group.zoneSlug})`);
+        console.log(`✓ ${group.banners.length} bannières traitées (zone: ${group.zoneSlug})`);
       }
 
       // ─────────────────────────────────────────────
@@ -1213,30 +1398,14 @@ async function seedAdSpaces() {
       // ─────────────────────────────────────────────
       await tx.thirdPartyCode.upsert({
         where: { id: 1 },
-
         update: {},
-
-        create: {
-          id: 1,
-          code: thirdPartyCodeData.code,
-        },
+        create: { id: 1, code: thirdPartyCodeData.code },
       });
 
       console.log("✓ Code tiers upsert");
+      console.log(`\n✅ ${totalBanners} bannière(s) créée(s)/mise(s) à jour au total.\n`);
     });
-
-    // ─────────────────────────────────────────────
-    // RÉCAP
-    // ─────────────────────────────────────────────
-    console.log(`
-  ┌─────────────────────────────────────────────┐
-  │ ✅ Seed terminé                            │
-  │ Zones : ${adZonesData.length}                         │
-  │ Bannières : OK                          │
-  │ Code tiers : 1                          │
-  └─────────────────────────────────────────────┘
-  `);
-};
+  }
 
 
 

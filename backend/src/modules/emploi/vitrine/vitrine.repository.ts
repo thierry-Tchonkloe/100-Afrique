@@ -1,4 +1,4 @@
-// src/repositories/emploi/vitrine.repository.ts
+// src/modules/emploi/vitrine/vitrine.repository.ts
 import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
