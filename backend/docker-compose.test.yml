@@ -1,0 +1,23 @@
+# docker-compose.test.yml
+
+# Lance une base PostgreSQL jetable, utilisée uniquement par les tests d'intégration.
+# Port différent (5433) pour ne JAMAIS entrer en conflit avec un PostgreSQL local sur le port standard 5432.
+# Les données vivent en RAM (tmpfs) : pas besoin de volume à nettoyer, tout disparaît automatiquement quand le conteneur s'arrête.
+services:
+  postgres-test:
+    image: postgres:16-alpine # image officielle, légère
+    container_name: itourisme-postgres-test
+    environment:
+      POSTGRES_DB: itourisme_nomade_test
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: root
+    ports:
+      - '5433:5432' # côté hôte : 5433, pour ne pas entrer en conflit avec le Postgres de dev (5432)
+    healthcheck:
+      # Permet à "docker compose up --wait" de savoir que Postgres accepte vraiment des connexions, pas juste que le process a démarré.
+      test: ['CMD-SHELL', 'pg_isready -U postgres']
+      interval: 2s
+      timeout: 3s
+      retries: 10
+    tmpfs:
+      - /var/lib/postgresql/data # données en RAM : plus rapide, et tout est jeté à l'arrêt du conteneur
