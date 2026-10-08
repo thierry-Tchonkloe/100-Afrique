@@ -17,7 +17,8 @@
     "db:reset": "prisma migrate reset --force",
     "db:setup": "prisma generate && prisma migrate deploy && npm run seed",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "test:integration": "jest --config jest.integration.config.js"
+    "test:integration": "jest --config jest.integration.config.js",
+    "test:integration:docker": "node scripts/run-integration-with-docker.js"
   },
   "keywords": [
     "itourisme",

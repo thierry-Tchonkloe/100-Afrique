@@ -8,6 +8,8 @@
 // contraintes de la base (ex : unicité de l'email) de bout en bout.
 
 import { PrismaClient } from '@prisma/client'; // client Prisma réel (pas de mock)
+import jwt from 'jsonwebtoken'; // pour décoder/vérifier le vrai token renvoyé, pas juste constater sa présence
+import bcrypt from 'bcrypt'; // pour vérifier que le hash en base correspond réellement au mot de passe saisi
 import { authService } from '../../../src/modules/emploi/auth/auth.service'; // service testé tel quel
 import { ConflictError, UnauthorizedError } from '../../../src/errors/http-errors'; // erreurs métier attendues
 
@@ -43,7 +45,7 @@ afterAll(async () => {
 });
 
 describe('authService.register (intégration)', () => {
-  it('cas nominal : crée un candidat réel en base avec un mot de passe hashé (jamais en clair)', async () => {
+  it('cas nominal : crée un candidat réel en base, avec un vrai token signé et le bon mot de passe réellement haché', async () => {
     // Appel du service réel, sans mock : il va vraiment écrire en base.
     const result = await authService.register({
       email: 'candidat@test.com',
@@ -53,14 +55,33 @@ describe('authService.register (intégration)', () => {
       role: 'CANDIDAT',
     });
 
-    expect(result.token).toBeDefined(); // un vrai JWT a été signé (JWT_SECRET vient de .env.test)
-    expect(result.user.email).toBe('candidat@test.com'); // les infos renvoyées correspondent à la saisie
+    // Vérification du token
+    // jwt.verify() recalcule la signature avec JWT_SECRET et lève une exception si la signature est invalide, si le
+    // secret ne correspond pas, ou si le format n'est pas un JWT valide. Un `toBeDefined()` sur une simple chaîne aurait laissé passer n'importe quelle valeur ("abc", "123"...) comme avant.
+    const decoded = jwt.verify(result.token, process.env.JWT_SECRET!) as {
+      id: number;
+      email: string;
+      role: string;
+    };
+    expect(decoded.email).toBe('candidat@test.com'); // le payload correspond bien à l'utilisateur créé
+    expect(decoded.role).toBe('CANDIDAT');
+    expect(decoded).not.toHaveProperty('password'); // garde-fou : un mot de passe (même haché) ne doit jamais finir dans le payload d'un JWT (il est seulement signé, pas chiffré : n'importe qui peut le décoder et le lire)
 
-    // On vérifie directement EN BASE (pas via le service) que l'utilisateur existe réellement.
+    expect(result.user.email).toBe('candidat@test.com'); // les infos utilisateur renvoyées correspondent à la saisie
+
+    // Vérification en base (pas via le service)
     const userInDb = await prisma.emploiUser.findUnique({ where: { email: 'candidat@test.com' } });
     expect(userInDb).not.toBeNull(); // l'utilisateur a bien été persisté
-    expect(userInDb!.password).not.toBe('password123'); // le mot de passe stocké n'est PAS le mot de passe en clair
-    expect(userInDb!.password.startsWith('$2b$')).toBe(true); // préfixe standard d'un hash bcrypt
+
+    // Vérification du mot de passe
+    // Un simple `startsWith('$2b$')` prouve seulement qu'il y a un hash bcrypt en base, pas que c'est le hash du mot de passe
+    // saisi (une valeur par défaut ou un hash codé en dur aurait aussi ce préfixe et ferait passer le test à tort).
+    const passwordMatches = await bcrypt.compare('password123', userInDb!.password); // compare le mot de passe saisi avec le hash en base
+    expect(passwordMatches).toBe(true); // le hash en base correspond bien au mot de passe réellement saisi
+
+    // Contre-épreuve : un autre mot de passe ne doit pas matcher.
+    const wrongPasswordMatches = await bcrypt.compare('un-autre-mot-de-passe', userInDb!.password);
+    expect(wrongPasswordMatches).toBe(false);
 
     // Un candidat doit avoir un CandidatProfil auto-créé (voir emploiUserRepository.create).
     const profil = await prisma.candidatProfil.findUnique({ where: { userId: userInDb!.id } });
@@ -97,7 +118,7 @@ describe('authService.register (intégration)', () => {
 });
 
 describe('authService.login (intégration)', () => {
-  it('cas nominal : connecte un utilisateur existant avec le bon mot de passe', async () => {
+  it('cas nominal : connecte un utilisateur existant avec le bon mot de passe et renvoie un vrai token, sans exposer le mot de passe', async () => {
     // On crée le compte via le VRAI service register, donc avec un mot de
     // passe réellement hashé par bcrypt (pas une valeur fixée à la main).
     await authService.register({
@@ -110,9 +131,13 @@ describe('authService.login (intégration)', () => {
 
     const result = await authService.login({ email: 'login@test.com', password: 'password123' });
 
-    expect(result.token).toBeDefined(); // un token est bien renvoyé
-    expect(result.user.email).toBe('login@test.com'); // les bonnes infos utilisateur
-    expect((result.user as any).password).toBeUndefined(); // le hash ne doit JAMAIS être renvoyé au frontend
+    // Même vérification "vrai JWT" qu'au register, pas un simple toBeDefined().
+    const decoded = jwt.verify(result.token, process.env.JWT_SECRET!) as { email: string; role: string };
+    expect(decoded.email).toBe('login@test.com');
+
+    // Vérification, c'est que l'objet utilisateur renvoyé à côté du token
+    // (result.user, pas result.token) ne contient pas le champ password.
+    expect(result.user).not.toHaveProperty('password');
   });
 
   it("cas d'échec : rejette une connexion avec un mauvais mot de passe (UnauthorizedError)", async () => {
